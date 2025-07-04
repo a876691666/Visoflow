@@ -1,39 +1,57 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Size } from 'src/types';
+import { ref, watch, onUnmounted, type Ref } from 'vue';
+import type { Size } from '@/types';
 
-export const useResizeObserver = (el?: HTMLElement | null) => {
-  const resizeObserverRef = useRef<ResizeObserver>();
-  const [size, setSize] = useState<Size>({ width: 0, height: 0 });
+export const useResizeObserver = (
+  el?: Ref<HTMLElement | null> | HTMLElement | null
+) => {
+  const resizeObserverRef = ref<ResizeObserver | null>(null);
+  const size = ref<Size>({ width: 0, height: 0 });
 
-  const disconnect = useCallback(() => {
-    resizeObserverRef.current?.disconnect();
-  }, []);
+  const disconnect = () => {
+    if (resizeObserverRef.value) {
+      resizeObserverRef.value.disconnect();
+      resizeObserverRef.value = null;
+    }
+  };
 
-  const observe = useCallback(
-    (element: HTMLElement) => {
-      disconnect();
+  const observe = (element: HTMLElement) => {
+    disconnect();
 
-      resizeObserverRef.current = new ResizeObserver(() => {
-        setSize({
-          width: element.clientWidth,
-          height: element.clientHeight
-        });
-      });
+    resizeObserverRef.value = new ResizeObserver(() => {
+      size.value = {
+        width: element.clientWidth,
+        height: element.clientHeight
+      };
+    });
 
-      resizeObserverRef.current.observe(element);
-    },
-    [disconnect]
-  );
+    resizeObserverRef.value.observe(element);
+  };
 
-  useEffect(() => {
-    return () => {
-      disconnect();
-    };
-  }, [disconnect]);
+  // 清理函数
+  onUnmounted(() => {
+    disconnect();
+  });
 
-  useEffect(() => {
-    if (el) observe(el);
-  }, [observe, el]);
+  // 监听元素变化
+  if (el) {
+    if (el instanceof HTMLElement) {
+      // 直接传入HTMLElement
+      observe(el);
+    } else {
+      // 传入Ref<HTMLElement>
+      watch(
+        el,
+        (newEl) => {
+          if (newEl) {
+            observe(newEl);
+          } else {
+            disconnect();
+          }
+        },
+        { immediate: true }
+      );
+    }
+  }
 
   return {
     size,

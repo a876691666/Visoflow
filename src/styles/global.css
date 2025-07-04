@@ -1,0 +1,33 @@
+/* 全局样式重置和基础样式 */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+}
+
+/* 确保画布和容器正确显示 */
+.isoflow-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 覆盖一些默认样式 */
+button {
+  font-family: inherit;
+}
+
+input, textarea, select {
+  font-family: inherit;
+} 

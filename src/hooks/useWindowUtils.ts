@@ -1,13 +1,14 @@
-import { useEffect } from 'react';
+import { onMounted } from 'vue';
 import { useDiagramUtils } from 'src/hooks/useDiagramUtils';
 
 export const useWindowUtils = () => {
   const { fitToView, getUnprojectedBounds } = useDiagramUtils();
 
-  useEffect(() => {
-    window.Isoflow = {
+  onMounted(() => {
+    // 将工具函数暴露到全局window对象
+    (window as any).Isoflow = {
       getUnprojectedBounds,
       fitToView
     };
-  }, [getUnprojectedBounds, fitToView]);
+  });
 };

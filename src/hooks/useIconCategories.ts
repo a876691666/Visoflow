@@ -1,18 +1,18 @@
-import { useMemo } from 'react';
-import { IconCollectionStateWithIcons } from 'src/types';
-import { useUiStateStore } from 'src/stores/uiStateStore';
-import { useModelStore } from 'src/stores/modelStore';
+import { ref, watch } from 'vue';
+import type { IconCollectionStateWithIcons } from '@/types';
+import { useUiStateStore } from '@/stores/uiStateStore';
+import { useModelStore } from '@/stores/modelStore';
 
 export const useIconCategories = () => {
-  const icons = useModelStore((state) => {
-    return state.icons;
-  });
-  const iconCategoriesState = useUiStateStore((state) => {
-    return state.iconCategoriesState;
-  });
+  const modelStore = useModelStore();
+  const uiStateStore = useUiStateStore();
+  const iconCategories = ref<IconCollectionStateWithIcons[]>([]);
 
-  const iconCategories = useMemo<IconCollectionStateWithIcons[]>(() => {
-    return iconCategoriesState.map((collection) => {
+  const updateIconCategories = () => {
+    const icons = modelStore.icons || [];
+    const iconCategoriesState = uiStateStore.iconCategoriesState || [];
+
+    iconCategories.value = iconCategoriesState.map((collection) => {
       return {
         ...collection,
         icons: icons.filter((icon) => {
@@ -20,7 +20,17 @@ export const useIconCategories = () => {
         })
       };
     });
-  }, [icons, iconCategoriesState]);
+  };
+
+  // 监听icons和iconCategoriesState变化
+  watch(
+    [() => modelStore.icons, () => uiStateStore.iconCategoriesState],
+    updateIconCategories,
+    {
+      immediate: true,
+      deep: true
+    }
+  );
 
   return {
     iconCategories

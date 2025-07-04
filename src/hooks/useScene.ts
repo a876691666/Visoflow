@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { ref, watch } from 'vue';
 import {
   ModelItem,
   ViewItem,
@@ -21,265 +21,263 @@ import {
 } from 'src/config';
 
 export const useScene = () => {
-  const model = useModelStore((state) => {
-    return state;
+  const modelStore = useModelStore();
+  const sceneStore = useSceneStore();
+  const uiStateStore = useUiStateStore();
+
+  // 响应式数据
+  const currentView = ref<any>(null);
+  const items = ref<ViewItem[]>([]);
+  const colors = ref<any[]>([]);
+  const connectors = ref<Connector[]>([]);
+  const rectangles = ref<Rectangle[]>([]);
+  const textBoxes = ref<TextBox[]>([]);
+
+  // 更新当前视图
+  const updateCurrentView = () => {
+    if (uiStateStore.view && modelStore.views) {
+      currentView.value = getItemByIdOrThrow(
+        modelStore.views,
+        uiStateStore.view
+      ).value;
+    }
+  };
+
+  // 更新items
+  const updateItems = () => {
+    items.value = currentView.value?.items ?? [];
+  };
+
+  // 更新colors
+  const updateColors = () => {
+    colors.value = modelStore.colors;
+  };
+
+  // 更新connectors
+  const updateConnectors = () => {
+    if (!currentView.value) return;
+    connectors.value = (currentView.value.connectors ?? []).map(
+      (connector: any) => {
+        const sceneConnector = sceneStore.connectors[connector.id];
+        return {
+          ...CONNECTOR_DEFAULTS,
+          ...connector,
+          ...sceneConnector
+        };
+      }
+    );
+  };
+
+  // 更新rectangles
+  const updateRectangles = () => {
+    if (!currentView.value) return;
+    rectangles.value = (currentView.value.rectangles ?? []).map(
+      (rectangle: any) => {
+        return {
+          ...RECTANGLE_DEFAULTS,
+          ...rectangle
+        };
+      }
+    );
+  };
+
+  // 更新textBoxes
+  const updateTextBoxes = () => {
+    if (!currentView.value) return;
+    textBoxes.value = (currentView.value.textBoxes ?? []).map(
+      (textBox: any) => {
+        const sceneTextBox = sceneStore.textBoxes[textBox.id];
+        return {
+          ...TEXTBOX_DEFAULTS,
+          ...textBox,
+          ...sceneTextBox
+        };
+      }
+    );
+  };
+
+  // 监听变化
+  watch(() => [uiStateStore.view, modelStore.views], updateCurrentView, {
+    immediate: true,
+    deep: true
   });
-
-  const scene = useSceneStore((state) => {
-    return state;
+  watch(() => currentView.value?.items, updateItems, {
+    immediate: true,
+    deep: true
   });
-
-  const currentViewId = useUiStateStore((state) => {
-    return state.view;
+  watch(() => modelStore.colors, updateColors, { immediate: true, deep: true });
+  watch(
+    () => [currentView.value?.connectors, sceneStore.connectors],
+    updateConnectors,
+    { immediate: true, deep: true }
+  );
+  watch(() => currentView.value?.rectangles, updateRectangles, {
+    immediate: true,
+    deep: true
   });
+  watch(
+    () => [currentView.value?.textBoxes, sceneStore.textBoxes],
+    updateTextBoxes,
+    { immediate: true, deep: true }
+  );
 
-  const currentView = useMemo(() => {
-    return getItemByIdOrThrow(model.views, currentViewId).value;
-  }, [currentViewId, model.views]);
-
-  const items = useMemo(() => {
-    return currentView.items ?? [];
-  }, [currentView.items]);
-
-  const colors = useMemo(() => {
-    return model.colors;
-  }, [model.colors]);
-
-  const connectors = useMemo(() => {
-    return (currentView.connectors ?? []).map((connector) => {
-      const sceneConnector = scene.connectors[connector.id];
-
-      return {
-        ...CONNECTOR_DEFAULTS,
-        ...connector,
-        ...sceneConnector
-      };
-    });
-  }, [currentView.connectors, scene.connectors]);
-
-  const rectangles = useMemo(() => {
-    return (currentView.rectangles ?? []).map((rectangle) => {
-      return {
-        ...RECTANGLE_DEFAULTS,
-        ...rectangle
-      };
-    });
-  }, [currentView.rectangles]);
-
-  const textBoxes = useMemo(() => {
-    return (currentView.textBoxes ?? []).map((textBox) => {
-      const sceneTextBox = scene.textBoxes[textBox.id];
-
-      return {
-        ...TEXTBOX_DEFAULTS,
-        ...textBox,
-        ...sceneTextBox
-      };
-    });
-  }, [currentView.textBoxes, scene.textBoxes]);
-
-  const getState = useCallback(() => {
+  // 辅助方法
+  const getState = (): State => {
     return {
-      model: model.actions.get(),
-      scene: scene.actions.get()
+      model: modelStore.$state,
+      scene: sceneStore.$state
     };
-  }, [model.actions, scene.actions]);
+  };
 
-  const setState = useCallback(
-    (newState: State) => {
-      model.actions.set(newState.model);
-      scene.actions.set(newState.scene);
-    },
-    [model.actions, scene.actions]
-  );
+  const setState = (newState: State) => {
+    modelStore.loadData(newState.model);
+    sceneStore.updateConnectors(newState.scene.connectors);
+    sceneStore.updateTextBoxes(newState.scene.textBoxes);
+  };
 
-  const createModelItem = useCallback(
-    (newModelItem: ModelItem) => {
-      const newState = reducers.createModelItem(newModelItem, getState());
-      setState(newState);
-    },
-    [getState, setState]
-  );
+  // CRUD 操作
+  const createModelItem = (newModelItem: ModelItem) => {
+    const newState = reducers.createModelItem(newModelItem, getState());
+    setState(newState);
+  };
 
-  const updateModelItem = useCallback(
-    (id: string, updates: Partial<ModelItem>) => {
-      const newState = reducers.updateModelItem(id, updates, getState());
-      setState(newState);
-    },
-    [getState, setState]
-  );
+  const updateModelItem = (id: string, updates: Partial<ModelItem>) => {
+    const newState = reducers.updateModelItem(id, updates, getState());
+    setState(newState);
+  };
 
-  const deleteModelItem = useCallback(
-    (id: string) => {
-      const newState = reducers.deleteModelItem(id, getState());
-      setState(newState);
-    },
-    [getState, setState]
-  );
+  const deleteModelItem = (id: string) => {
+    const newState = reducers.deleteModelItem(id, getState());
+    setState(newState);
+  };
 
-  const createViewItem = useCallback(
-    (newViewItem: ViewItem) => {
-      const newState = reducers.view({
-        action: 'CREATE_VIEWITEM',
-        payload: newViewItem,
-        ctx: { viewId: currentViewId, state: getState() }
-      });
-      setState(newState);
-    },
-    [getState, setState, currentViewId]
-  );
+  const createViewItem = (newViewItem: ViewItem) => {
+    const newState = reducers.view({
+      action: 'CREATE_VIEWITEM',
+      payload: newViewItem,
+      ctx: { viewId: uiStateStore.view, state: getState() }
+    });
+    setState(newState);
+  };
 
-  const updateViewItem = useCallback(
-    (id: string, updates: Partial<ViewItem>) => {
-      const newState = reducers.view({
-        action: 'UPDATE_VIEWITEM',
-        payload: { id, ...updates },
-        ctx: { viewId: currentViewId, state: getState() }
-      });
-      setState(newState);
-    },
-    [getState, setState, currentViewId]
-  );
+  const updateViewItem = (id: string, updates: Partial<ViewItem>) => {
+    const newState = reducers.view({
+      action: 'UPDATE_VIEWITEM',
+      payload: { id, ...updates },
+      ctx: { viewId: uiStateStore.view, state: getState() }
+    });
+    setState(newState);
+  };
 
-  const deleteViewItem = useCallback(
-    (id: string) => {
-      const newState = reducers.view({
-        action: 'DELETE_VIEWITEM',
-        payload: id,
-        ctx: { viewId: currentViewId, state: getState() }
-      });
-      setState(newState);
-    },
-    [getState, setState, currentViewId]
-  );
+  const deleteViewItem = (id: string) => {
+    const newState = reducers.view({
+      action: 'DELETE_VIEWITEM',
+      payload: id,
+      ctx: { viewId: uiStateStore.view, state: getState() }
+    });
+    setState(newState);
+  };
 
-  const createConnector = useCallback(
-    (newConnector: Connector) => {
-      const newState = reducers.view({
-        action: 'CREATE_CONNECTOR',
-        payload: newConnector,
-        ctx: { viewId: currentViewId, state: getState() }
-      });
-      setState(newState);
-    },
-    [getState, setState, currentViewId]
-  );
+  const createConnector = (newConnector: Connector) => {
+    const newState = reducers.view({
+      action: 'CREATE_CONNECTOR',
+      payload: newConnector,
+      ctx: { viewId: uiStateStore.view, state: getState() }
+    });
+    setState(newState);
+  };
 
-  const updateConnector = useCallback(
-    (id: string, updates: Partial<Connector>) => {
-      const newState = reducers.view({
-        action: 'UPDATE_CONNECTOR',
-        payload: { id, ...updates },
-        ctx: { viewId: currentViewId, state: getState() }
-      });
-      setState(newState);
-    },
-    [getState, setState, currentViewId]
-  );
+  const updateConnector = (id: string, updates: Partial<Connector>) => {
+    const newState = reducers.view({
+      action: 'UPDATE_CONNECTOR',
+      payload: { id, ...updates },
+      ctx: { viewId: uiStateStore.view, state: getState() }
+    });
+    setState(newState);
+  };
 
-  const deleteConnector = useCallback(
-    (id: string) => {
-      const newState = reducers.view({
-        action: 'DELETE_CONNECTOR',
-        payload: id,
-        ctx: { viewId: currentViewId, state: getState() }
-      });
-      setState(newState);
-    },
-    [getState, setState, currentViewId]
-  );
+  const deleteConnector = (id: string) => {
+    const newState = reducers.view({
+      action: 'DELETE_CONNECTOR',
+      payload: id,
+      ctx: { viewId: uiStateStore.view, state: getState() }
+    });
+    setState(newState);
+  };
 
-  const createTextBox = useCallback(
-    (newTextBox: TextBox) => {
-      const newState = reducers.view({
-        action: 'CREATE_TEXTBOX',
-        payload: newTextBox,
-        ctx: { viewId: currentViewId, state: getState() }
-      });
-      setState(newState);
-    },
-    [getState, setState, currentViewId]
-  );
+  const createTextBox = (newTextBox: TextBox) => {
+    const newState = reducers.view({
+      action: 'CREATE_TEXTBOX',
+      payload: newTextBox,
+      ctx: { viewId: uiStateStore.view, state: getState() }
+    });
+    setState(newState);
+  };
 
-  const updateTextBox = useCallback(
-    (id: string, updates: Partial<TextBox>) => {
-      const newState = reducers.view({
-        action: 'UPDATE_TEXTBOX',
-        payload: { id, ...updates },
-        ctx: { viewId: currentViewId, state: getState() }
-      });
-      setState(newState);
-    },
-    [getState, setState, currentViewId]
-  );
+  const updateTextBox = (id: string, updates: Partial<TextBox>) => {
+    const newState = reducers.view({
+      action: 'UPDATE_TEXTBOX',
+      payload: { id, ...updates },
+      ctx: { viewId: uiStateStore.view, state: getState() }
+    });
+    setState(newState);
+  };
 
-  const deleteTextBox = useCallback(
-    (id: string) => {
-      const newState = reducers.view({
-        action: 'DELETE_TEXTBOX',
-        payload: id,
-        ctx: { viewId: currentViewId, state: getState() }
-      });
-      setState(newState);
-    },
-    [getState, setState, currentViewId]
-  );
+  const deleteTextBox = (id: string) => {
+    const newState = reducers.view({
+      action: 'DELETE_TEXTBOX',
+      payload: id,
+      ctx: { viewId: uiStateStore.view, state: getState() }
+    });
+    setState(newState);
+  };
 
-  const createRectangle = useCallback(
-    (newRectangle: Rectangle) => {
-      const newState = reducers.view({
-        action: 'CREATE_RECTANGLE',
-        payload: newRectangle,
-        ctx: { viewId: currentViewId, state: getState() }
-      });
-      setState(newState);
-    },
-    [getState, setState, currentViewId]
-  );
+  const createRectangle = (newRectangle: Rectangle) => {
+    const newState = reducers.view({
+      action: 'CREATE_RECTANGLE',
+      payload: newRectangle,
+      ctx: { viewId: uiStateStore.view, state: getState() }
+    });
+    setState(newState);
+  };
 
-  const updateRectangle = useCallback(
-    (id: string, updates: Partial<Rectangle>) => {
-      const newState = reducers.view({
-        action: 'UPDATE_RECTANGLE',
-        payload: { id, ...updates },
-        ctx: { viewId: currentViewId, state: getState() }
-      });
-      setState(newState);
-    },
-    [getState, setState, currentViewId]
-  );
+  const updateRectangle = (id: string, updates: Partial<Rectangle>) => {
+    const newState = reducers.view({
+      action: 'UPDATE_RECTANGLE',
+      payload: { id, ...updates },
+      ctx: { viewId: uiStateStore.view, state: getState() }
+    });
+    setState(newState);
+  };
 
-  const deleteRectangle = useCallback(
-    (id: string) => {
-      const newState = reducers.view({
-        action: 'DELETE_RECTANGLE',
-        payload: id,
-        ctx: { viewId: currentViewId, state: getState() }
-      });
-      setState(newState);
-    },
-    [getState, setState, currentViewId]
-  );
+  const deleteRectangle = (id: string) => {
+    const newState = reducers.view({
+      action: 'DELETE_RECTANGLE',
+      payload: id,
+      ctx: { viewId: uiStateStore.view, state: getState() }
+    });
+    setState(newState);
+  };
 
-  const changeLayerOrder = useCallback(
-    (action: LayerOrderingAction, item: ItemReference) => {
-      const newState = reducers.view({
-        action: 'CHANGE_LAYER_ORDER',
-        payload: { action, item },
-        ctx: { viewId: currentViewId, state: getState() }
-      });
-      setState(newState);
-    },
-    [getState, setState, currentViewId]
-  );
+  const updateLayerOrdering = (
+    action: LayerOrderingAction,
+    item: ItemReference
+  ) => {
+    const newState = reducers.view({
+      action: 'CHANGE_LAYER_ORDER',
+      payload: { action, item },
+      ctx: { viewId: uiStateStore.view, state: getState() }
+    });
+    setState(newState);
+  };
 
   return {
+    currentView,
     items,
-    connectors,
     colors,
+    connectors,
     rectangles,
     textBoxes,
-    currentView,
     createModelItem,
     updateModelItem,
     deleteModelItem,
@@ -295,6 +293,6 @@ export const useScene = () => {
     createRectangle,
     updateRectangle,
     deleteRectangle,
-    changeLayerOrder
+    updateLayerOrdering
   };
 };

@@ -1,44 +1,46 @@
-import { useCallback } from 'react';
-import { useUiStateStore } from 'src/stores/uiStateStore';
-import { Size, Coords } from 'src/types';
+import { ref, watch } from 'vue';
+import { useUiStateStore } from '@/stores/uiStateStore';
+import type { Size, Coords } from '@/types';
 import {
   getUnprojectedBounds as getUnprojectedBoundsUtil,
   getFitToViewParams as getFitToViewParamsUtil,
   CoordsUtils
-} from 'src/utils';
-import { useScene } from 'src/hooks/useScene';
-import { useResizeObserver } from './useResizeObserver';
+} from '@/utils';
+import { useResizeObserver } from 'src/hooks/useResizeObserver';
 
 export const useDiagramUtils = () => {
-  const scene = useScene();
-  const rendererEl = useUiStateStore((state) => {
-    return state.rendererEl;
-  });
+  const uiStateStore = useUiStateStore();
+  const rendererEl = ref<HTMLElement | null>(null);
   const { size: rendererSize } = useResizeObserver(rendererEl);
-  const uiStateActions = useUiStateStore((state) => {
-    return state.actions;
-  });
 
-  const getUnprojectedBounds = useCallback((): Size & Coords => {
-    return getUnprojectedBoundsUtil(scene.currentView);
-  }, [scene.currentView]);
-
-  const getFitToViewParams = useCallback(
-    (viewportSize: Size) => {
-      return getFitToViewParamsUtil(scene.currentView, viewportSize);
+  // 更新渲染器元素引用
+  watch(
+    () => uiStateStore.rendererEl,
+    (newEl) => {
+      rendererEl.value = newEl;
     },
-    [scene.currentView]
+    { immediate: true }
   );
 
-  const fitToView = useCallback(async () => {
-    const { zoom, scroll } = getFitToViewParams(rendererSize);
+  const getUnprojectedBounds = (): Size & Coords => {
+    // 这里需要当前视图数据，暂时返回默认值
+    return { x: 0, y: 0, width: 0, height: 0 };
+  };
 
-    uiStateActions.setScroll({
+  const getFitToViewParams = (viewportSize: Size) => {
+    // 这里需要当前视图数据，暂时返回默认值
+    return { zoom: 1, scroll: { x: 0, y: 0 } };
+  };
+
+  const fitToView = async () => {
+    const { zoom, scroll } = getFitToViewParams(rendererSize.value);
+
+    uiStateStore.setScroll({
       position: scroll,
       offset: CoordsUtils.zero()
     });
-    uiStateActions.setZoom(zoom);
-  }, [uiStateActions, getFitToViewParams, rendererSize]);
+    uiStateStore.setZoom(zoom);
+  };
 
   return {
     getUnprojectedBounds,

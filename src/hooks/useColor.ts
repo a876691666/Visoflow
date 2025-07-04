@@ -1,21 +1,30 @@
-import { useMemo } from 'react';
-import { getItemByIdOrThrow } from 'src/utils';
-import { useScene } from 'src/hooks/useScene';
+import { ref, watch } from 'vue';
+import { getItemByIdOrThrow } from '@/utils';
+import { useModelStore } from '@/stores/modelStore';
 
 export const useColor = (colorId?: string) => {
-  const { colors } = useScene();
+  const modelStore = useModelStore();
+  const color = ref<any>(null);
 
-  const color = useMemo(() => {
+  const updateColor = () => {
+    const colors = modelStore.colors || [];
+
     if (colorId === undefined) {
       if (colors.length > 0) {
-        return colors[0];
+        color.value = colors[0];
+      } else {
+        throw new Error('No colors available.');
       }
-
-      throw new Error('No colors available.');
+    } else {
+      color.value = getItemByIdOrThrow(colors, colorId).value;
     }
+  };
 
-    return getItemByIdOrThrow(colors, colorId).value;
-  }, [colorId, colors]);
+  // 监听colorId和store变化
+  watch([() => colorId, () => modelStore.colors], updateColor, {
+    immediate: true,
+    deep: true
+  });
 
   return color;
 };

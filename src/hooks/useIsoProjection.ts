@@ -1,11 +1,7 @@
-import { useMemo } from 'react';
-import { Coords, Size, ProjectionOrientationEnum } from 'src/types';
-import {
-  getBoundingBox,
-  getIsoProjectionCss,
-  getTilePosition
-} from 'src/utils';
-import { UNPROJECTED_TILE_SIZE } from 'src/config';
+import { ref, watch, type CSSProperties, type Ref } from 'vue';
+import type { Coords, Size, ProjectionOrientationEnum } from '@/types';
+import { getBoundingBox, getIsoProjectionCss, getTilePosition } from '@/utils';
+import { UNPROJECTED_TILE_SIZE } from '@/config';
 
 interface Props {
   from: Coords;
@@ -14,58 +10,73 @@ interface Props {
   orientation?: keyof typeof ProjectionOrientationEnum;
 }
 
+interface UseIsoProjectionReturn {
+  css: Ref<CSSProperties>;
+  position: Ref<Coords>;
+  gridSize: Ref<Size>;
+  pxSize: Ref<Size>;
+}
+
 export const useIsoProjection = ({
   from,
   to,
   originOverride,
   orientation
-}: Props): {
-  css: React.CSSProperties;
-  position: Coords;
-  gridSize: Size;
-  pxSize: Size;
-} => {
-  const gridSize = useMemo(() => {
-    return {
+}: Props): UseIsoProjectionReturn => {
+  const css = ref<CSSProperties>({});
+  const position = ref<Coords>({ x: 0, y: 0 });
+  const gridSize = ref<Size>({ width: 0, height: 0 });
+  const pxSize = ref<Size>({ width: 0, height: 0 });
+
+  const updateProjection = () => {
+    // 计算网格尺寸
+    const newGridSize = {
       width: Math.abs(from.x - to.x) + 1,
       height: Math.abs(from.y - to.y) + 1
     };
-  }, [from, to]);
+    gridSize.value = newGridSize;
 
-  const origin = useMemo(() => {
-    if (originOverride) return originOverride;
+    // 计算原点
+    const origin = originOverride || getBoundingBox([from, to])[3];
 
-    const boundingBox = getBoundingBox([from, to]);
-
-    return boundingBox[3];
-  }, [from, to, originOverride]);
-
-  const position = useMemo(() => {
+    // 计算位置
     const pos = getTilePosition({
       tile: origin,
       origin: orientation === 'Y' ? 'TOP' : 'LEFT'
     });
+    position.value = pos;
 
-    return pos;
-  }, [origin, orientation]);
-
-  const pxSize = useMemo(() => {
-    return {
-      width: gridSize.width * UNPROJECTED_TILE_SIZE,
-      height: gridSize.height * UNPROJECTED_TILE_SIZE
+    // 计算像素尺寸
+    const newPxSize = {
+      width: newGridSize.width * UNPROJECTED_TILE_SIZE,
+      height: newGridSize.height * UNPROJECTED_TILE_SIZE
     };
-  }, [gridSize]);
+    pxSize.value = newPxSize;
 
-  return {
-    css: {
+    // 计算CSS样式
+    css.value = {
       position: 'absolute',
-      left: position.x,
-      top: position.y,
-      width: `${pxSize.width}px`,
-      height: `${pxSize.height}px`,
+      left: `${pos.x}px`,
+      top: `${pos.y}px`,
+      width: `${newPxSize.width}px`,
+      height: `${newPxSize.height}px`,
       transform: getIsoProjectionCss(orientation),
       transformOrigin: 'top left'
-    },
+    };
+  };
+
+  // 监听属性变化
+  watch(
+    [() => from, () => to, () => originOverride, () => orientation],
+    updateProjection,
+    {
+      immediate: true,
+      deep: true
+    }
+  );
+
+  return {
+    css,
     position,
     gridSize,
     pxSize

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { ref, onUnmounted, watch } from 'vue';
 import { useModelStore } from 'src/stores/modelStore';
 import { useUiStateStore } from 'src/stores/uiStateStore';
 import { ModeActions, State, SlimMouseEvent } from 'src/types';
@@ -40,89 +40,79 @@ const getModeFunction = (mode: ModeActions, e: SlimMouseEvent) => {
 };
 
 export const useInteractionManager = () => {
-  const rendererRef = useRef<HTMLElement>();
-  const reducerTypeRef = useRef<string>();
-  const uiState = useUiStateStore((state) => {
-    return state;
-  });
-  const model = useModelStore((state) => {
-    return state;
-  });
+  const rendererRef = ref<HTMLElement>();
+  const reducerTypeRef = ref<string>();
+  const uiStateStore = useUiStateStore();
+  const modelStore = useModelStore();
   const scene = useScene();
-  const { size: rendererSize } = useResizeObserver(uiState.rendererEl);
+  const { size: rendererSize } = useResizeObserver(uiStateStore.rendererEl);
 
-  const onMouseEvent = useCallback(
-    (e: SlimMouseEvent) => {
-      if (!rendererRef.current) return;
+  const onMouseEvent = (e: SlimMouseEvent) => {
+    if (!rendererRef.value) return;
 
-      const mode = modes[uiState.mode.type];
-      const modeFunction = getModeFunction(mode, e);
+    const mode = modes[uiStateStore.mode.type];
+    const modeFunction = getModeFunction(mode, e);
 
-      if (!modeFunction) return;
+    if (!modeFunction) return;
 
-      const nextMouse = getMouse({
-        interactiveElement: rendererRef.current,
-        zoom: uiState.zoom,
-        scroll: uiState.scroll,
-        lastMouse: uiState.mouse,
-        mouseEvent: e,
-        rendererSize
-      });
+    const nextMouse = getMouse({
+      interactiveElement: rendererRef.value,
+      zoom: uiStateStore.zoom,
+      scroll: uiStateStore.scroll,
+      lastMouse: uiStateStore.mouse,
+      mouseEvent: e,
+      rendererSize: rendererSize.value
+    });
 
-      uiState.actions.setMouse(nextMouse);
+    uiStateStore.setMouse(nextMouse);
 
-      const baseState: State = {
-        model,
-        scene,
-        uiState,
-        rendererRef: rendererRef.current,
-        rendererSize,
-        isRendererInteraction: rendererRef.current === e.target
-      };
+    const baseState: State = {
+      model: modelStore.$state,
+      scene: scene,
+      uiState: uiStateStore.$state,
+      rendererRef: rendererRef.value,
+      rendererSize: rendererSize.value,
+      isRendererInteraction: rendererRef.value === e.target
+    };
 
-      if (reducerTypeRef.current !== uiState.mode.type) {
-        const prevReducer = reducerTypeRef.current
-          ? modes[reducerTypeRef.current]
-          : null;
+    if (reducerTypeRef.value !== uiStateStore.mode.type) {
+      const prevReducer = reducerTypeRef.value
+        ? modes[reducerTypeRef.value]
+        : null;
 
-        if (prevReducer && prevReducer.exit) {
-          prevReducer.exit(baseState);
-        }
-
-        if (mode.entry) {
-          mode.entry(baseState);
-        }
+      if (prevReducer && prevReducer.exit) {
+        prevReducer.exit(baseState);
       }
 
-      modeFunction(baseState);
-      reducerTypeRef.current = uiState.mode.type;
-    },
-    [model, scene, uiState, rendererSize]
-  );
-
-  const onContextMenu = useCallback(
-    (e: SlimMouseEvent) => {
-      e.preventDefault();
-
-      const itemAtTile = getItemAtTile({
-        tile: uiState.mouse.position.tile,
-        scene
-      });
-
-      if (itemAtTile?.type === 'RECTANGLE') {
-        uiState.actions.setContextMenu({
-          item: itemAtTile,
-          tile: uiState.mouse.position.tile
-        });
-      } else if (uiState.contextMenu) {
-        uiState.actions.setContextMenu(null);
+      if (mode.entry) {
+        mode.entry(baseState);
       }
-    },
-    [uiState.mouse, scene, uiState.contextMenu, uiState.actions]
-  );
+    }
 
-  useEffect(() => {
-    if (uiState.mode.type === 'INTERACTIONS_DISABLED') return;
+    modeFunction(baseState);
+    reducerTypeRef.value = uiStateStore.mode.type;
+  };
+
+  const onContextMenu = (e: SlimMouseEvent) => {
+    e.preventDefault();
+
+    const itemAtTile = getItemAtTile({
+      tile: uiStateStore.mouse.position.tile,
+      scene
+    });
+
+    if (itemAtTile?.type === 'RECTANGLE') {
+      uiStateStore.setContextMenu({
+        item: itemAtTile,
+        tile: uiStateStore.mouse.position.tile
+      });
+    } else if (uiStateStore.contextMenu) {
+      uiStateStore.setContextMenu(null);
+    }
+  };
+
+  const setupEventListeners = () => {
+    if (uiStateStore.mode.type === 'INTERACTIONS_DISABLED') return;
 
     const el = window;
 
@@ -132,7 +122,7 @@ export const useInteractionManager = () => {
         clientX: Math.floor(e.touches[0].clientX),
         clientY: Math.floor(e.touches[0].clientY),
         type: 'mousedown'
-      });
+      } as any);
     };
 
     const onTouchMove = (e: TouchEvent) => {
@@ -141,7 +131,7 @@ export const useInteractionManager = () => {
         clientX: Math.floor(e.touches[0].clientX),
         clientY: Math.floor(e.touches[0].clientY),
         type: 'mousemove'
-      });
+      } as any);
     };
 
     const onTouchEnd = (e: TouchEvent) => {
@@ -150,48 +140,65 @@ export const useInteractionManager = () => {
         clientX: 0,
         clientY: 0,
         type: 'mouseup'
-      });
+      } as any);
     };
 
     const onScroll = (e: WheelEvent) => {
       if (e.deltaY > 0) {
-        uiState.actions.decrementZoom();
+        uiStateStore.decrementZoom();
       } else {
-        uiState.actions.incrementZoom();
+        uiStateStore.incrementZoom();
       }
     };
 
-    el.addEventListener('mousemove', onMouseEvent);
-    el.addEventListener('mousedown', onMouseEvent);
-    el.addEventListener('mouseup', onMouseEvent);
-    el.addEventListener('contextmenu', onContextMenu);
+    el.addEventListener('mousemove', onMouseEvent as any);
+    el.addEventListener('mousedown', onMouseEvent as any);
+    el.addEventListener('mouseup', onMouseEvent as any);
+    el.addEventListener('contextmenu', onContextMenu as any);
     el.addEventListener('touchstart', onTouchStart);
     el.addEventListener('touchmove', onTouchMove);
     el.addEventListener('touchend', onTouchEnd);
-    uiState.rendererEl?.addEventListener('wheel', onScroll);
+    uiStateStore.rendererEl?.addEventListener('wheel', onScroll);
 
     return () => {
-      el.removeEventListener('mousemove', onMouseEvent);
-      el.removeEventListener('mousedown', onMouseEvent);
-      el.removeEventListener('mouseup', onMouseEvent);
-      el.removeEventListener('contextmenu', onContextMenu);
+      el.removeEventListener('mousemove', onMouseEvent as any);
+      el.removeEventListener('mousedown', onMouseEvent as any);
+      el.removeEventListener('mouseup', onMouseEvent as any);
+      el.removeEventListener('contextmenu', onContextMenu as any);
       el.removeEventListener('touchstart', onTouchStart);
       el.removeEventListener('touchmove', onTouchMove);
       el.removeEventListener('touchend', onTouchEnd);
-      uiState.rendererEl?.removeEventListener('wheel', onScroll);
+      uiStateStore.rendererEl?.removeEventListener('wheel', onScroll);
     };
-  }, [
-    uiState.editorMode,
-    onMouseEvent,
-    uiState.mode.type,
-    onContextMenu,
-    uiState.actions,
-    uiState.rendererEl
-  ]);
+  };
 
-  const setInteractionsElement = useCallback((element: HTMLElement) => {
-    rendererRef.current = element;
-  }, []);
+  let cleanupListeners: (() => void) | null = null;
+
+  // 监听相关状态变化，重新设置事件监听器
+  watch(
+    () => [
+      uiStateStore.editorMode,
+      uiStateStore.mode.type,
+      uiStateStore.rendererEl
+    ],
+    () => {
+      if (cleanupListeners) {
+        cleanupListeners();
+      }
+      cleanupListeners = setupEventListeners();
+    },
+    { immediate: true, deep: true }
+  );
+
+  onUnmounted(() => {
+    if (cleanupListeners) {
+      cleanupListeners();
+    }
+  });
+
+  const setInteractionsElement = (element: HTMLElement) => {
+    rendererRef.value = element;
+  };
 
   return {
     setInteractionsElement
