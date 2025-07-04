@@ -11,7 +11,6 @@ import {
   Colors
 } from 'src/types';
 import { CoordsUtils } from 'src/utils';
-import { customVars } from './styles/theme';
 
 // TODO: This file could do with better organisation and convention for easier reading.
 export const UNPROJECTED_TILE_SIZE = 100;
@@ -26,7 +25,7 @@ export const PROJECTED_TILE_SIZE = {
 
 export const DEFAULT_COLOR: Colors[0] = {
   id: '__DEFAULT__',
-  value: customVars.customPalette.defaultColor
+  value: '#6366f1' // Default blue color
 };
 
 export const DEFAULT_FONT_FAMILY = 'Roboto, Arial, sans-serif';

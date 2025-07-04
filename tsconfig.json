@@ -5,22 +5,33 @@
       "src/*": ["./*"]
     },
     "outDir": "./dist",
-    "noImplicitAny": true,
-    "target": "es6",
-    "jsx": "react-jsx",
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "declaration": true,
-    "strict": true,
-    "module": "es6",
-    "moduleResolution": "node",
-    "skipLibCheck": true,
-    "useUnknownInCatchVariables": false
+    "useUnknownInCatchVariables": false,
+    "types": ["vite/client", "node"]
   },
-  "exclude": ["node_modules", "./dist", "./docs"],
   "include": [
     "**/*.ts",
-    "**/*.tsx",
-    "src/global.d.ts"
+    "**/*.vue",
+    "src/global.d.ts",
+    "vite.config.ts"
   ],
+  "references": [{ "path": "./tsconfig.node.json" }],
+  "exclude": ["node_modules", "./dist", "./docs"]
 }
