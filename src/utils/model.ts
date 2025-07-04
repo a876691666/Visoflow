@@ -53,7 +53,22 @@ export const fixModel = (model: Model): Model => {
   }, model);
 };
 
-export const modelFromModelStore = (modelStore: ModelStore): Model => {
+// Support both old ModelStore (Zustand) and new Pinia store
+export const modelFromModelStore = (modelStore: ModelStore | any): Model => {
+  // If it's a Pinia store, access properties directly
+  if (modelStore.$state) {
+    return {
+      version: modelStore.version,
+      title: modelStore.title,
+      description: modelStore.description,
+      colors: modelStore.colors,
+      icons: modelStore.icons,
+      items: modelStore.items,
+      views: modelStore.views
+    };
+  }
+  
+  // Legacy support for Zustand ModelStore
   return {
     version: modelStore.version,
     title: modelStore.title,
