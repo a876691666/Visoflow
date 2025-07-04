@@ -28,6 +28,9 @@ export const useUiStateStore = defineStore('uiState', {
     },
     itemControls: null,
     enableDebugTools: false,
+    selectedItems: [] as string[],
+    showDebugInfo: false,
+    showShortcutsGuide: false,
   }),
 
   actions: {
@@ -89,6 +92,15 @@ export const useUiStateStore = defineStore('uiState', {
     },
     setRendererEl(el: HTMLDivElement | null) {
       this.rendererEl = el
+    },
+    setSelectedItems(selectedItems: string[]) {
+      this.selectedItems = selectedItems
+    },
+    setShowDebugInfo(showDebugInfo: boolean) {
+      this.showDebugInfo = showDebugInfo
+    },
+    setShowShortcutsGuide(showShortcutsGuide: boolean) {
+      this.showShortcutsGuide = showShortcutsGuide
     }
   }
 })

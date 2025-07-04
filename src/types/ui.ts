@@ -146,6 +146,9 @@ export interface UiState {
   mouse: Mouse;
   rendererEl: HTMLDivElement | null;
   enableDebugTools: boolean;
+  selectedItems: string[];
+  showDebugInfo: boolean;
+  showShortcutsGuide: boolean;
 }
 
 export interface UiStateActions {

@@ -24,6 +24,7 @@ import Renderer from 'src/components/Renderer/Renderer.vue'
 import UiOverlay from 'src/components/UiOverlay/UiOverlay.vue'
 import { INITIAL_DATA, MAIN_MENU_OPTIONS } from 'src/config'
 import { useInitialDataManager } from 'src/hooks/useInitialDataManager'
+import { useKeyboardShortcuts } from 'src/hooks/useKeyboardShortcuts'
 
 interface Props extends Partial<IsoflowProps> {
   width?: string
@@ -45,6 +46,9 @@ const emit = defineEmits<{
 const uiStateStore = useUiStateStore()
 const modelStore = useModelStore()
 const initialDataManager = useInitialDataManager()
+
+// Initialize keyboard shortcuts
+useKeyboardShortcuts()
 
 // Watch for initial data changes
 watch(

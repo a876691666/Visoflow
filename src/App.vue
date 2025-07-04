@@ -1,11 +1,13 @@
 <template>
   <div id="app" style="width: 100vw; height: 100vh;">
     <Examples />
+    <KeyboardShortcutsGuide />
   </div>
 </template>
 
 <script setup lang="ts">
 import Examples from './examples/Examples.vue'
+import KeyboardShortcutsGuide from './components/KeyboardShortcutsGuide/KeyboardShortcutsGuide.vue'
 </script>
 
 <style>
