@@ -1,26 +1,31 @@
 {
   "compilerOptions": {
-    "baseUrl": "./src",
-    "paths": {
-      "src/*": ["./*"]
-    },
-    "outDir": "./dist",
-    "noImplicitAny": true,
-    "target": "es6",
-    "jsx": "react-jsx",
-    "allowJs": true,
-    "allowSyntheticDefaultImports": true,
-    "declaration": true,
-    "strict": true,
-    "module": "es6",
-    "moduleResolution": "node",
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
     "skipLibCheck": true,
-    "useUnknownInCatchVariables": false
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": "./",
+    "paths": {
+      "src/*": ["./src/*"]
+    },
+    "types": ["vite/client"]
   },
-  "exclude": ["node_modules", "./dist", "./docs"],
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "src/global.d.ts"
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "src/vue-shims.d.ts",
+    "vite.config.ts"
   ],
+  "exclude": ["node_modules", "dist"]
 }
