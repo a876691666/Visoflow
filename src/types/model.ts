@@ -15,7 +15,7 @@ import {
   rectangleSchema,
   connectorStyleOptions
 } from 'src/schemas';
-import { StoreApi } from 'zustand';
+// Vue3 stores don't need StoreApi
 
 export { connectorStyleOptions } from 'src/schemas';
 export type Model = z.infer<typeof modelSchema>;
@@ -33,9 +33,4 @@ export type Connector = z.infer<typeof connectorSchema>;
 export type TextBox = z.infer<typeof textBoxSchema>;
 export type Rectangle = z.infer<typeof rectangleSchema>;
 
-export type ModelStore = Model & {
-  actions: {
-    get: StoreApi<ModelStore>['getState'];
-    set: StoreApi<ModelStore>['setState'];
-  };
-};
+export type ModelStore = Model;

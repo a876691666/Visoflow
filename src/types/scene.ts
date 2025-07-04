@@ -1,4 +1,4 @@
-import { StoreApi } from 'zustand';
+// Vue3 stores don't need StoreApi
 import type { Coords, Rect, Size } from './common';
 
 export const tileOriginOptions = {
@@ -48,9 +48,4 @@ export interface Scene {
   };
 }
 
-export type SceneStore = Scene & {
-  actions: {
-    get: StoreApi<SceneStore>['getState'];
-    set: StoreApi<SceneStore>['setState'];
-  };
-};
+export type SceneStore = Scene;

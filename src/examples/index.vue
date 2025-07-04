@@ -3,7 +3,6 @@
     <h1>Isoflow Vue3 Examples</h1>
     <div class="example-container">
       <Isoflow 
-        :initial-data="{}"
         width="800px"
         height="600px"
         :enable-debug-tools="false"

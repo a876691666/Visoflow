@@ -1,9 +1,9 @@
 import { ModelStore, UiStateStore, Size } from 'src/types';
-import { useScene } from 'src/hooks/useScene';
+// import { useScene } from 'src/composables/useScene';
 
 export interface State {
   model: ModelStore;
-  scene: ReturnType<typeof useScene>;
+  scene: any; // TODO: Replace with proper Scene type
   uiState: UiStateStore;
   rendererRef: HTMLElement;
   rendererSize: Size;

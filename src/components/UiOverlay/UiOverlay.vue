@@ -6,15 +6,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useUiStateStore } from 'src/stores/uiStateStore'
-import { useModelStore } from 'src/stores/modelStore'
+// import { computed } from 'vue'
+// import { useUiStateStore } from 'src/stores/uiStateStore'
 
-const uiStateStore = useUiStateStore()
-const modelStore = useModelStore()
+// const uiStateStore = useUiStateStore() // TODO: Use when implementing UI
 
-const editorMode = computed(() => uiStateStore.editorMode)
-const enableDebugTools = computed(() => uiStateStore.enableDebugTools)
+// const editorMode = computed(() => uiStateStore.editorMode) // TODO: Use when implementing UI
+// const enableDebugTools = computed(() => uiStateStore.enableDebugTools) // TODO: Use when implementing UI
 </script>
 
 <style scoped>

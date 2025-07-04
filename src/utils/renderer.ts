@@ -38,7 +38,7 @@ import {
   toPx,
   getItemByIdOrThrow
 } from 'src/utils';
-import { useScene } from 'src/hooks/useScene';
+// import { useScene } from 'src/composables/useScene'; // TODO: Refactor for Vue3
 
 interface ScreenToIso {
   mouse: Coords;
@@ -441,6 +441,8 @@ export const getTextBoxEndTile = (textBox: TextBox, size: Size) => {
   });
 };
 
+// TODO: Refactor for Vue3
+/*
 interface GetItemAtTile {
   tile: Coords;
   scene: ReturnType<typeof useScene>;
@@ -515,6 +517,10 @@ export const getItemAtTile = ({
 
   return null;
 };
+*/
+
+// Temporary placeholder for getItemAtTile
+export const getItemAtTile = (): any => null;
 
 interface FontProps {
   fontWeight: number | string;

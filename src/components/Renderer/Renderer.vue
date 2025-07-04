@@ -8,7 +8,7 @@
       width: '100%',
       height: '100%',
       zIndex: 0,
-      backgroundColor: backgroundColor || '#f5f5f5'
+      backgroundColor: props.backgroundColor || '#f5f5f5'
     }"
   >
     <!-- Scene layers will be added here -->
@@ -22,8 +22,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useUiStateStore } from 'src/stores/uiStateStore'
-// import { useInteractionManager } from 'src/interaction/useInteractionManager'
-// import { useScene } from 'src/hooks/useScene'
+import { useInteractionManager } from 'src/composables/useInteractionManager'
+// import { useScene } from 'src/composables/useScene'
 
 interface Props {
   showGrid?: boolean
@@ -36,13 +36,15 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const containerRef = ref<HTMLDivElement>()
-const interactionsRef = ref<HTMLDivElement>()
 
 const uiStateStore = useUiStateStore()
+const { setInteractionsElement } = useInteractionManager()
+// const scene = useScene() // TODO: Use when implementing scene rendering
 
 onMounted(() => {
   if (containerRef.value) {
     uiStateStore.setRendererEl(containerRef.value)
+    setInteractionsElement(containerRef.value)
   }
 })
 </script>

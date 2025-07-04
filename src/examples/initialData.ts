@@ -1,5 +1,5 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import { Colors, Icons, InitialData } from 'src/Isoflow';
+import { Colors, Icons, InitialData } from 'src/types';
 import { flattenCollections } from '@isoflow/isopacks/dist/utils';
 import isoflowIsopack from '@isoflow/isopacks/dist/isoflow';
 import awsIsopack from '@isoflow/isopacks/dist/aws';

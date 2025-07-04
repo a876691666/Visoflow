@@ -168,6 +168,4 @@ export interface UiStateActions {
   setEnableDebugTools: (enabled: boolean) => void;
 }
 
-export type UiStateStore = UiState & {
-  actions: UiStateActions;
-};
+export type UiStateStore = UiState;
