@@ -26,8 +26,7 @@ const fillColor = ref('');
 const strokeConfig = ref<any>({});
 
 const updateColors = () => {
-  const { color } = useColor(props.color);
-
+  const color = useColor(props.color);
   if (color.value) {
     fillColor.value = color.value.value;
 

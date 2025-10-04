@@ -1,4 +1,4 @@
-import { produce } from 'immer';
+import { updateState } from 'src/utils/reactivity';
 import {
   generateId,
   getItemAtTile,
@@ -34,13 +34,13 @@ export const Connector: ModeActions = {
     });
 
     if (itemAtTile?.type === 'ITEM') {
-      const newConnector = produce(connector.value, (draft) => {
+      const newConnector = updateState(connector.value, (draft) => {
         draft.anchors[1] = { id: generateId(), ref: { item: itemAtTile.id } };
       });
 
       scene.updateConnector(uiState.mode.id, newConnector);
     } else {
-      const newConnector = produce(connector.value, (draft) => {
+      const newConnector = updateState(connector.value, (draft) => {
         draft.anchors[1] = {
           id: generateId(),
           ref: { tile: uiState.mouse.position.tile }
@@ -78,7 +78,7 @@ export const Connector: ModeActions = {
 
     scene.createConnector(newConnector);
 
-    uiState.actions.setMode({
+    uiState.setMode({
       type: 'CONNECTOR',
       showCursor: true,
       id: newConnector.id
@@ -99,7 +99,7 @@ export const Connector: ModeActions = {
       scene.deleteConnector(uiState.mode.id);
     }
 
-    uiState.actions.setMode({
+    uiState.setMode({
       type: 'CURSOR',
       showCursor: true,
       mousedownItem: null

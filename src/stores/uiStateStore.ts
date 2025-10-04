@@ -1,8 +1,21 @@
-import { defineStore } from 'pinia'
-import type { UiState, Mode, ItemControls, ContextMenu, Scroll, Mouse, IconCollectionState } from 'src/types'
-import { CoordsUtils, incrementZoom, decrementZoom, getStartingMode } from 'src/utils'
-import { INITIAL_UI_STATE } from 'src/config'
-import { EditorModeEnum, DialogTypeEnum } from 'src/types'
+import { defineStore } from 'pinia';
+import type {
+  UiState,
+  Mode,
+  ItemControls,
+  ContextMenu,
+  Scroll,
+  Mouse,
+  IconCollectionState
+} from 'src/types';
+import {
+  CoordsUtils,
+  incrementZoom,
+  decrementZoom,
+  getStartingMode
+} from 'src/utils';
+import { INITIAL_UI_STATE } from 'src/config';
+import { EditorModeEnum, DialogTypeEnum } from 'src/types';
 
 export const useUiStateStore = defineStore('uiState', {
   state: (): UiState => ({
@@ -28,79 +41,79 @@ export const useUiStateStore = defineStore('uiState', {
 
   actions: {
     setView(view: string) {
-      this.view = view
+      this.view = view;
     },
 
     setMainMenuOptions(mainMenuOptions: UiState['mainMenuOptions']) {
-      this.mainMenuOptions = mainMenuOptions
+      this.mainMenuOptions = mainMenuOptions;
     },
 
     setEditorMode(mode: keyof typeof EditorModeEnum) {
-      this.editorMode = mode
-      this.mode = getStartingMode(mode)
+      this.editorMode = mode;
+      this.mode = getStartingMode(mode);
     },
 
     setIconCategoriesState(iconCategoriesState: IconCollectionState[]) {
-      this.iconCategoriesState = iconCategoriesState
+      this.iconCategoriesState = iconCategoriesState;
     },
 
     resetUiState() {
-      this.mode = getStartingMode(this.editorMode)
+      this.mode = getStartingMode(this.editorMode);
       this.scroll = {
         position: CoordsUtils.zero(),
         offset: CoordsUtils.zero()
-      }
-      this.itemControls = null
-      this.zoom = 1
+      };
+      this.itemControls = null;
+      this.zoom = 1;
     },
 
     setMode(mode: Mode) {
-      this.mode = mode
+      this.mode = mode;
     },
 
     setDialog(dialog: keyof typeof DialogTypeEnum | null) {
-      this.dialog = dialog
+      this.dialog = dialog;
     },
 
     setIsMainMenuOpen(isMainMenuOpen: boolean) {
-      this.isMainMenuOpen = isMainMenuOpen
-      this.itemControls = null
+      this.isMainMenuOpen = isMainMenuOpen;
+      this.itemControls = null;
     },
 
     incrementZoom() {
-      this.zoom = incrementZoom(this.zoom)
+      this.zoom = incrementZoom(this.zoom);
     },
 
     decrementZoom() {
-      this.zoom = decrementZoom(this.zoom)
+      this.zoom = decrementZoom(this.zoom);
     },
 
     setZoom(zoom: number) {
-      this.zoom = zoom
+      this.zoom = zoom;
     },
 
     setScroll(scroll: Scroll) {
-      this.scroll = scroll
+      this.scroll = scroll;
     },
 
     setItemControls(itemControls: ItemControls | null) {
-      this.itemControls = itemControls
+      this.itemControls = itemControls;
     },
 
     setContextMenu(contextMenu: ContextMenu | null) {
-      this.contextMenu = contextMenu
+      this.contextMenu = contextMenu;
     },
 
     setMouse(mouse: Mouse) {
-      this.mouse = mouse
+      this.mouse = mouse;
     },
 
     setEnableDebugTools(enableDebugTools: boolean) {
-      this.enableDebugTools = enableDebugTools
+      this.enableDebugTools = enableDebugTools;
     },
 
     setRendererEl(el: HTMLDivElement | null) {
-      this.rendererEl = el
+      this.rendererEl = el;
     }
   }
-}) 
+});

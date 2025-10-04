@@ -10,7 +10,7 @@ import {
 
 export const useTextBoxProps = (textBox: TextBox) => {
   const fontProps = ref({
-    fontSize: UNPROJECTED_TILE_SIZE * TEXTBOX_DEFAULTS.fontSize,
+    fontSize: `${UNPROJECTED_TILE_SIZE * TEXTBOX_DEFAULTS.fontSize}px`,
     fontFamily: DEFAULT_FONT_FAMILY,
     fontWeight: TEXTBOX_FONT_WEIGHT
   });
@@ -19,9 +19,9 @@ export const useTextBoxProps = (textBox: TextBox) => {
 
   // 更新字体属性
   const updateFontProps = () => {
+    const fontSize = textBox.fontSize ?? TEXTBOX_DEFAULTS.fontSize;
     fontProps.value = {
-      fontSize:
-        UNPROJECTED_TILE_SIZE * (textBox.fontSize ?? TEXTBOX_DEFAULTS.fontSize),
+      fontSize: `${UNPROJECTED_TILE_SIZE * fontSize}px`,
       fontFamily: DEFAULT_FONT_FAMILY,
       fontWeight: TEXTBOX_FONT_WEIGHT
     };
@@ -31,7 +31,7 @@ export const useTextBoxProps = (textBox: TextBox) => {
   watch(() => textBox.fontSize, updateFontProps, { immediate: true });
 
   return {
-    paddingX: paddingX.value,
-    fontProps: fontProps.value
+    paddingX,
+    fontProps
   };
 };

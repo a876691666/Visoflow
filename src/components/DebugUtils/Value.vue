@@ -19,8 +19,7 @@ const containerStyles = ref<CSSProperties>({
   wordWrap: 'break-word',
   padding: '2px 4px',
   border: '1px solid #999',
-  borderRadius: '8px',
-  maxWidth: '200px'
+  borderRadius: '8px'
 });
 
 const textStyles = ref<CSSProperties>({

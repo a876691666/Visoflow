@@ -21,13 +21,13 @@ export const TextBox: ModeActions = {
     if (!isRendererInteraction) {
       scene.deleteTextBox(uiState.mode.id);
     } else {
-      uiState.actions.setItemControls({
+      uiState.setItemControls({
         type: 'TEXTBOX',
         id: uiState.mode.id
       });
     }
 
-    uiState.actions.setMode({
+    uiState.setMode({
       type: 'CURSOR',
       showCursor: true,
       mousedownItem: null

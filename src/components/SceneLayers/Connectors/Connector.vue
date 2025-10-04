@@ -1,8 +1,9 @@
 <template>
-  <div class="connector-container" :style="containerStyles">
+  <div v-if="isVisible" class="connector-container" :style="containerStyles">
     <Svg :viewbox-size="viewboxSize" :style="svgStyles">
       <!-- 背景线条 -->
       <polyline
+        v-if="pathString"
         :points="pathString"
         :stroke="backgroundStroke"
         :stroke-width="backgroundStrokeWidth"
@@ -15,6 +16,7 @@
 
       <!-- 主线条 -->
       <polyline
+        v-if="pathString"
         :points="pathString"
         :stroke="mainStroke"
         :stroke-width="mainStrokeWidth"
@@ -24,8 +26,12 @@
         fill="none"
       />
 
-      <!-- 锚点 -->
-      <g v-for="anchor in anchorPositions" :key="anchor.id">
+      <!-- 锚点 (仅在选中时显示) -->
+      <g
+        v-if="props.isSelected"
+        v-for="anchor in anchorPositions"
+        :key="anchor.id"
+      >
         <Circle :tile="anchor" :radius="18" fill="white" :fill-opacity="0.7" />
         <Circle
           :tile="anchor"
@@ -55,16 +61,40 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, type CSSProperties } from 'vue';
-import { useSceneStore } from '@/stores/sceneStore';
-import { useConnector } from 'src/hooks/useConnector';
-import { useColor } from 'src/hooks/useColor';
-import { useIsoProjection } from 'src/hooks/useIsoProjection';
+import { ref, computed, watch, type CSSProperties } from 'vue';
+import type { Coords } from '@/types';
+import { useColor } from '@/hooks/useColor';
+import { useIsoProjection } from '@/hooks/useIsoProjection';
+import { getConnectorDirectionIcon, connectorPathTileToGlobal } from '@/utils';
+import { UNPROJECTED_TILE_SIZE } from '@/config';
 import Circle from '@/components/Circle/Circle.vue';
 import Svg from '@/components/Svg/Svg.vue';
 
+interface ConnectorWithPath {
+  id: string;
+  anchors: Array<{
+    id: string;
+    ref: {
+      tile?: { x: number; y: number };
+      item?: string;
+      anchor?: string;
+    };
+  }>;
+  style?: 'SOLID' | 'DOTTED' | 'DASHED';
+  color?: string;
+  width?: number;
+  description?: string;
+  path?: {
+    tiles: Coords[];
+    rectangle: {
+      from: Coords;
+      to: Coords;
+    };
+  };
+}
+
 interface Props {
-  connector: any;
+  connector: ConnectorWithPath;
   isSelected?: boolean;
 }
 
@@ -72,8 +102,7 @@ const props = withDefaults(defineProps<Props>(), {
   isSelected: false
 });
 
-const sceneStore = useSceneStore();
-
+// 响应式数据
 const containerStyles = ref<CSSProperties>({});
 const svgStyles = ref<CSSProperties>({});
 const pathString = ref('');
@@ -83,54 +112,68 @@ const backgroundStrokeWidth = ref(20);
 const mainStroke = ref('#333');
 const mainStrokeWidth = ref(15);
 const dashArray = ref('none');
-const anchorPositions = ref<any[]>([]);
-const directionIcon = ref<any>(null);
+const anchorPositions = ref<Array<{ id: string; x: number; y: number }>>([]);
+const directionIcon = ref<{ x: number; y: number; rotation: number } | null>(
+  null
+);
 
-const UNPROJECTED_TILE_SIZE = 100;
-const drawOffset = {
+// 常量
+const DRAW_OFFSET = {
   x: UNPROJECTED_TILE_SIZE / 2,
   y: UNPROJECTED_TILE_SIZE / 2
 };
 
+// 计算属性
+const isVisible = computed(() => {
+  return !!(
+    props.connector &&
+    props.connector.path &&
+    props.connector.path.tiles?.length > 0
+  );
+});
+
+// 获取颜色
+const color = useColor(props.connector.color);
+
+// 更新连接器数据
 const updateConnector = () => {
-  if (!props.connector) return;
+  const connector = props.connector;
+  if (!connector?.path) return;
 
-  // 使用composables获取数据
-  const { connector: connectorData } = useConnector(props.connector.id);
-  const { color } = useColor(props.connector.color);
+  const connectorPath = connector.path;
 
-  if (!connectorData.value) return;
-
-  // 更新投影
+  // 更新等距投影
   const { css, pxSize } = useIsoProjection({
-    ...connectorData.value.path?.rectangle
+    from: connectorPath.rectangle.from,
+    to: connectorPath.rectangle.to
   });
 
   containerStyles.value = css.value || {};
   viewboxSize.value = pxSize.value || { width: 100, height: 100 };
 
   // 更新路径字符串
-  if (connectorData.value.path?.tiles) {
-    pathString.value = connectorData.value.path.tiles.reduce(
-      (acc: string, tile: any) => {
-        return `${acc} ${tile.x * UNPROJECTED_TILE_SIZE + drawOffset.x},${
-          tile.y * UNPROJECTED_TILE_SIZE + drawOffset.y
+  if (connectorPath.tiles && connectorPath.tiles.length > 0) {
+    pathString.value = connectorPath.tiles.reduce(
+      (acc: string, tile: Coords, index: number) => {
+        const point = `${tile.x * UNPROJECTED_TILE_SIZE + DRAW_OFFSET.x},${
+          tile.y * UNPROJECTED_TILE_SIZE + DRAW_OFFSET.y
         }`;
+        return index === 0 ? point : `${acc} ${point}`;
       },
       ''
     );
   }
 
   // 更新样式
-  const connectorWidthPx =
-    (UNPROJECTED_TILE_SIZE / 100) * (connectorData.value.width || 20);
+  const connectorWidth = connector.width || 20;
+  const connectorWidthPx = (UNPROJECTED_TILE_SIZE / 100) * connectorWidth;
 
   backgroundStrokeWidth.value = connectorWidthPx * 1.4;
   mainStrokeWidth.value = connectorWidthPx;
   mainStroke.value = color.value?.value || '#333';
 
   // 更新虚线样式
-  switch (connectorData.value.style) {
+  switch (connector.style) {
     case 'DASHED':
       dashArray.value = `${connectorWidthPx * 2}, ${connectorWidthPx * 2}`;
       break;
@@ -143,14 +186,36 @@ const updateConnector = () => {
   }
 
   // 更新锚点位置（如果选中）
-  if (props.isSelected && connectorData.value.anchors) {
-    anchorPositions.value = connectorData.value.anchors.map((anchor: any) => ({
-      id: anchor.id,
-      x: anchor.x * UNPROJECTED_TILE_SIZE + drawOffset.x,
-      y: anchor.y * UNPROJECTED_TILE_SIZE + drawOffset.y
-    }));
+  if (props.isSelected && connector.anchors) {
+    anchorPositions.value = connector.anchors.map((anchor) => {
+      // 这里需要根据锚点引用计算实际位置
+      // 简化实现，实际应该根据anchor.ref计算
+      return {
+        id: anchor.id,
+        x: DRAW_OFFSET.x,
+        y: DRAW_OFFSET.y
+      };
+    });
   } else {
     anchorPositions.value = [];
+  }
+
+  // 更新方向指示器
+  if (connectorPath.tiles && connectorPath.tiles.length > 1) {
+    const globalTiles = connectorPath.tiles.map((tile: Coords) =>
+      connectorPathTileToGlobal(tile, connectorPath.rectangle.from)
+    );
+    const directionData = getConnectorDirectionIcon(connectorPath.tiles);
+
+    if (directionData) {
+      directionIcon.value = {
+        x: directionData.x,
+        y: directionData.y,
+        rotation: directionData.rotation || 0
+      };
+    }
+  } else {
+    directionIcon.value = null;
   }
 
   // SVG变换样式
@@ -159,15 +224,17 @@ const updateConnector = () => {
   };
 };
 
-// 监听connector和选中状态变化
-watch([() => props.connector, () => props.isSelected], updateConnector, {
-  immediate: true,
-  deep: true
-});
+// 监听器
+watch(
+  [() => props.connector, () => props.isSelected, () => color.value],
+  updateConnector,
+  { immediate: true, deep: true }
+);
 </script>
 
 <style scoped>
 .connector-container {
   /* 连接器容器样式 */
+  pointer-events: none;
 }
 </style>

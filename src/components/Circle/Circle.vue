@@ -1,5 +1,5 @@
 <template>
-  <circle :cx="tile.x" :cy="tile.y" :r="radius" v-bind="$attrs" />
+  <circle :="$props" :cx="tile.x" :cy="tile.y" :r="radius" />
 </template>
 
 <script setup lang="ts">
@@ -8,9 +8,10 @@ import type { Coords } from '@/types';
 interface Props {
   tile: Coords;
   radius?: number;
+  [key: string]: any; // 允许传递其他SVG属性
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   radius: 5
 });
 

@@ -66,7 +66,7 @@ export const TransformRectangle: ModeActions = {
   mouseup: ({ uiState }) => {
     if (uiState.mode.type !== 'RECTANGLE.TRANSFORM') return;
 
-    uiState.actions.setMode({
+    uiState.setMode({
       type: 'CURSOR',
       mousedownItem: null,
       showCursor: true

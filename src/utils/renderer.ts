@@ -1,4 +1,4 @@
-import { produce } from 'immer';
+import { updateState } from './reactivity';
 import {
   UNPROJECTED_TILE_SIZE,
   PROJECTED_TILE_SIZE,
@@ -66,11 +66,11 @@ export const screenToIso = ({
   const tile = {
     x: Math.floor(
       (projectPosition.x + halfW) / projectedTileSize.width -
-        projectPosition.y / projectedTileSize.height
+      projectPosition.y / projectedTileSize.height
     ),
     y: -Math.floor(
       (projectPosition.y + halfH) / projectedTileSize.height +
-        projectPosition.x / projectedTileSize.width
+      projectPosition.x / projectedTileSize.width
     )
   };
 
@@ -208,7 +208,7 @@ export const getIsoMatrix = (
 ) => {
   switch (orientation) {
     case ProjectionOrientationEnum.Y:
-      return produce(isoProjectionBaseValues, (draft) => {
+      return updateState(isoProjectionBaseValues, (draft) => {
         draft[1] = -draft[1];
         draft[2] = -draft[2];
       });
@@ -450,7 +450,7 @@ export const getItemAtTile = ({
   tile,
   scene
 }: GetItemAtTile): ItemReference | null => {
-  const viewItem = scene.items.find((item) => {
+  const viewItem = scene.items.value.find((item) => {
     return CoordsUtils.isEqual(item.tile, tile);
   });
 
@@ -461,7 +461,7 @@ export const getItemAtTile = ({
     };
   }
 
-  const textBox = scene.textBoxes.find((tb) => {
+  const textBox = scene.textBoxes.value.find((tb) => {
     const textBoxTo = getTextBoxEndTile(tb, tb.size);
     const textBoxBounds = getBoundingBox([
       tb.tile,
@@ -484,7 +484,7 @@ export const getItemAtTile = ({
     };
   }
 
-  const connector = scene.connectors.find((con) => {
+  const connector = scene.connectors.value.find((con) => {
     return con.path.tiles.find((pathTile) => {
       const globalPathTile = connectorPathTileToGlobal(
         pathTile,
@@ -502,7 +502,7 @@ export const getItemAtTile = ({
     };
   }
 
-  const rectangle = scene.rectangles.find(({ from, to }) => {
+  const rectangle = scene.rectangles.value.find(({ from, to }) => {
     return isWithinBounds(tile, [from, to]);
   });
 
@@ -563,8 +563,8 @@ export const outermostCornerPositions: TileOrigin[] = [
 export const convertBoundsToNamedAnchors = (
   boundingBox: BoundingBox
 ): {
-  [key in AnchorPosition]: Coords;
-} => {
+    [key in AnchorPosition]: Coords;
+  } => {
   return {
     BOTTOM_LEFT: boundingBox[0],
     BOTTOM_RIGHT: boundingBox[1],

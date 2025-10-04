@@ -1,4 +1,4 @@
-import { produce } from 'immer';
+import { updateState } from 'src/utils/reactivity';
 import { ItemReference, LayerOrderingAction, View } from 'src/types';
 import { getItemByIdOrThrow } from 'src/utils';
 import { State, ViewReducerContext } from './types';
@@ -7,7 +7,7 @@ export const changeLayerOrder = (
   { action, item }: { action: LayerOrderingAction; item: ItemReference },
   { viewId, state }: ViewReducerContext
 ): State => {
-  const newState = produce(state, (draft) => {
+  const newState = updateState(state, (draft) => {
     const view = getItemByIdOrThrow(draft.model.views, viewId);
     let arr: View['rectangles'];
 

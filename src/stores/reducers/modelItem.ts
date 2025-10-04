@@ -1,4 +1,4 @@
-import { produce } from 'immer';
+import { updateState } from 'src/utils/reactivity';
 import { ModelItem } from 'src/types';
 import { getItemByIdOrThrow } from 'src/utils';
 import { State } from './types';
@@ -10,7 +10,7 @@ export const updateModelItem = (
 ): State => {
   const modelItem = getItemByIdOrThrow(state.model.items, id);
 
-  const newState = produce(state, (draft) => {
+  const newState = updateState(state, (draft) => {
     draft.model.items[modelItem.index] = { ...modelItem.value, ...updates };
   });
 
@@ -21,7 +21,7 @@ export const createModelItem = (
   newModelItem: ModelItem,
   state: State
 ): State => {
-  const newState = produce(state, (draft) => {
+  const newState = updateState(state, (draft) => {
     draft.model.items.push(newModelItem);
   });
 
@@ -31,7 +31,7 @@ export const createModelItem = (
 export const deleteModelItem = (id: string, state: State): State => {
   const modelItem = getItemByIdOrThrow(state.model.items, id);
 
-  const newState = produce(state, (draft) => {
+  const newState = updateState(state, (draft) => {
     delete draft.model.items[modelItem.index];
   });
 

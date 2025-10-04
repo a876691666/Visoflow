@@ -1,4 +1,4 @@
-import { produce } from 'immer';
+import { updateState } from 'src/utils/reactivity';
 import { Rectangle } from 'src/types';
 import { getItemByIdOrThrow } from 'src/utils';
 import { State, ViewReducerContext } from './types';
@@ -9,7 +9,7 @@ export const updateRectangle = (
 ): State => {
   const view = getItemByIdOrThrow(state.model.views, viewId);
 
-  const newState = produce(state, (draft) => {
+  const newState = updateState(state, (draft) => {
     const { rectangles } = draft.model.views[view.index];
 
     if (!rectangles) return;
@@ -28,7 +28,7 @@ export const createRectangle = (
 ): State => {
   const view = getItemByIdOrThrow(state.model.views, viewId);
 
-  const newState = produce(state, (draft) => {
+  const newState = updateState(state, (draft) => {
     const { rectangles } = draft.model.views[view.index];
 
     if (!rectangles) {
@@ -51,7 +51,7 @@ export const deleteRectangle = (
   const view = getItemByIdOrThrow(state.model.views, viewId);
   const rectangle = getItemByIdOrThrow(view.value.rectangles ?? [], id);
 
-  const newState = produce(state, (draft) => {
+  const newState = updateState(state, (draft) => {
     draft.model.views[view.index].rectangles?.splice(rectangle.index, 1);
   });
 

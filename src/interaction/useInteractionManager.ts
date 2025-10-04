@@ -67,9 +67,9 @@ export const useInteractionManager = () => {
     uiStateStore.setMouse(nextMouse);
 
     const baseState: State = {
-      model: modelStore.$state,
+      model: modelStore,
       scene: scene,
-      uiState: uiStateStore.$state,
+      uiState: uiStateStore,
       rendererRef: rendererRef.value,
       rendererSize: rendererSize.value,
       isRendererInteraction: rendererRef.value === e.target

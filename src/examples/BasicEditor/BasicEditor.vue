@@ -7,7 +7,6 @@ import { ref } from 'vue';
 import Isoflow from '@/Isoflow.vue';
 import { initialData } from '../initialData';
 
-debugger;
 const initialDataConfig = ref({
   ...initialData,
   fitToView: true

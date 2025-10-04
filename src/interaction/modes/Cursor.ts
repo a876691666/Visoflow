@@ -1,4 +1,4 @@
-import { produce } from 'immer';
+import { updateState } from 'src/utils/reactivity';
 import {
   ConnectorAnchor,
   SceneConnector,
@@ -87,21 +87,21 @@ const mousedown: ModeActionsAction = ({
   });
 
   if (itemAtTile) {
-    uiState.actions.setMode(
-      produce(uiState.mode, (draft) => {
+    uiState.setMode(
+      updateState(uiState.mode, (draft) => {
         draft.mousedownItem = itemAtTile;
       })
     );
 
-    uiState.actions.setItemControls(itemAtTile);
+    uiState.setItemControls(itemAtTile);
   } else {
-    uiState.actions.setMode(
-      produce(uiState.mode, (draft) => {
+    uiState.setMode(
+      updateState(uiState.mode, (draft) => {
         draft.mousedownItem = null;
       })
     );
 
-    uiState.actions.setItemControls(null);
+    uiState.setItemControls(null);
   }
 };
 
@@ -130,7 +130,7 @@ export const Cursor: ModeActions = {
     }
 
     if (item) {
-      uiState.actions.setMode({
+      uiState.setMode({
         type: 'DRAG_ITEMS',
         showCursor: true,
         items: [item],
@@ -144,32 +144,32 @@ export const Cursor: ModeActions = {
 
     if (uiState.mode.mousedownItem) {
       if (uiState.mode.mousedownItem.type === 'ITEM') {
-        uiState.actions.setItemControls({
+        uiState.setItemControls({
           type: 'ITEM',
           id: uiState.mode.mousedownItem.id
         });
       } else if (uiState.mode.mousedownItem.type === 'RECTANGLE') {
-        uiState.actions.setItemControls({
+        uiState.setItemControls({
           type: 'RECTANGLE',
           id: uiState.mode.mousedownItem.id
         });
       } else if (uiState.mode.mousedownItem.type === 'CONNECTOR') {
-        uiState.actions.setItemControls({
+        uiState.setItemControls({
           type: 'CONNECTOR',
           id: uiState.mode.mousedownItem.id
         });
       } else if (uiState.mode.mousedownItem.type === 'TEXTBOX') {
-        uiState.actions.setItemControls({
+        uiState.setItemControls({
           type: 'TEXTBOX',
           id: uiState.mode.mousedownItem.id
         });
       }
     } else {
-      uiState.actions.setItemControls(null);
+      uiState.setItemControls(null);
     }
 
-    uiState.actions.setMode(
-      produce(uiState.mode, (draft) => {
+    uiState.setMode(
+      updateState(uiState.mode, (draft) => {
         draft.mousedownItem = null;
       })
     );

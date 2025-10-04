@@ -11,7 +11,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
 import ColorSwatch from './ColorSwatch.vue';
 
 interface Props {

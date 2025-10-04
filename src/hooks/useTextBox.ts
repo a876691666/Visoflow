@@ -45,7 +45,6 @@ export const useTextBox = (id: string) => {
     updateTextBox,
     {
       immediate: true,
-      deep: true
     }
   );
 

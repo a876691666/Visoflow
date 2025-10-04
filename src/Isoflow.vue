@@ -44,7 +44,7 @@ const props = withDefaults(defineProps<Props>(), {
   width: '100%',
   height: '100%',
   enableDebugTools: false,
-  editorMode: 'EDITABLE'
+  editorMode: 'EXPLORABLE_READONLY'
 });
 
 const emit = defineEmits<{

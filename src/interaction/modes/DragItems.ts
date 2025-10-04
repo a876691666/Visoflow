@@ -1,4 +1,4 @@
-import { produce } from 'immer';
+import { updateState } from 'src/utils/reactivity';
 import { ModeActions, Coords, ItemReference } from 'src/types';
 import { useScene } from 'src/hooks/useScene';
 import {
@@ -37,7 +37,7 @@ const dragItems = (
     } else if (item.type === 'CONNECTOR_ANCHOR') {
       const connector = getAnchorParent(item.id, scene.connectors);
 
-      const newConnector = produce(connector, (draft) => {
+      const newConnector = updateState(connector, (draft) => {
         const anchor = getItemByIdOrThrow(connector.anchors, item.id);
 
         const itemAtTile = getItemAtTile({ tile, scene });
@@ -97,8 +97,8 @@ export const DragItems: ModeActions = {
 
       dragItems(uiState.mode.items, uiState.mouse.position.tile, delta, scene);
 
-      uiState.actions.setMode(
-        produce(uiState.mode, (draft) => {
+      uiState.setMode(
+        updateState(uiState.mode, (draft) => {
           draft.isInitialMovement = false;
         })
       );
@@ -113,7 +113,7 @@ export const DragItems: ModeActions = {
     dragItems(uiState.mode.items, uiState.mouse.position.tile, delta, scene);
   },
   mouseup: ({ uiState }) => {
-    uiState.actions.setMode({
+    uiState.setMode({
       type: 'CURSOR',
       showCursor: true,
       mousedownItem: null

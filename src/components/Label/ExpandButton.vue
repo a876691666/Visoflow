@@ -75,5 +75,6 @@ watch(() => props.styles, updateStyles, { immediate: true, deep: true });
 .expand-icon {
   width: 16px;
   height: 16px;
+  color: #000;
 }
 </style>

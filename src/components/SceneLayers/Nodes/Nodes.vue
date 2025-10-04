@@ -1,36 +1,23 @@
 <template>
   <div class="nodes-layer">
-    <div
-      v-for="node in nodes"
+    <Node
+      v-for="(node, index) in nodes"
       :key="node.id"
-      class="node-item"
-      :style="getNodeStyle(node)"
-    >
-      <!-- Node content will be implemented here -->
-      {{ node.name }}
-    </div>
+      :node="node"
+      :order="index"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-interface NodeItem {
-  id: string;
-  name: string;
-  // Add more node properties as needed
-}
+import type { ViewItem } from '@/types';
+import Node from './Node/Node.vue';
 
 interface Props {
-  nodes: NodeItem[];
+  nodes: ViewItem[];
 }
 
-const props = defineProps<Props>();
-
-const getNodeStyle = (node: NodeItem) => {
-  // Node positioning and styling logic will be implemented here
-  return {
-    // Default positioning
-  };
-};
+defineProps<Props>();
 </script>
 
 <style scoped>
@@ -38,14 +25,6 @@ const getNodeStyle = (node: NodeItem) => {
   position: relative;
   width: 100%;
   height: 100%;
-}
-
-.node-item {
-  position: absolute;
-  padding: 8px;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  pointer-events: none;
 }
 </style>

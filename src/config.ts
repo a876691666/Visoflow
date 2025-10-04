@@ -114,3 +114,15 @@ export const DEFAULT_ICON: Icon = {
 export const DEFAULT_LABEL_HEIGHT = 20;
 export const PROJECT_BOUNDING_BOX_PADDING = 3;
 export const MARKDOWN_EMPTY_VALUE = '<p><br></p>';
+
+// 全局 GSAP 动画配置
+export const GSAP_GLOBAL_CONFIG = {
+  duration: 0.25,
+  ease: 'power2.out'
+};
+
+// 缩放动画专用配置
+export const GSAP_ZOOM_CONFIG = {
+  duration: 0.25,
+  ease: 'power2.out'
+};

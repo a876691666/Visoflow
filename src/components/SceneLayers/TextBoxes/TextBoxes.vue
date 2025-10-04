@@ -1,18 +1,50 @@
 <template>
   <div class="textboxes-layer">
-    <div v-for="(textBox, id) in textBoxes" :key="id" class="textbox-item">
-      <!-- TextBox content will be implemented here -->
-      <div class="textbox-content">Text Box Content</div>
-    </div>
+    <TextBox
+      v-for="(textBox, id) in combinedTextBoxes"
+      :key="id"
+      :textBox="textBox"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, watch } from 'vue';
+import TextBox from './TextBox.vue';
+import type { TextBox as TextBoxType, SceneTextBox } from '@/types';
+
 interface Props {
-  textBoxes: Record<string, any>;
+  textBoxes: Record<string, TextBoxType>;
+  sceneTextBoxes?: Record<string, SceneTextBox>;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  sceneTextBoxes: () => ({})
+});
+
+// 合并视图和场景数据
+const combinedTextBoxes = ref<Record<string, TextBoxType & SceneTextBox>>({});
+
+const updateCombinedTextBoxes = () => {
+  const combined: Record<string, TextBoxType & SceneTextBox> = {};
+
+  Object.entries(props.textBoxes).forEach(([id, textBox]) => {
+    const sceneData = props.sceneTextBoxes?.[id];
+    combined[id] = {
+      ...textBox,
+      ...sceneData
+    };
+  });
+
+  combinedTextBoxes.value = combined;
+};
+
+// 监听props变化
+watch(
+  [() => props.textBoxes, () => props.sceneTextBoxes],
+  updateCombinedTextBoxes,
+  { immediate: true }
+);
 </script>
 
 <style scoped>
@@ -20,20 +52,6 @@ const props = defineProps<Props>();
   position: relative;
   width: 100%;
   height: 100%;
-}
-
-.textbox-item {
-  position: absolute;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 8px;
-  min-width: 100px;
-  min-height: 50px;
-}
-
-.textbox-content {
-  font-size: 14px;
-  line-height: 1.4;
+  pointer-events: none;
 }
 </style>

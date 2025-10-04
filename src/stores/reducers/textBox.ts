@@ -1,4 +1,4 @@
-import { produce } from 'immer';
+import { updateState } from 'src/utils/reactivity';
 import { TextBox } from 'src/types';
 import { getItemByIdOrThrow, getTextBoxDimensions } from 'src/utils';
 import { State, ViewReducerContext } from './types';
@@ -7,7 +7,7 @@ export const syncTextBox = (
   id: string,
   { viewId, state }: ViewReducerContext
 ): State => {
-  const newState = produce(state, (draft) => {
+  const newState = updateState(state, (draft) => {
     const view = getItemByIdOrThrow(draft.model.views, viewId);
     const textBox = getItemByIdOrThrow(view.value.textBoxes ?? [], id);
 
@@ -25,7 +25,7 @@ export const updateTextBox = (
 ): State => {
   const view = getItemByIdOrThrow(state.model.views, viewId);
 
-  const newState = produce(state, (draft) => {
+  const newState = updateState(state, (draft) => {
     const { textBoxes } = draft.model.views[view.index];
 
     if (!textBoxes) return;
@@ -54,7 +54,7 @@ export const createTextBox = (
 ): State => {
   const view = getItemByIdOrThrow(state.model.views, viewId);
 
-  const newState = produce(state, (draft) => {
+  const newState = updateState(state, (draft) => {
     const { textBoxes } = draft.model.views[view.index];
 
     if (!textBoxes) {
@@ -74,7 +74,7 @@ export const deleteTextBox = (
   const view = getItemByIdOrThrow(state.model.views, viewId);
   const textBox = getItemByIdOrThrow(view.value.textBoxes ?? [], id);
 
-  const newState = produce(state, (draft) => {
+  const newState = updateState(state, (draft) => {
     draft.model.views[view.index].textBoxes?.splice(textBox.index, 1);
   });
 

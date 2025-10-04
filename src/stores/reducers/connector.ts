@@ -1,5 +1,5 @@
 import { Connector } from 'src/types';
-import { produce } from 'immer';
+import { updateState } from 'src/utils/reactivity';
 import { getItemByIdOrThrow, getConnectorPath, getAllAnchors } from 'src/utils';
 import { validateConnector } from 'src/schemas/validation';
 import { State, ViewReducerContext } from './types';
@@ -11,7 +11,7 @@ export const deleteConnector = (
   const view = getItemByIdOrThrow(state.model.views, viewId);
   const connector = getItemByIdOrThrow(view.value.connectors ?? [], id);
 
-  const newState = produce(state, (draft) => {
+  const newState = updateState(state, (draft) => {
     draft.model.views[view.index].connectors?.splice(connector.index, 1);
     delete draft.scene.connectors[connector.index];
   });
@@ -23,7 +23,7 @@ export const syncConnector = (
   id: string,
   { viewId, state }: ViewReducerContext
 ) => {
-  const newState = produce(state, (draft) => {
+  const newState = updateState(state, (draft) => {
     const view = getItemByIdOrThrow(draft.model.views, viewId);
     const connector = getItemByIdOrThrow(view.value.connectors ?? [], id);
     const allAnchors = getAllAnchors(view.value.connectors ?? []);
@@ -55,7 +55,7 @@ export const updateConnector = (
   { id, ...updates }: { id: string } & Partial<Connector>,
   { state, viewId }: ViewReducerContext
 ): State => {
-  const newState = produce(state, (draft) => {
+  const newState = updateState(state, (draft) => {
     const view = getItemByIdOrThrow(draft.model.views, viewId);
     const { connectors } = draft.model.views[view.index];
 
@@ -83,7 +83,7 @@ export const createConnector = (
   newConnector: Connector,
   { state, viewId }: ViewReducerContext
 ): State => {
-  const newState = produce(state, (draft) => {
+  const newState = updateState(state, (draft) => {
     const view = getItemByIdOrThrow(draft.model.views, viewId);
     const { connectors } = draft.model.views[view.index];
 

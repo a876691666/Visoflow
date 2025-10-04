@@ -1,17 +1,30 @@
 <template>
   <div class="rectangles-layer">
-    <div v-for="(rectangle, id) in rectangles" :key="id" class="rectangle-item">
-      <!-- Rectangle rendering will be implemented here -->
-    </div>
+    <Rectangle
+      v-for="rectangle in reversedRectangles"
+      :key="rectangle.id"
+      :from="rectangle.from"
+      :to="rectangle.to"
+      :color="rectangle.color || ''"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import Rectangle from './Rectangle.vue';
+import type { Rectangle as RectangleType } from 'src/types';
+
 interface Props {
-  rectangles: Record<string, any>;
+  rectangles: RectangleType[];
 }
 
 const props = defineProps<Props>();
+
+// 反转rectangles数组以匹配React组件的行为
+const reversedRectangles = computed(() => {
+  return [...props.rectangles].reverse();
+});
 </script>
 
 <style scoped>
@@ -19,11 +32,5 @@ const props = defineProps<Props>();
   position: relative;
   width: 100%;
   height: 100%;
-}
-
-.rectangle-item {
-  position: absolute;
-  border: 2px solid #333;
-  background-color: rgba(255, 255, 255, 0.1);
 }
 </style>

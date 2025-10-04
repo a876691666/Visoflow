@@ -1,4 +1,4 @@
-import { produce } from 'immer';
+import { updateState } from './reactivity';
 import { Model, ModelStore } from 'src/types';
 import { validateModel } from 'src/schemas/validation';
 import { getItemByIdOrThrow } from './common';
@@ -8,7 +8,7 @@ export const fixModel = (model: Model): Model => {
 
   return issues.reduce((acc, issue) => {
     if (issue.type === 'INVALID_MODEL_TO_ICON_REF') {
-      return produce(acc, (draft) => {
+      return updateState(acc, (draft) => {
         const { index: itemIndex } = getItemByIdOrThrow(
           draft.items,
           issue.params.modelItem
@@ -19,7 +19,7 @@ export const fixModel = (model: Model): Model => {
     }
 
     if (issue.type === 'CONNECTOR_TOO_FEW_ANCHORS') {
-      return produce(acc, (draft) => {
+      return updateState(acc, (draft) => {
         const view = getItemByIdOrThrow(draft.views, issue.params.view);
 
         const connector = getItemByIdOrThrow(
@@ -32,7 +32,7 @@ export const fixModel = (model: Model): Model => {
     }
 
     if (issue.type === 'INVALID_ANCHOR_TO_ANCHOR_REF') {
-      return produce(acc, (draft) => {
+      return updateState(acc, (draft) => {
         const view = getItemByIdOrThrow(draft.views, issue.params.view);
 
         const connector = getItemByIdOrThrow(

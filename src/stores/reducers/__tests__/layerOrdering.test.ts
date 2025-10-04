@@ -1,10 +1,10 @@
-import { produce } from 'immer';
+import { updateState } from 'src/utils/reactivity';
 import { model as modelFixture } from 'src/fixtures/model';
 import { ItemReference } from 'src/types';
 import * as reducers from 'src/stores/reducers';
 
 const getModel = () => {
-  return produce(modelFixture, (draft) => {
+  return updateState(modelFixture, (draft) => {
     draft.views[0].rectangles = [
       {
         id: 'rect1',

@@ -29,7 +29,7 @@
           :label-height="node.labelHeight || DEFAULT_LABEL_HEIGHT"
         >
           <div class="label-content">
-            <div v-if="modelItem.name" class="node-name">
+            <div v-if="modelItem?.name" class="node-name">
               {{ modelItem.name }}
             </div>
             <div v-if="description" class="node-description">
@@ -55,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed } from 'vue';
 import {
   PROJECTED_TILE_SIZE,
   DEFAULT_LABEL_HEIGHT,
@@ -75,87 +75,53 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const position = ref({ x: 0, y: 0 });
-const description = ref<string | null>(null);
-const modelItem = ref<any>(null);
-const iconComponent = ref<any>(null);
-const hasLabel = ref(false);
-
-// 更新位置
-const updatePosition = () => {
-  position.value = getTilePosition({
+// Computed properties
+const position = computed(() =>
+  getTilePosition({
     tile: props.node.tile,
     origin: 'BOTTOM'
-  });
-};
+  })
+);
 
-// 更新模型项
-const updateModelItem = () => {
-  const item = useModelItem(props.node.id);
-  modelItem.value = item;
+// Get model item using the hook
+const modelItem = useModelItem(props.node.id);
 
-  // 更新描述
+// Get icon component
+const { iconComponent } = useIcon(modelItem.value?.icon);
+
+// Computed description
+const description = computed(() => {
   if (
-    item.description === undefined ||
-    item.description === MARKDOWN_EMPTY_VALUE
+    modelItem.value?.description === undefined ||
+    modelItem.value?.description === MARKDOWN_EMPTY_VALUE
   ) {
-    description.value = null;
-  } else {
-    description.value = item.description;
+    return null;
   }
+  return modelItem.value.description;
+});
 
-  // 更新是否有标签
-  hasLabel.value = !!(item.name || description.value);
-};
-
-// 更新图标
-const updateIcon = () => {
-  if (modelItem.value?.icon) {
-    const { iconComponent: comp } = useIcon(modelItem.value.icon);
-    iconComponent.value = comp;
-  } else {
-    iconComponent.value = null;
-  }
-};
-
-// 监听node变化
-watch(
-  () => props.node,
-  () => {
-    updatePosition();
-    updateModelItem();
-    updateIcon();
-  },
-  { immediate: true, deep: true }
-);
-
-// 监听order变化（虽然通常不会变，但为了完整性）
-watch(
-  () => props.order,
-  () => {
-    // order变化时不需要特别处理，模板会自动更新
-  },
-  { immediate: true }
-);
+// Computed has label
+const hasLabel = computed(() => !!(modelItem.value?.name || description.value));
 </script>
 
 <style scoped>
 .node {
-  /* Node base styles */
+  pointer-events: auto;
 }
 
 .node-content {
-  /* Node content container */
+  transform-origin: center bottom;
 }
 
 .node-label {
-  /* Label container */
+  white-space: nowrap;
 }
 
 .label-content {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-width: 250px;
 }
 
 .node-name {
@@ -164,10 +130,13 @@ watch(
 }
 
 .node-description {
-  /* Description styles */
+  font-size: 0.875rem;
+  color: #666;
 }
 
 .node-icon {
-  /* Icon container */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

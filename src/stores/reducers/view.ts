@@ -1,4 +1,4 @@
-import { produce } from 'immer';
+import { updateState } from 'src/utils/reactivity';
 import { View } from 'src/types';
 import { getItemByIdOrThrow } from 'src/utils';
 import { VIEW_DEFAULTS, INITIAL_SCENE_STATE } from 'src/config';
@@ -14,7 +14,7 @@ import * as layerOrderingReducers from './layerOrdering';
 export const updateViewTimestamp = (ctx: ViewReducerContext): State => {
   const now = new Date().toISOString();
 
-  const newState = produce(ctx.state, (draft) => {
+  const newState = updateState(ctx.state, (draft) => {
     const view = getItemByIdOrThrow(draft.model.views, ctx.viewId);
 
     view.value.lastUpdated = now;
@@ -47,7 +47,7 @@ export const syncScene = ({ viewId, state }: ViewReducerContext): State => {
 };
 
 export const deleteView = (ctx: ViewReducerContext): State => {
-  const newState = produce(ctx.state, (draft) => {
+  const newState = updateState(ctx.state, (draft) => {
     const view = getItemByIdOrThrow(draft.model.views, ctx.viewId);
 
     draft.model.views.splice(view.index, 1);
@@ -60,7 +60,7 @@ export const updateView = (
   updates: Partial<Pick<View, 'name'>>,
   ctx: ViewReducerContext
 ): State => {
-  const newState = produce(ctx.state, (draft) => {
+  const newState = updateState(ctx.state, (draft) => {
     const view = getItemByIdOrThrow(draft.model.views, ctx.viewId);
     view.value = { ...view.value, ...updates };
   });
@@ -72,7 +72,7 @@ export const createView = (
   newView: Partial<View>,
   ctx: ViewReducerContext
 ): State => {
-  const newState = produce(ctx.state, (draft) => {
+  const newState = updateState(ctx.state, (draft) => {
     draft.model.views.push({
       ...VIEW_DEFAULTS,
       id: ctx.viewId,

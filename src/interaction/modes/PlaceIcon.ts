@@ -1,4 +1,4 @@
-import { produce } from 'immer';
+import { updateState } from 'src/utils/reactivity';
 import { ModeActions } from 'src/types';
 import { generateId, getItemAtTile } from 'src/utils';
 import { VIEW_ITEM_DEFAULTS } from 'src/config';
@@ -14,13 +14,13 @@ export const PlaceIcon: ModeActions = {
         scene
       });
 
-      uiState.actions.setMode({
+      uiState.setMode({
         type: 'CURSOR',
         mousedownItem: itemAtTile,
         showCursor: true
       });
 
-      uiState.actions.setItemControls(null);
+      uiState.setItemControls(null);
     }
   },
   mouseup: ({ uiState, scene }) => {
@@ -42,8 +42,8 @@ export const PlaceIcon: ModeActions = {
       });
     }
 
-    uiState.actions.setMode(
-      produce(uiState.mode, (draft) => {
+    uiState.setMode(
+      updateState(uiState.mode, (draft) => {
         draft.id = null;
       })
     );

@@ -1,5 +1,5 @@
 import { ModeActions } from 'src/types';
-import { produce } from 'immer';
+import { updateState } from 'src/utils/reactivity';
 import { generateId, hasMovedTile, setWindowCursor } from 'src/utils';
 
 export const DrawRectangle: ModeActions = {
@@ -35,16 +35,16 @@ export const DrawRectangle: ModeActions = {
       to: uiState.mouse.position.tile
     });
 
-    const newMode = produce(uiState.mode, (draft) => {
+    const newMode = updateState(uiState.mode, (draft) => {
       draft.id = newRectangleId;
     });
 
-    uiState.actions.setMode(newMode);
+    uiState.setMode(newMode);
   },
   mouseup: ({ uiState }) => {
     if (uiState.mode.type !== 'RECTANGLE.DRAW' || !uiState.mode.id) return;
 
-    uiState.actions.setMode({
+    uiState.setMode({
       type: 'CURSOR',
       showCursor: true,
       mousedownItem: null

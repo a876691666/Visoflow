@@ -1,4 +1,4 @@
-import { produce } from 'immer';
+import { updateState } from 'src/utils/reactivity';
 import { Connector, ViewItem } from 'src/types';
 import { model as modelFixture } from '../../fixtures/model';
 import { validateModel } from '../validation';
@@ -20,7 +20,7 @@ describe('Model validation works correctly', () => {
       ]
     };
 
-    const model = produce(modelFixture, (draft) => {
+    const model = updateState(modelFixture, (draft) => {
       draft.views[0].connectors?.push(invalidConnector);
     });
 
@@ -36,7 +36,7 @@ describe('Model validation works correctly', () => {
       anchors: []
     };
 
-    const model = produce(modelFixture, (draft) => {
+    const model = updateState(modelFixture, (draft) => {
       draft.views[0].connectors?.push(invalidConnector);
     });
 
@@ -55,7 +55,7 @@ describe('Model validation works correctly', () => {
       ]
     };
 
-    const model = produce(modelFixture, (draft) => {
+    const model = updateState(modelFixture, (draft) => {
       draft.views[0].connectors?.push(invalidConnector);
     });
 
@@ -73,7 +73,7 @@ describe('Model validation works correctly', () => {
       }
     };
 
-    const model = produce(modelFixture, (draft) => {
+    const model = updateState(modelFixture, (draft) => {
       draft.views[0].items.push(invalidItem);
     });
 
@@ -89,7 +89,7 @@ describe('Model validation works correctly', () => {
       anchors: []
     };
 
-    const model = produce(modelFixture, (draft) => {
+    const model = updateState(modelFixture, (draft) => {
       draft.views[0].connectors?.push(invalidConnector);
     });
 
@@ -106,7 +106,7 @@ describe('Model validation works correctly', () => {
       to: { x: 2, y: 2 }
     };
 
-    const model = produce(modelFixture, (draft) => {
+    const model = updateState(modelFixture, (draft) => {
       draft.views[0].rectangles?.push(invalidRectangle);
     });
 

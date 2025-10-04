@@ -1,4 +1,4 @@
-import { produce } from 'immer';
+import { updateState } from 'src/utils/reactivity';
 import { ViewItem } from 'src/types';
 import { getItemByIdOrThrow, getConnectorsByViewItem } from 'src/utils';
 import { validateView } from 'src/schemas/validation';
@@ -9,7 +9,7 @@ export const updateViewItem = (
   { id, ...updates }: { id: string } & Partial<ViewItem>,
   { viewId, state }: ViewReducerContext
 ): State => {
-  const newState = produce(state, (draft) => {
+  const newState = updateState(state, (draft) => {
     const view = getItemByIdOrThrow(draft.model.views, viewId);
     const { items } = view.value;
 
@@ -57,7 +57,7 @@ export const createViewItem = (
   const { state, viewId } = ctx;
   const view = getItemByIdOrThrow(state.model.views, viewId);
 
-  const newState = produce(state, (draft) => {
+  const newState = updateState(state, (draft) => {
     const { items } = draft.model.views[view.index];
     items.unshift(newViewItem);
   });
@@ -69,7 +69,7 @@ export const deleteViewItem = (
   id: string,
   { state, viewId }: ViewReducerContext
 ): State => {
-  const newState = produce(state, (draft) => {
+  const newState = updateState(state, (draft) => {
     const view = getItemByIdOrThrow(draft.model.views, viewId);
     const viewItem = getItemByIdOrThrow(view.value.items, id);
 

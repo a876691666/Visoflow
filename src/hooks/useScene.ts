@@ -6,7 +6,9 @@ import {
   TextBox,
   Rectangle,
   ItemReference,
-  LayerOrderingAction
+  LayerOrderingAction,
+  SceneConnector,
+  SceneTextBox
 } from 'src/types';
 import { useUiStateStore } from 'src/stores/uiStateStore';
 import { useModelStore } from 'src/stores/modelStore';
@@ -20,18 +22,20 @@ import {
   TEXTBOX_DEFAULTS
 } from 'src/config';
 
+// 响应式数据
+const currentView = ref<any>(null);
+const items = ref<ViewItem[]>([]);
+const colors = ref<any[]>([]);
+const connectors = ref<(Connector & SceneConnector)[]>([]);
+const rectangles = ref<Rectangle[]>([]);
+const textBoxes = ref<(TextBox & SceneTextBox)[]>([]);
+
+let watchTextBoxes: any;
+
 export const useScene = () => {
   const modelStore = useModelStore();
   const sceneStore = useSceneStore();
   const uiStateStore = useUiStateStore();
-
-  // 响应式数据
-  const currentView = ref<any>(null);
-  const items = ref<ViewItem[]>([]);
-  const colors = ref<any[]>([]);
-  const connectors = ref<Connector[]>([]);
-  const rectangles = ref<Rectangle[]>([]);
-  const textBoxes = ref<TextBox[]>([]);
 
   // 更新当前视图
   const updateCurrentView = () => {
@@ -98,27 +102,27 @@ export const useScene = () => {
 
   // 监听变化
   watch(() => [uiStateStore.view, modelStore.views], updateCurrentView, {
-    immediate: true,
-    deep: true
+    immediate: true
   });
   watch(() => currentView.value?.items, updateItems, {
-    immediate: true,
-    deep: true
+    immediate: true
   });
-  watch(() => modelStore.colors, updateColors, { immediate: true, deep: true });
+  watch(() => modelStore.colors, updateColors, { immediate: true });
   watch(
     () => [currentView.value?.connectors, sceneStore.connectors],
     updateConnectors,
-    { immediate: true, deep: true }
+    { immediate: true }
   );
   watch(() => currentView.value?.rectangles, updateRectangles, {
-    immediate: true,
-    deep: true
+    immediate: true
   });
-  watch(
+  if (watchTextBoxes) watchTextBoxes();
+  watchTextBoxes = watch(
     () => [currentView.value?.textBoxes, sceneStore.textBoxes],
-    updateTextBoxes,
-    { immediate: true, deep: true }
+    () => {
+      updateTextBoxes();
+    },
+    { immediate: true }
   );
 
   // 辅助方法
