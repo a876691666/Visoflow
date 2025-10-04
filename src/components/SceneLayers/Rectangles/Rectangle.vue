@@ -10,7 +10,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { useColor } from 'src/hooks/useColor';
+import { useColor } from '@/hooks/useColor';
 import IsoTileArea from '@/components/IsoTileArea/IsoTileArea.vue';
 import type { Coords } from '@/types';
 

@@ -70,8 +70,10 @@
 
 <script setup lang="ts">
 import { ref, watch, type CSSProperties } from 'vue';
-import { useSceneStore } from '@/stores/sceneStore';
-import { useUiStateStore } from '@/stores/uiStateStore';
+import {
+  useIsoflowSceneStore,
+  useIsoflowUiStateStore
+} from 'src/context/isoflowContext';
 import { useTextBox } from 'src/hooks/useTextBox';
 import ControlsContainer from '../components/ControlsContainer.vue';
 import Section from '../components/Section.vue';
@@ -83,8 +85,8 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const sceneStore = useSceneStore();
-const uiStateStore = useUiStateStore();
+const sceneStore = useIsoflowSceneStore<any>();
+const uiStateStore = useIsoflowUiStateStore<any>();
 
 const textBoxData = ref<any>({
   id: '',
@@ -103,9 +105,9 @@ const updateTextBoxData = () => {
     textBoxData.value = { ...textBox };
   } else {
     // 使用composable获取数据
-    const { textBox: textBoxRef } = useTextBox(props.id);
+    const textBoxRef = useTextBox(props.id);
     if (textBoxRef.value) {
-      textBoxData.value = textBoxRef.value;
+      textBoxData.value = textBoxRef.value as any;
     }
   }
 };
@@ -184,8 +186,8 @@ updateOrientationStyles();
   width: 100%;
   padding: 8px 12px;
   border: 1px solid #ddd;
-  borderradius: 4px;
-  fontsize: 14px;
+  border-radius: 4px;
+  font-size: 14px;
   resize: vertical;
   min-height: 60px;
 }
@@ -241,7 +243,5 @@ updateOrientationStyles();
   border-color: #1976d2;
 }
 
-.orientation-icon {
-  /* 方向图标样式 */
-}
+/* .orientation-icon intentionally inherits styles declared inline */
 </style>

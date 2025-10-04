@@ -1,4 +1,4 @@
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import {
   ModelItem,
   ViewItem,
@@ -10,9 +10,11 @@ import {
   SceneConnector,
   SceneTextBox
 } from 'src/types';
-import { useUiStateStore } from 'src/stores/uiStateStore';
-import { useModelStore } from 'src/stores/modelStore';
-import { useSceneStore } from 'src/stores/sceneStore';
+import {
+  useIsoflowModelStore,
+  useIsoflowSceneStore,
+  useIsoflowUiStateStore
+} from 'src/context/isoflowContext';
 import * as reducers from 'src/stores/reducers';
 import type { State } from 'src/stores/reducers/types';
 import { getItemByIdOrThrow } from 'src/utils';
@@ -33,9 +35,9 @@ const textBoxes = ref<(TextBox & SceneTextBox)[]>([]);
 let watchTextBoxes: any;
 
 export const useScene = () => {
-  const modelStore = useModelStore();
-  const sceneStore = useSceneStore();
-  const uiStateStore = useUiStateStore();
+  const modelStore = useIsoflowModelStore<any>();
+  const sceneStore = useIsoflowSceneStore<any>();
+  const uiStateStore = useIsoflowUiStateStore<any>();
 
   // 更新当前视图
   const updateCurrentView = () => {
@@ -44,6 +46,8 @@ export const useScene = () => {
         modelStore.views,
         uiStateStore.view
       ).value;
+    } else {
+      currentView.value = null;
     }
   };
 
@@ -101,15 +105,18 @@ export const useScene = () => {
   };
 
   // 监听变化
-  watch(() => [uiStateStore.view, modelStore.views], updateCurrentView, {
-    immediate: true
-  });
-  watch(() => currentView.value?.items, updateItems, {
-    immediate: true
-  });
-  watch(() => modelStore.colors, updateColors, { immediate: true });
+  // Consolidate watchers using computed dependencies
+  const currentViewId = computed(() => uiStateStore.view);
+  const modelViews = computed(() => modelStore.views);
+  const sceneConnectors = computed(() => sceneStore.connectors);
+  const sceneTextBoxes = computed(() => sceneStore.textBoxes);
+  const modelColors = computed(() => modelStore.colors);
+
+  watch([currentViewId, modelViews], updateCurrentView, { immediate: true });
+  watch(() => currentView.value?.items, updateItems, { immediate: true });
+  watch(modelColors, updateColors, { immediate: true });
   watch(
-    () => [currentView.value?.connectors, sceneStore.connectors],
+    () => [currentView.value?.connectors, sceneConnectors.value],
     updateConnectors,
     { immediate: true }
   );
@@ -118,18 +125,17 @@ export const useScene = () => {
   });
   if (watchTextBoxes) watchTextBoxes();
   watchTextBoxes = watch(
-    () => [currentView.value?.textBoxes, sceneStore.textBoxes],
-    () => {
-      updateTextBoxes();
-    },
+    () => [currentView.value?.textBoxes, sceneTextBoxes.value],
+    updateTextBoxes,
     { immediate: true }
   );
 
   // 辅助方法
   const getState = (): State => {
+    // Accept Pinia store state shape directly
     return {
-      model: modelStore.$state,
-      scene: sceneStore.$state
+      model: (modelStore as any).$state ?? modelStore,
+      scene: (sceneStore as any).$state ?? sceneStore
     };
   };
 

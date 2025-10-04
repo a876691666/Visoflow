@@ -1,26 +1,43 @@
 <template>
-  <div class="cursor-component">
-    <!-- Cursor rendering will be implemented here -->
-    <div class="cursor-visual" />
-  </div>
+  <IsoTileArea
+    :from="tile"
+    :to="tile"
+    :fill="fill"
+    :corner-radius="cornerRadius"
+  />
 </template>
 
 <script setup lang="ts">
-// Cursor component logic will be implemented here
+import { computed, ref } from 'vue';
+import { storeToRefs } from 'pinia';
+import chroma from 'chroma-js';
+import IsoTileArea from '@/components/IsoTileArea/IsoTileArea.vue';
+import { useUiStateStore } from 'src/stores/uiStateStore';
+import { theme } from '@/styles/theme';
+import { watch } from 'vue';
+
+const ui = useUiStateStore();
+const { mouse, zoom } = storeToRefs(ui);
+
+// 当前鼠标所在的瓦片坐标
+const tile = ref({ x: 0, y: 0 });
+watch(
+  () => mouse.value.position.tile,
+  (mouse) => {
+    tile.value = mouse;
+  },
+  { immediate: true }
+);
+
+// 主题主色半透明填充
+const fill = computed(() =>
+  chroma(theme.palette.primary.main).alpha(0.5).css()
+);
+
+// 根据缩放调整圆角
+const cornerRadius = computed(() => 10 * zoom.value);
 </script>
 
 <style scoped>
-.cursor-component {
-  position: absolute;
-  pointer-events: none;
-  z-index: 1000;
-}
-
-.cursor-visual {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #1976d2;
-  border-radius: 50%;
-  background-color: rgba(25, 118, 210, 0.2);
-}
+/* 无额外样式需求，视觉由 IsoTileArea 控制 */
 </style>

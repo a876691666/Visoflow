@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import { useUiStateStore } from 'src/stores/uiStateStore';
+import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import { useInteractionManager } from 'src/interaction/useInteractionManager';
 import { useScene } from 'src/hooks/useScene';
 import type { RendererProps } from 'src/types/rendererProps';
@@ -89,7 +89,7 @@ const containerRef = ref<HTMLDivElement>();
 const interactionsRef = ref<HTMLDivElement>();
 
 // Stores and hooks
-const uiStateStore = useUiStateStore();
+const uiStateStore = useIsoflowUiStateStore<any>();
 const { setInteractionsElement } = useInteractionManager();
 const { items, rectangles, connectors, textBoxes } = useScene();
 

@@ -1,5 +1,5 @@
 import { ref, watch, h, type VNode } from 'vue';
-import { useModelStore } from '@/stores/modelStore';
+import { useIsoflowModelStore } from 'src/context/isoflowContext';
 import { getItemByIdOrThrow } from '@/utils';
 import IsometricIcon from '@/components/SceneLayers/Nodes/Node/IconTypes/IsometricIcon.vue';
 import NonIsometricIcon from '@/components/SceneLayers/Nodes/Node/IconTypes/NonIsometricIcon.vue';
@@ -10,7 +10,7 @@ export const useIcon = (id: string | undefined) => {
   const icon = ref<any>(DEFAULT_ICON);
   const iconComponent = ref<VNode | null>(null);
 
-  const modelStore = useModelStore();
+  const modelStore = useIsoflowModelStore<any>();
 
   const updateIcon = () => {
     if (!id) {

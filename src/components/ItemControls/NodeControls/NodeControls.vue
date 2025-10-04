@@ -54,8 +54,10 @@
 
 <script setup lang="ts">
 import { ref, watch, type CSSProperties } from 'vue';
-import { useSceneStore } from '@/stores/sceneStore';
-import { useUiStateStore } from '@/stores/uiStateStore';
+import {
+  useIsoflowSceneStore,
+  useIsoflowUiStateStore
+} from 'src/context/isoflowContext';
 import ControlsContainer from '../components/ControlsContainer.vue';
 import Section from '../components/Section.vue';
 import NodeSettings from './NodeSettings/NodeSettings.vue';
@@ -69,8 +71,8 @@ const props = defineProps<Props>();
 
 type Mode = 'SETTINGS' | 'CHANGE_ICON';
 
-const sceneStore = useSceneStore();
-const uiStateStore = useUiStateStore();
+const sceneStore = useIsoflowSceneStore<any>();
+const uiStateStore = useIsoflowUiStateStore<any>();
 
 const mode = ref<Mode>('SETTINGS');
 const currentViewItem = ref<any>({});
@@ -150,9 +152,7 @@ updateStyles();
 </script>
 
 <style scoped>
-.node-header {
-  /* 节点头部样式 */
-}
+/* .node-header styles are applied via inline style objects */
 
 .header-content {
   display: flex;
@@ -161,9 +161,7 @@ updateStyles();
   gap: 16px;
 }
 
-.mode-button {
-  /* 模式切换按钮样式 */
-}
+/* .mode-button styles are applied via inline style objects */
 
 .mode-button:hover {
   background-color: rgba(25, 118, 210, 0.04);

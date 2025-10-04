@@ -15,8 +15,10 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { useSceneStore } from '@/stores/sceneStore';
-import { useUiStateStore } from '@/stores/uiStateStore';
+import {
+  useIsoflowSceneStore,
+  useIsoflowUiStateStore
+} from 'src/context/isoflowContext';
 import { useRectangle } from 'src/hooks/useRectangle';
 import ControlsContainer from '../components/ControlsContainer.vue';
 import Section from '../components/Section.vue';
@@ -29,8 +31,8 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const sceneStore = useSceneStore();
-const uiStateStore = useUiStateStore();
+const sceneStore = useIsoflowSceneStore<any>();
+const uiStateStore = useIsoflowUiStateStore<any>();
 
 const rectangleData = ref<any>({
   id: '',
@@ -44,9 +46,9 @@ const updateRectangleData = () => {
     rectangleData.value = { ...rect };
   } else {
     // 使用composable获取数据
-    const { rectangle } = useRectangle(props.id);
-    if (rectangle.value) {
-      rectangleData.value = rectangle.value;
+    const rectangleRef = useRectangle(props.id);
+    if (rectangleRef.value) {
+      rectangleData.value = rectangleRef.value as any;
     }
   }
 };

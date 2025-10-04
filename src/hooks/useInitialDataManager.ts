@@ -9,17 +9,17 @@ import {
   getItemByIdOrThrow
 } from 'src/utils';
 import * as reducers from 'src/stores/reducers';
-import { useModelStore } from 'src/stores/modelStore';
+import { useIsoflowModelStore } from 'src/context/isoflowContext';
 import { useView } from 'src/hooks/useView';
-import { useUiStateStore } from 'src/stores/uiStateStore';
+import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import { modelSchema } from 'src/schemas/model';
 
 export const useInitialDataManager = () => {
   const isReady = ref(false);
   const prevInitialData = ref<InitialData>();
 
-  const modelStore = useModelStore();
-  const uiStateStore = useUiStateStore();
+  const modelStore = useIsoflowModelStore<any>();
+  const uiStateStore = useIsoflowUiStateStore<any>();
   const { changeView } = useView();
 
   const load = (_initialData: InitialData) => {

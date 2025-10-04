@@ -14,7 +14,9 @@ import TextBox from './TextBox.vue';
 import type { TextBox as TextBoxType, SceneTextBox } from '@/types';
 
 interface Props {
-  textBoxes: Record<string, TextBoxType>;
+  textBoxes:
+    | Array<TextBoxType & Partial<SceneTextBox>>
+    | Record<string, TextBoxType>;
   sceneTextBoxes?: Record<string, SceneTextBox>;
 }
 
@@ -28,13 +30,24 @@ const combinedTextBoxes = ref<Record<string, TextBoxType & SceneTextBox>>({});
 const updateCombinedTextBoxes = () => {
   const combined: Record<string, TextBoxType & SceneTextBox> = {};
 
-  Object.entries(props.textBoxes).forEach(([id, textBox]) => {
-    const sceneData = props.sceneTextBoxes?.[id];
-    combined[id] = {
-      ...textBox,
-      ...sceneData
-    };
-  });
+  if (Array.isArray(props.textBoxes)) {
+    props.textBoxes.forEach((tb: any) => {
+      const id = tb.id;
+      const sceneData = props.sceneTextBoxes?.[id];
+      combined[id] = {
+        ...(tb as TextBoxType),
+        ...(sceneData as SceneTextBox)
+      } as any;
+    });
+  } else {
+    Object.entries(props.textBoxes).forEach(([id, textBox]) => {
+      const sceneData = props.sceneTextBoxes?.[id];
+      combined[id] = {
+        ...textBox,
+        ...(sceneData as SceneTextBox)
+      } as any;
+    });
+  }
 
   combinedTextBoxes.value = combined;
 };

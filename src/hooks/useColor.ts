@@ -1,9 +1,9 @@
 import { ref, watch } from 'vue';
 import { getItemByIdOrThrow } from '@/utils';
-import { useModelStore } from '@/stores/modelStore';
+import { useIsoflowModelStore } from '@/context/isoflowContext';
 
 export const useColor = (colorId?: string) => {
-  const modelStore = useModelStore();
+  const modelStore = useIsoflowModelStore<any>();
   const color = ref<any>(null);
 
   const updateColor = () => {

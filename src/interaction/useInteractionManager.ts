@@ -1,6 +1,8 @@
 import { ref, onUnmounted, watch } from 'vue';
-import { useModelStore } from 'src/stores/modelStore';
-import { useUiStateStore } from 'src/stores/uiStateStore';
+import {
+  useIsoflowModelStore,
+  useIsoflowUiStateStore
+} from 'src/context/isoflowContext';
 import { ModeActions, State, SlimMouseEvent } from 'src/types';
 import { getMouse, getItemAtTile } from 'src/utils';
 import { useResizeObserver } from 'src/hooks/useResizeObserver';
@@ -42,10 +44,21 @@ const getModeFunction = (mode: ModeActions, e: SlimMouseEvent) => {
 export const useInteractionManager = () => {
   const rendererRef = ref<HTMLElement>();
   const reducerTypeRef = ref<string>();
-  const uiStateStore = useUiStateStore();
-  const modelStore = useModelStore();
+  const uiStateStore = useIsoflowUiStateStore<any>();
+  const modelStore = useIsoflowModelStore<any>();
   const scene = useScene();
-  const { size: rendererSize } = useResizeObserver(uiStateStore.rendererEl);
+  // 本地持有 rendererEl 的 Ref，确保在其有值后再开始监听尺寸变化，并在变更时重新观察
+  const rendererElRef = ref<HTMLElement | null>(null);
+  const { size: rendererSize } = useResizeObserver(rendererElRef);
+
+  // 同步 uiStateStore.rendererEl 到本地 Ref，确保 useResizeObserver 能在元素可用时生效
+  watch(
+    () => uiStateStore.rendererEl,
+    (newEl) => {
+      rendererElRef.value = newEl;
+    },
+    { immediate: true }
+  );
 
   const onMouseEvent = (e: SlimMouseEvent) => {
     if (!rendererRef.value) return;
@@ -111,8 +124,10 @@ export const useInteractionManager = () => {
     }
   };
 
-  const setupEventListeners = () => {
-    if (uiStateStore.mode.type === 'INTERACTIONS_DISABLED') return;
+  const setupEventListeners = (): (() => void) => {
+    if (uiStateStore.mode.type === 'INTERACTIONS_DISABLED') {
+      return () => {};
+    }
 
     const el = window;
 

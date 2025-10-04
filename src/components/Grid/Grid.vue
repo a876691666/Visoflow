@@ -9,14 +9,14 @@ import { ref, watch, onMounted } from 'vue';
 import { gsap } from 'gsap';
 import type { Size } from 'src/types';
 import gridTileSvg from 'src/assets/grid-tile-bg.svg';
-import { useUiStateStore } from 'src/stores/uiStateStore';
+import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import { PROJECTED_TILE_SIZE, GSAP_ZOOM_CONFIG } from 'src/config';
 import { SizeUtils } from 'src/utils/SizeUtils';
 import { useResizeObserver } from 'src/hooks/useResizeObserver';
 
 const gridElement = ref<HTMLDivElement | null>(null);
 const isFirstRender = ref(true);
-const uiStateStore = useUiStateStore();
+const uiStateStore = useIsoflowUiStateStore<any>();
 
 // 使用resize observer监听元素大小变化
 const { size } = useResizeObserver(gridElement);

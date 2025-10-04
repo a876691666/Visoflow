@@ -1,11 +1,13 @@
 import { ref, watch } from 'vue';
 import { getItemByIdOrThrow } from '@/utils';
-import { useModelStore } from '@/stores/modelStore';
-import { useUiStateStore } from '@/stores/uiStateStore';
+import {
+  useIsoflowModelStore,
+  useIsoflowUiStateStore
+} from 'src/context/isoflowContext';
 
 export const useViewItem = (id: string) => {
-  const modelStore = useModelStore();
-  const uiStateStore = useUiStateStore();
+  const modelStore = useIsoflowModelStore<any>();
+  const uiStateStore = useIsoflowUiStateStore<any>();
   const viewItem = ref<any>(null);
 
   const updateViewItem = () => {
@@ -16,7 +18,7 @@ export const useViewItem = (id: string) => {
         modelStore.views || [],
         currentViewId
       ).value;
-      const items = currentView.items || [];
+      const items = (currentView as any).items || [];
 
       viewItem.value = getItemByIdOrThrow(items, id).value;
     } catch (error) {

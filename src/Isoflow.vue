@@ -27,6 +27,7 @@ import { useInitialDataManager } from './hooks/useInitialDataManager';
 import Renderer from './components/Renderer/Renderer.vue';
 import UiOverlay from './components/UiOverlay/UiOverlay.vue';
 import type { IsoflowProps } from './types';
+import { provideIsoflow } from './context/isoflowContext';
 
 interface Props {
   initialData?: IsoflowProps['initialData'];
@@ -44,17 +45,18 @@ const props = withDefaults(defineProps<Props>(), {
   width: '100%',
   height: '100%',
   enableDebugTools: false,
-  editorMode: 'EXPLORABLE_READONLY'
+  editorMode: 'EDITABLE'
 });
 
 const emit = defineEmits<{
   modelUpdated: [model: any];
 }>();
 
-// Stores
+// Stores (Pinia) and provide as context for children
 const modelStore = useModelStore();
 const sceneStore = useSceneStore();
 const uiStateStore = useUiStateStore();
+provideIsoflow({ modelStore, sceneStore, uiStateStore });
 
 // Initial data manager
 const initialDataManager = useInitialDataManager();

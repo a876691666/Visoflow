@@ -58,6 +58,19 @@ const updateStroke = () => {
 
 // 监听stroke变化
 watch(() => props.stroke, updateStroke, { immediate: true, deep: true });
+watch(
+  () => props.from,
+  () => {
+    const newState = useIsoProjection({
+      from: props.from,
+      to: props.to,
+      originOverride: props.origin
+    });
+
+    css.value = newState.css.value;
+    pxSize.value = newState.pxSize.value;
+  }
+);
 </script>
 
 <style scoped>

@@ -1,13 +1,15 @@
 import { ref, watch } from 'vue';
 import { getItemByIdOrThrow } from '@/utils';
-import { useModelStore } from '@/stores/modelStore';
-import { useUiStateStore } from '@/stores/uiStateStore';
-import { useSceneStore } from '@/stores/sceneStore';
+import {
+  useIsoflowModelStore,
+  useIsoflowSceneStore,
+  useIsoflowUiStateStore
+} from 'src/context/isoflowContext';
 
 export const useTextBox = (id: string) => {
-  const modelStore = useModelStore();
-  const uiStateStore = useUiStateStore();
-  const sceneStore = useSceneStore();
+  const modelStore = useIsoflowModelStore<any>();
+  const uiStateStore = useIsoflowUiStateStore<any>();
+  const sceneStore = useIsoflowSceneStore<any>();
   const textBox = ref<any>(null);
 
   const updateTextBox = () => {
@@ -18,7 +20,7 @@ export const useTextBox = (id: string) => {
         modelStore.views || [],
         currentViewId
       ).value;
-      const textBoxes = currentView.textBoxes || [];
+      const textBoxes = (currentView as any).textBoxes || [];
 
       const viewTextBox = getItemByIdOrThrow(textBoxes, id).value;
       const sceneTextBox = sceneStore.textBoxes[id];
@@ -44,7 +46,7 @@ export const useTextBox = (id: string) => {
     ],
     updateTextBox,
     {
-      immediate: true,
+      immediate: true
     }
   );
 

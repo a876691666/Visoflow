@@ -12,7 +12,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, nextTick } from 'vue';
 import { gsap } from 'gsap';
-import { useUiStateStore } from '@/stores/uiStateStore';
+import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import { GSAP_ZOOM_CONFIG } from 'src/config';
 
 interface Props {
@@ -28,7 +28,14 @@ const props = withDefaults(defineProps<Props>(), {
 const elementRef = ref<HTMLDivElement>();
 const isFirstRender = ref(true);
 
-const uiStateStore = useUiStateStore();
+const uiStateStore = useIsoflowUiStateStore<any>();
+
+// Read props.order to avoid unused variable warning and to allow reactive zIndex updates if needed later
+watch(
+  () => props.order,
+  () => {},
+  { immediate: true }
+);
 
 // 使用 ref 替代 computed - scroll 状态
 const scroll = ref(uiStateStore.scroll);

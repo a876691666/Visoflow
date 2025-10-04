@@ -113,8 +113,10 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { useModelStore } from 'src/stores/modelStore';
-import { useUiStateStore } from 'src/stores/uiStateStore';
+import {
+  useIsoflowModelStore,
+  useIsoflowUiStateStore
+} from 'src/context/isoflowContext';
 import { useScene } from 'src/hooks/useScene';
 import { useResizeObserver } from 'src/hooks/useResizeObserver';
 import { EditorModeEnum } from 'src/types';
@@ -130,15 +132,7 @@ import DragAndDrop from 'src/components/DragAndDrop/DragAndDrop.vue';
 import ExportImageDialog from 'src/components/ExportImageDialog/ExportImageDialog.vue';
 import ContextMenuManager from 'src/components/ContextMenu/ContextMenuManager.vue';
 
-const ToolsEnum = {
-  MAIN_MENU: 'MAIN_MENU',
-  ZOOM_CONTROLS: 'ZOOM_CONTROLS',
-  TOOL_MENU: 'TOOL_MENU',
-  ITEM_CONTROLS: 'ITEM_CONTROLS',
-  VIEW_TITLE: 'VIEW_TITLE'
-} as const;
-
-const EDITOR_MODE_MAPPING = {
+const EDITOR_MODE_MAPPING: Record<keyof typeof EditorModeEnum, string[]> = {
   [EditorModeEnum.EDITABLE]: [
     'ITEM_CONTROLS',
     'ZOOM_CONTROLS',
@@ -151,8 +145,8 @@ const EDITOR_MODE_MAPPING = {
 };
 
 // Stores
-const modelStore = useModelStore();
-const uiStateStore = useUiStateStore();
+const modelStore = useIsoflowModelStore<any>();
+const uiStateStore = useIsoflowUiStateStore<any>();
 
 // Hooks
 const { currentView } = useScene();
@@ -165,7 +159,9 @@ const contextMenuAnchorRef = ref<HTMLElement>();
 const availableTools = ref<string[]>([]);
 
 const updateAvailableTools = () => {
-  availableTools.value = EDITOR_MODE_MAPPING[uiStateStore.editorMode] || [];
+  const mode = (uiStateStore.editorMode ??
+    'EXPLORABLE_READONLY') as keyof typeof EditorModeEnum;
+  availableTools.value = EDITOR_MODE_MAPPING[mode] || [];
 };
 
 // Watch for editor mode changes

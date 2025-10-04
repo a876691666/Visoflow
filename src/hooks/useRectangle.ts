@@ -1,11 +1,13 @@
 import { ref, watch } from 'vue';
 import { getItemByIdOrThrow } from '@/utils';
-import { useModelStore } from '@/stores/modelStore';
-import { useUiStateStore } from '@/stores/uiStateStore';
+import {
+  useIsoflowModelStore,
+  useIsoflowUiStateStore
+} from 'src/context/isoflowContext';
 
 export const useRectangle = (id: string) => {
-  const modelStore = useModelStore();
-  const uiStateStore = useUiStateStore();
+  const modelStore = useIsoflowModelStore<any>();
+  const uiStateStore = useIsoflowUiStateStore<any>();
   const rectangle = ref<any>(null);
 
   const updateRectangle = () => {
@@ -16,7 +18,7 @@ export const useRectangle = (id: string) => {
         modelStore.views || [],
         currentViewId
       ).value;
-      const rectangles = currentView.rectangles || [];
+      const rectangles = (currentView as any).rectangles || [];
 
       rectangle.value = getItemByIdOrThrow(rectangles, id).value;
     } catch (error) {

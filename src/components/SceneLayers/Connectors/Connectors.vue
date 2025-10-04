@@ -12,7 +12,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { Connector as ConnectorType } from '@/types';
-import { useSceneStore } from '@/stores/sceneStore';
+import { useIsoflowSceneStore } from 'src/context/isoflowContext';
 import { useScene } from '@/hooks/useScene';
 import { getConnectorPath } from '@/utils';
 import Connector from './Connector.vue';
@@ -23,7 +23,7 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const sceneStore = useSceneStore();
+const sceneStore = useIsoflowSceneStore<any>();
 const scene = useScene();
 
 // 获取当前视图的连接器

@@ -1,5 +1,5 @@
 import { updateState } from './reactivity';
-import { Model, ModelStore } from 'src/types';
+import { Model } from 'src/types';
 import { validateModel } from 'src/schemas/validation';
 import { getItemByIdOrThrow } from './common';
 
@@ -53,7 +53,8 @@ export const fixModel = (model: Model): Model => {
   }, model);
 };
 
-export const modelFromModelStore = (modelStore: ModelStore): Model => {
+// Accept any object with model-like fields (e.g., a Pinia store instance)
+export const modelFromModelStore = (modelStore: any): Model => {
   return {
     version: modelStore.version,
     title: modelStore.title,

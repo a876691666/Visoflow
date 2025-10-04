@@ -56,8 +56,10 @@
 
 <script setup lang="ts">
 import { ref, watch, type CSSProperties } from 'vue';
-import { useSceneStore } from '@/stores/sceneStore';
-import { useUiStateStore } from '@/stores/uiStateStore';
+import {
+  useIsoflowSceneStore,
+  useIsoflowUiStateStore
+} from 'src/context/isoflowContext';
 import ControlsContainer from '../components/ControlsContainer.vue';
 import Section from '../components/Section.vue';
 import DeleteButton from '../components/DeleteButton.vue';
@@ -69,8 +71,8 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const sceneStore = useSceneStore();
-const uiStateStore = useUiStateStore();
+const sceneStore = useIsoflowSceneStore<any>();
+const uiStateStore = useIsoflowUiStateStore<any>();
 
 const connectorData = ref<any>({
   description: '',
@@ -177,13 +179,9 @@ updateStyles();
   margin-bottom: 16px;
 }
 
-.input-label {
-  /* 输入标签样式 */
-}
+/* .input-label styles are applied inline */
 
-.text-input {
-  /* 文本输入样式 */
-}
+/* .text-input styles are applied inline */
 
 .text-input:focus {
   border-color: #1976d2;
@@ -196,9 +194,7 @@ updateStyles();
   gap: 12px;
 }
 
-.slider {
-  /* 滑块样式 */
-}
+/* .slider styles are applied inline */
 
 .slider-value {
   font-size: 14px;
@@ -206,9 +202,7 @@ updateStyles();
   min-width: 40px;
 }
 
-.select-input {
-  /* 选择器样式 */
-}
+/* .select-input styles are applied inline */
 
 .select-input:focus {
   border-color: #1976d2;

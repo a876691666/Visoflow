@@ -66,11 +66,11 @@ export const screenToIso = ({
   const tile = {
     x: Math.floor(
       (projectPosition.x + halfW) / projectedTileSize.width -
-      projectPosition.y / projectedTileSize.height
+        projectPosition.y / projectedTileSize.height
     ),
     y: -Math.floor(
       (projectPosition.y + halfH) / projectedTileSize.height +
-      projectPosition.x / projectedTileSize.width
+        projectPosition.x / projectedTileSize.width
     )
   };
 
@@ -563,8 +563,8 @@ export const outermostCornerPositions: TileOrigin[] = [
 export const convertBoundsToNamedAnchors = (
   boundingBox: BoundingBox
 ): {
-    [key in AnchorPosition]: Coords;
-  } => {
+  [key in AnchorPosition]: Coords;
+} => {
   return {
     BOTTOM_LEFT: boundingBox[0],
     BOTTOM_RIGHT: boundingBox[1],

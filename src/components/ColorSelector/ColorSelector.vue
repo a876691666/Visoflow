@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { useSceneStore } from '@/stores/sceneStore';
+import { useIsoflowModelStore } from 'src/context/isoflowContext';
 import ColorSwatch from './ColorSwatch.vue';
 
 interface Props {
@@ -24,12 +24,12 @@ const props = withDefaults(defineProps<Props>(), {
   activeColor: ''
 });
 
-const sceneStore = useSceneStore();
+const modelStore = useIsoflowModelStore<any>();
 const colors = ref<Array<{ id: string; value: string }>>([]);
 
 const updateColors = () => {
   // 从store获取颜色数据
-  colors.value = sceneStore.colors || [
+  colors.value = modelStore.colors || [
     { id: 'red', value: '#f44336' },
     { id: 'blue', value: '#2196f3' },
     { id: 'green', value: '#4caf50' },
@@ -46,7 +46,7 @@ const handleColorChange = (colorId: string) => {
 };
 
 // 监听scene store的颜色变化
-watch(() => sceneStore.colors, updateColors, { immediate: true, deep: true });
+watch(() => modelStore.colors, updateColors, { immediate: true, deep: true });
 </script>
 
 <style scoped>

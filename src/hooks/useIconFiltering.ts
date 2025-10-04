@@ -1,9 +1,9 @@
 import { ref, watch } from 'vue';
-import { useModelStore } from '@/stores/modelStore';
+import { useIsoflowModelStore } from 'src/context/isoflowContext';
 import type { Icon } from '@/types';
 
 export const useIconFiltering = () => {
-  const modelStore = useModelStore();
+  const modelStore = useIsoflowModelStore<any>();
   const filter = ref<string>('');
   const filteredIcons = ref<Icon[] | null>(null);
 
