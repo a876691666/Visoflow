@@ -59,15 +59,16 @@ export const CONNECTOR_SEARCH_OFFSET = { x: 1, y: 1 };
 export const TEXTBOX_DEFAULTS: Required<Omit<TextBox, 'id' | 'tile'>> = {
   orientation: 'X',
   fontSize: 0.6,
-  content: 'Text'
+  content: 'Text',
+  textStyle: {}
 };
 
 export const TEXTBOX_PADDING = 0.2;
 export const TEXTBOX_FONT_WEIGHT = 'bold';
 
 export const RECTANGLE_DEFAULTS: Required<
-  Omit<Rectangle, 'id' | 'from' | 'to' | 'color'>
-> = {};
+  Omit<Rectangle, 'id' | 'from' | 'to'>
+> = { style: {} };
 
 export const ZOOM_INCREMENT = 0.2;
 export const MIN_ZOOM = 0.2;

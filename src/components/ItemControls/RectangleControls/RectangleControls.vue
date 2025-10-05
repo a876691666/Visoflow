@@ -1,10 +1,97 @@
 <template>
   <ControlsContainer>
-    <Section>
-      <ColorSelector
-        :active-color="rectangleData.color"
-        @change="handleColorChange"
+    <!-- 单项样式配置（使用浏览器默认控件） -->
+    <Section title="Fill">
+      <input
+        type="color"
+        :value="fillHex"
+        style="width: 100%"
+        @input="onColorChange($event, 'fill')"
       />
+    </Section>
+
+    <Section title="Fill Opacity (0-1)">
+      <input
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+        :value="rectangleData.style?.['fill-opacity'] ?? 1"
+        style="width: 100%"
+        @input="onNumberChange($event, 'fill-opacity')"
+      />
+    </Section>
+
+    <Section title="Stroke">
+      <input
+        type="color"
+        :value="strokeHex"
+        style="width: 100%"
+        @input="onColorChange($event, 'stroke')"
+      />
+    </Section>
+
+    <Section title="Stroke Width">
+      <input
+        type="number"
+        min="0"
+        step="1"
+        :value="rectangleData.style?.['stroke-width'] ?? ''"
+        style="width: 100%"
+        @change="onNumberChange($event, 'stroke-width')"
+      />
+    </Section>
+
+    <Section title="Stroke Opacity (0-1)">
+      <input
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+        :value="rectangleData.style?.['stroke-opacity'] ?? 1"
+        style="width: 100%"
+        @input="onNumberChange($event, 'stroke-opacity')"
+      />
+    </Section>
+
+    <Section title="Stroke Dasharray">
+      <input
+        type="text"
+        :value="rectangleData.style?.['stroke-dasharray'] ?? ''"
+        placeholder="例如：5,5 或 0"
+        style="width: 100%"
+        @change="
+          (e) =>
+            updateStyle({
+              ['stroke-dasharray']: (e.target as HTMLInputElement).value
+            })
+        "
+      />
+    </Section>
+
+    <Section title="Corner Radius (rx)">
+      <input
+        type="range"
+        min="0"
+        max="100"
+        step="1"
+        :value="rectangleData.style?.rx ?? 0"
+        style="width: 100%"
+        @input="onNumberChange($event, 'rx')"
+      />
+    </Section>
+
+    <Section title="Style (JSON)">
+      <textarea
+        :value="styleText"
+        @input="onStyleInput"
+        rows="6"
+        style="width: 100%; font-family: monospace; font-size: 12px"
+      ></textarea>
+      <div style="margin-top: 8px; display: flex; gap: 8px">
+        <button @click="applyStyleFromText">应用</button>
+        <span v-if="styleError" style="color: #d32f2f">{{ styleError }}</span>
+      </div>
     </Section>
 
     <Section>
@@ -14,16 +101,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import {
   useIsoflowSceneStore,
   useIsoflowUiStateStore
 } from 'src/context/isoflowContext';
 import { useRectangle } from 'src/hooks/useRectangle';
+import { useScene } from 'src/hooks/useScene';
 import ControlsContainer from '../components/ControlsContainer.vue';
 import Section from '../components/Section.vue';
 import DeleteButton from '../components/DeleteButton.vue';
-import ColorSelector from '@/components/ColorSelector/ColorSelector.vue';
 
 interface Props {
   id: string;
@@ -33,11 +120,49 @@ const props = defineProps<Props>();
 
 const sceneStore = useIsoflowSceneStore<any>();
 const uiStateStore = useIsoflowUiStateStore<any>();
+const { updateRectangle, deleteRectangle } = useScene();
 
 const rectangleData = ref<any>({
   id: '',
-  color: ''
+  style: {}
 });
+
+const styleText = ref('');
+const styleError = ref('');
+
+// 将任意 CSS 颜色字符串转换为 #RRGGBB，供 <input type="color"> 使用
+const toHexColor = (color?: string): string => {
+  if (!color) return '#000000';
+  // 已是 #RGB 或 #RRGGBB
+  const hexMatch = color.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
+  if (hexMatch) {
+    const v = hexMatch[1];
+    if (v.length === 3) {
+      // #abc -> #aabbcc
+      return `#${v[0]}${v[0]}${v[1]}${v[1]}${v[2]}${v[2]}`.toLowerCase();
+    }
+    return `#${v.toLowerCase()}`;
+  }
+  // 尝试通过浏览器解析 (rgb/rgba/named color 等)
+  try {
+    const el = document.createElement('div');
+    el.style.color = color;
+    document.body.appendChild(el);
+    const rgb = getComputedStyle(el).color; // 如 "rgb(255, 0, 0)"
+    document.body.removeChild(el);
+    const m = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+    if (m) {
+      const r = Number(m[1]).toString(16).padStart(2, '0');
+      const g = Number(m[2]).toString(16).padStart(2, '0');
+      const b = Number(m[3]).toString(16).padStart(2, '0');
+      return `#${r}${g}${b}`;
+    }
+  } catch {}
+  return '#000000';
+};
+
+const fillHex = computed(() => toHexColor(rectangleData.value.style?.fill));
+const strokeHex = computed(() => toHexColor(rectangleData.value.style?.stroke));
 
 const updateRectangleData = () => {
   // 从store获取矩形数据
@@ -51,24 +176,59 @@ const updateRectangleData = () => {
       rectangleData.value = rectangleRef.value as any;
     }
   }
+  // 同步 style 文本
+  styleText.value = JSON.stringify(rectangleData.value.style ?? {}, null, 2);
+  styleError.value = '';
 };
 
-const handleColorChange = (color: string) => {
-  // 更新本地数据
-  rectangleData.value.color = color;
+const onStyleInput = (e: Event) => {
+  const value = (e.target as HTMLTextAreaElement).value;
+  styleText.value = value;
+  styleError.value = '';
+};
 
-  // 更新store中的数据
-  if (sceneStore.updateRectangle) {
-    sceneStore.updateRectangle(rectangleData.value.id, { color });
+const applyStyleFromText = () => {
+  try {
+    const parsed = JSON.parse(styleText.value || '{}');
+    rectangleData.value.style = parsed;
+    updateRectangle(rectangleData.value.id, { style: parsed });
+    styleError.value = '';
+  } catch (err: any) {
+    styleError.value = '无效的 JSON';
   }
+};
+
+const onColorChange = (e: Event, key: 'fill' | 'stroke') => {
+  const value = (e.target as HTMLInputElement).value; // 总是 #RRGGBB
+  updateStyle({ [key]: value });
+};
+
+// 更新 style 的工具方法
+const updateStyle = (updates: Record<string, any>) => {
+  const current = (rectangleData.value.style ?? {}) as Record<string, any>;
+  const next = { ...current } as Record<string, any>;
+  Object.entries(updates).forEach(([k, v]) => {
+    if (v === '' || v === null || v === undefined) delete next[k];
+    else next[k] = v;
+  });
+  rectangleData.value.style = next;
+  updateRectangle(rectangleData.value.id, { style: next });
+  styleText.value = JSON.stringify(next, null, 2);
+};
+
+const onNumberChange = (e: Event, key: string) => {
+  const raw = (e.target as HTMLInputElement).value;
+  if (raw === '') {
+    updateStyle({ [key]: '' });
+    return;
+  }
+  const num = Number(raw);
+  if (!Number.isNaN(num)) updateStyle({ [key]: num });
 };
 
 const handleDelete = () => {
   uiStateStore.setItemControls(null);
-
-  if (sceneStore.deleteRectangle) {
-    sceneStore.deleteRectangle(rectangleData.value.id);
-  }
+  deleteRectangle(rectangleData.value.id);
 };
 
 // 监听ID变化

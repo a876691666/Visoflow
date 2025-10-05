@@ -202,23 +202,10 @@ export const validateRectangle = (
   ctx: { view: View; model: Model }
 ): Issue[] => {
   const issues: Issue[] = [];
-
-  if (rectangle.color) {
-    try {
-      getItemByIdOrThrow(ctx.model.colors, rectangle.color);
-    } catch (e) {
-      issues.push({
-        type: 'INVALID_RECTANGLE_COLOR_REF',
-        params: {
-          rectangle: rectangle.id,
-          view: ctx.view.id,
-          color: rectangle.color
-        },
-        message:
-          'Rectangle references a color that does not exist in the model.'
-      });
-    }
-  }
+  // Rectangle currently has no additional cross-field validation.
+  // Keep parameters accessed to satisfy linters until future rules are added.
+  void rectangle;
+  void ctx;
 
   return issues;
 };
