@@ -1,92 +1,52 @@
 <template>
   <div class="connectors-layer">
     <Connector
-      v-for="connector in currentConnectors"
+      v-for="connector in reversedConnectors"
       :key="connector.id"
       :connector="connector"
-      :is-selected="isConnectorSelected(connector.id)"
+      :is-selected="selectedConnectorId === connector.id"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { Connector as ConnectorType } from '@/types';
-import { useIsoflowSceneStore } from 'src/context/isoflowContext';
+import type { Connector as ConnectorType, SceneConnector } from '@/types';
+import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import { useScene } from '@/hooks/useScene';
-import { getConnectorPath } from '@/utils';
 import Connector from './Connector.vue';
 
 interface Props {
-  connectors?: Record<string, any>;
+  // From useScene().connectors (already merged with SceneConnector.path)
+  connectors?: (ConnectorType & SceneConnector)[];
 }
 
 const props = defineProps<Props>();
-
-const sceneStore = useIsoflowSceneStore<any>();
+const uiState = useIsoflowUiStateStore<any>();
 const scene = useScene();
 
-// 获取当前视图的连接器
-const currentConnectors = computed(() => {
-  // 优先使用传入的 connectors，否则使用当前视图的连接器
-  const sourceConnectors =
-    props.connectors || scene.currentView.value?.connectors || [];
+// 选中逻辑：优先 mode 为 CONNECTOR，其次 itemControls 为 CONNECTOR
+const selectedConnectorId = computed<string | null>(() => {
+  const mode = uiState.mode;
+  const itemControls = uiState.itemControls as
+    | { type: 'CONNECTOR'; id: string }
+    | { type: string; id?: string }
+    | null;
 
-  if (Array.isArray(sourceConnectors)) {
-    // 如果是数组，为每个连接器计算路径数据
-    return sourceConnectors.map((connector: ConnectorType) => {
-      try {
-        const path = getConnectorPath({
-          anchors: connector.anchors,
-          view: scene.currentView.value
-        });
-
-        // 将路径数据添加到场景存储
-        sceneStore.addConnector(connector.id, { path });
-
-        return {
-          ...connector,
-          path
-        };
-      } catch (error) {
-        console.warn(
-          `Failed to calculate path for connector ${connector.id}:`,
-          error
-        );
-        return connector;
-      }
-    });
-  } else {
-    // 如果是对象，转换为数组
-    return Object.values(sourceConnectors).map((connector: any) => {
-      try {
-        const path = getConnectorPath({
-          anchors: connector.anchors,
-          view: scene.currentView.value
-        });
-
-        sceneStore.addConnector(connector.id, { path });
-
-        return {
-          ...connector,
-          path
-        };
-      } catch (error) {
-        console.warn(
-          `Failed to calculate path for connector ${connector.id}:`,
-          error
-        );
-        return connector;
-      }
-    });
-  }
+  if (mode?.type === 'CONNECTOR') return mode.id ?? null;
+  if (itemControls?.type === 'CONNECTOR') return itemControls.id ?? null;
+  return null;
 });
 
-// 检查连接器是否被选中
-const isConnectorSelected = (_connectorId: string): boolean => {
-  // 简化的选择逻辑，在完整实现中应该使用实际的选择状态
-  return false;
-};
+// 渲染的连接器数据：优先使用传入的 props.connectors，否则从 useScene 拿
+const sourceConnectors = computed<(ConnectorType & SceneConnector)[]>(() => {
+  return (props.connectors as any) ?? (scene.connectors.value as any) ?? [];
+});
+
+// 与 React 版本一致：反向渲染，保证后添加的在上层
+const reversedConnectors = computed<(ConnectorType & SceneConnector)[]>(() => {
+  return [...sourceConnectors.value].reverse();
+});
 </script>
 
 <style scoped>

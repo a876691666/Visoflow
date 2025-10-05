@@ -65,10 +65,11 @@ import { ref, computed, watch, type CSSProperties } from 'vue';
 import type { Coords } from '@/types';
 import { useColor } from '@/hooks/useColor';
 import { useIsoProjection } from '@/hooks/useIsoProjection';
-import { getConnectorDirectionIcon, connectorPathTileToGlobal } from '@/utils';
+import { getConnectorDirectionIcon, getAnchorTile } from '@/utils';
 import { UNPROJECTED_TILE_SIZE } from '@/config';
 import Circle from '@/components/Circle/Circle.vue';
 import Svg from '@/components/Svg/Svg.vue';
+import { useScene } from '@/hooks/useScene';
 
 interface ConnectorWithPath {
   id: string;
@@ -134,6 +135,8 @@ const isVisible = computed(() => {
 
 // 获取颜色
 const color = useColor(props.connector.color);
+// 获取当前视图（用于解析锚点的实际 tile）
+const { currentView } = useScene();
 
 // 更新连接器数据
 const updateConnector = () => {
@@ -187,24 +190,27 @@ const updateConnector = () => {
 
   // 更新锚点位置（如果选中）
   if (props.isSelected && connector.anchors) {
-    anchorPositions.value = connector.anchors.map((anchor) => {
-      // 这里需要根据锚点引用计算实际位置
-      // 简化实现，实际应该根据anchor.ref计算
-      return {
-        id: anchor.id,
-        x: DRAW_OFFSET.x,
-        y: DRAW_OFFSET.y
-      };
-    });
+    // 参照 React 版本：根据 anchor 引用解析到全局 tile，再转换为局部像素坐标
+    if (connector.path?.rectangle && currentView.value) {
+      const origin = connector.path.rectangle.from;
+      anchorPositions.value = connector.anchors.map((anchor) => {
+        const position = getAnchorTile(anchor as any, currentView.value);
+
+        return {
+          id: anchor.id,
+          x: (origin.x - position.x) * UNPROJECTED_TILE_SIZE + DRAW_OFFSET.x,
+          y: (origin.y - position.y) * UNPROJECTED_TILE_SIZE + DRAW_OFFSET.y
+        };
+      });
+    } else {
+      anchorPositions.value = [];
+    }
   } else {
     anchorPositions.value = [];
   }
 
   // 更新方向指示器
   if (connectorPath.tiles && connectorPath.tiles.length > 1) {
-    const globalTiles = connectorPath.tiles.map((tile: Coords) =>
-      connectorPathTileToGlobal(tile, connectorPath.rectangle.from)
-    );
     const directionData = getConnectorDirectionIcon(connectorPath.tiles);
 
     if (directionData) {

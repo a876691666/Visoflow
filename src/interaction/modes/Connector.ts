@@ -87,7 +87,10 @@ export const Connector: ModeActions = {
   mouseup: ({ uiState, scene }) => {
     if (uiState.mode.type !== 'CONNECTOR' || !uiState.mode.id) return;
 
-    const connector = getItemByIdOrThrow(scene.connectors, uiState.mode.id);
+    const connector = getItemByIdOrThrow(
+      scene.connectors.value,
+      uiState.mode.id
+    );
     const firstAnchor = connector.value.anchors[0];
     const lastAnchor =
       connector.value.anchors[connector.value.anchors.length - 1];

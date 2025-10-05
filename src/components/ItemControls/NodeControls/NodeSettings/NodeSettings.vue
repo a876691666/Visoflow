@@ -92,7 +92,7 @@ const deleteSectionStyles = ref<CSSProperties>({
 });
 
 // 使用composable获取模型数据
-const { modelItem } = useModelItem(props.node.id);
+const modelItem = useModelItem(props.node.id);
 
 const updateModelItemData = () => {
   if (modelItem.value) {

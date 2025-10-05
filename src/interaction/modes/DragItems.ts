@@ -17,25 +17,28 @@ const dragItems = (
 ) => {
   items.forEach((item) => {
     if (item.type === 'ITEM') {
-      const node = getItemByIdOrThrow(scene.items, item.id).value;
+      const node = getItemByIdOrThrow(scene.items.value, item.id).value;
 
       scene.updateViewItem(item.id, {
         tile: CoordsUtils.add(node.tile, delta)
       });
     } else if (item.type === 'RECTANGLE') {
-      const rectangle = getItemByIdOrThrow(scene.rectangles, item.id).value;
+      const rectangle = getItemByIdOrThrow(
+        scene.rectangles.value,
+        item.id
+      ).value;
       const newFrom = CoordsUtils.add(rectangle.from, delta);
       const newTo = CoordsUtils.add(rectangle.to, delta);
 
       scene.updateRectangle(item.id, { from: newFrom, to: newTo });
     } else if (item.type === 'TEXTBOX') {
-      const textBox = getItemByIdOrThrow(scene.textBoxes, item.id).value;
+      const textBox = getItemByIdOrThrow(scene.textBoxes.value, item.id).value;
 
       scene.updateTextBox(item.id, {
         tile: CoordsUtils.add(textBox.tile, delta)
       });
     } else if (item.type === 'CONNECTOR_ANCHOR') {
-      const connector = getAnchorParent(item.id, scene.connectors);
+      const connector = getAnchorParent(item.id, scene.connectors.value);
 
       const newConnector = updateState(connector, (draft) => {
         const anchor = getItemByIdOrThrow(connector.anchors, item.id);

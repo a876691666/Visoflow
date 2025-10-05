@@ -11,7 +11,6 @@
       }"
     >
       <Renderer v-bind="renderer" />
-      <UiOverlay />
     </div>
   </div>
 </template>
@@ -25,7 +24,6 @@ import { setWindowCursor, modelFromModelStore } from './utils';
 import { INITIAL_DATA, MAIN_MENU_OPTIONS } from './config';
 import { useInitialDataManager } from './hooks/useInitialDataManager';
 import Renderer from './components/Renderer/Renderer.vue';
-import UiOverlay from './components/UiOverlay/UiOverlay.vue';
 import type { IsoflowProps } from './types';
 import { provideIsoflow } from './context/isoflowContext';
 

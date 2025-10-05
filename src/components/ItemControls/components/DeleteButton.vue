@@ -11,12 +11,9 @@
 
 <script setup lang="ts">
 import { ref, type CSSProperties } from 'vue';
-
-interface Props {
-  onClick: () => void;
-}
-
-const props = defineProps<Props>();
+const emit = defineEmits<{
+  (e: 'click'): void;
+}>();
 
 const buttonStyles = ref<CSSProperties>({
   display: 'inline-flex',
@@ -38,9 +35,7 @@ const iconStyles = ref<CSSProperties>({
   fill: '#d32f2f'
 });
 
-const handleClick = () => {
-  props.onClick();
-};
+const handleClick = () => emit('click');
 </script>
 
 <style scoped>
@@ -50,9 +45,5 @@ const handleClick = () => {
 
 .delete-button:active {
   background-color: rgba(211, 47, 47, 0.12);
-}
-
-.delete-icon {
-  /* 删除图标样式 */
 }
 </style>

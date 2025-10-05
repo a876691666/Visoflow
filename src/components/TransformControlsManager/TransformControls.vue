@@ -18,7 +18,7 @@
       v-for="(anchor, index) in anchors"
       :key="index"
       :position="anchor.position"
-      @mouse-down="anchor.onMouseDown"
+      :onMouseDown="anchor.onMouseDown"
     />
   </div>
 </template>
@@ -26,9 +26,16 @@
 <script setup lang="ts">
 import { ref, watch, type CSSProperties } from 'vue';
 import { useIsoProjection } from 'src/hooks/useIsoProjection';
-import type { Coords, AnchorPosition } from '@/types';
+import type { Coords, AnchorPosition } from 'src/types';
 import Svg from '@/components/Svg/Svg.vue';
 import TransformAnchor from './TransformAnchor.vue';
+import { TRANSFORM_CONTROLS_COLOR } from 'src/config';
+import {
+  getBoundingBox,
+  outermostCornerPositions,
+  getTilePosition,
+  convertBoundsToNamedAnchors
+} from 'src/utils';
 
 interface Props {
   from: Coords;
@@ -41,7 +48,6 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const strokeWidth = 2;
-const TRANSFORM_CONTROLS_COLOR = '#2196f3';
 
 // 响应式数据
 const svgStyles = ref<CSSProperties>({});
@@ -73,61 +79,26 @@ const updateAnchors = () => {
     return;
   }
 
-  // 简化的锚点计算
+  // 使用真实 utils 计算四个角并映射到命名锚点
   const corners = getBoundingBox([props.from, props.to]);
   const namedCorners = convertBoundsToNamedAnchors(corners);
 
-  const cornerPositions = Object.entries(namedCorners).map(
-    ([key, value], i) => {
-      const position = getTilePosition({
-        tile: value,
-        origin: outermostCornerPositions[i]
-      });
+  const cornerPositions = (
+    Object.entries(namedCorners) as Array<[AnchorPosition, Coords]>
+  ).map(([key, value], i) => {
+    const position = getTilePosition({
+      tile: value,
+      origin: outermostCornerPositions[i]
+    });
 
-      return {
-        position,
-        onMouseDown: () => {
-          props.onAnchorMouseDown?.(key as AnchorPosition);
-        }
-      };
-    }
-  );
+    return {
+      position,
+      onMouseDown: () => props.onAnchorMouseDown?.(key)
+    };
+  });
 
   anchors.value = cornerPositions;
 };
-
-// 简化的工具函数
-const getBoundingBox = (coords: Coords[]) => {
-  return {
-    minX: Math.min(...coords.map((c) => c.x)),
-    maxX: Math.max(...coords.map((c) => c.x)),
-    minY: Math.min(...coords.map((c) => c.y)),
-    maxY: Math.max(...coords.map((c) => c.y))
-  };
-};
-
-const convertBoundsToNamedAnchors = (bounds: any) => {
-  return {
-    'top-left': { x: bounds.minX, y: bounds.minY },
-    'top-right': { x: bounds.maxX, y: bounds.minY },
-    'bottom-left': { x: bounds.minX, y: bounds.maxY },
-    'bottom-right': { x: bounds.maxX, y: bounds.maxY }
-  };
-};
-
-const getTilePosition = ({ tile, origin }: any) => {
-  return {
-    x: tile.x * 50 + (origin?.x || 0),
-    y: tile.y * 50 + (origin?.y || 0)
-  };
-};
-
-const outermostCornerPositions = [
-  { x: 0, y: 0 },
-  { x: 1, y: 0 },
-  { x: 0, y: 1 },
-  { x: 1, y: 1 }
-];
 
 // 监听变化
 watch(() => css.value, updateSvgStyles, { immediate: true, deep: true });

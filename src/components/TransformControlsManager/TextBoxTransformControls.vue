@@ -1,57 +1,28 @@
 <template>
-  <TransformControls
-    :from="textBoxBounds.from"
-    :to="textBoxBounds.to"
-    @anchor-mouse-down="handleAnchorMouseDown"
-  />
+  <TransformControls v-if="textBox && to" :from="textBox.tile" :to="to" />
+  <!-- 若数据未就绪则不渲染 -->
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import type { TextBox, AnchorPosition, Coords } from '@/types';
+import { computed } from 'vue';
 import TransformControls from './TransformControls.vue';
+import { useTextBox } from 'src/hooks/useTextBox';
+import { getTextBoxEndTile } from 'src/utils';
 
 interface Props {
-  textBox: TextBox;
-  onAnchorMouseDown?: (anchorPosition: AnchorPosition) => void;
+  id: string;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  onAnchorMouseDown: undefined
-});
+const props = defineProps<Props>();
 
-const textBoxBounds = ref<{ from: Coords; to: Coords }>({
-  from: { x: 0, y: 0 },
-  to: { x: 1, y: 1 }
-});
+// 从 store/composable 获取文本框实时数据
+const textBoxRef = useTextBox(props.id);
+const textBox = computed(() => textBoxRef.value);
 
-const updateTextBoxBounds = () => {
-  // 简化的文本框边界计算
-  const textBoxTile = props.textBox.tile || { x: 0, y: 0 };
-
-  // 根据文本框内容计算大小
-  const width = Math.max(
-    1,
-    Math.ceil((props.textBox.content?.length || 1) / 10)
-  );
-  const height = 1;
-
-  textBoxBounds.value = {
-    from: { x: textBoxTile.x, y: textBoxTile.y },
-    to: { x: textBoxTile.x + width, y: textBoxTile.y + height }
-  };
-};
-
-const handleAnchorMouseDown = (anchorPosition: AnchorPosition) => {
-  if (props.onAnchorMouseDown) {
-    props.onAnchorMouseDown(anchorPosition);
-  }
-};
-
-// 监听文本框变化
-watch(() => props.textBox, updateTextBoxBounds, {
-  immediate: true,
-  deep: true
+// 依据真实工具函数计算文本框终点瓦片坐标
+const to = computed(() => {
+  if (!textBox.value || !textBox.value.size) return null;
+  return getTextBoxEndTile(textBox.value, textBox.value.size);
 });
 </script>
 

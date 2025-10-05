@@ -19,7 +19,7 @@ export const TransformRectangle: ModeActions = {
     if (uiState.mode.selectedAnchor) {
       // User is dragging an anchor
       const rectangle = getItemByIdOrThrow(
-        scene.rectangles,
+        scene.rectangles.value,
         uiState.mode.id
       ).value;
       const rectangleBounds = getBoundingBox([rectangle.to, rectangle.from]);

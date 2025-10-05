@@ -23,8 +23,10 @@
 
 <script setup lang="ts">
 import { ref, watch, type CSSProperties } from 'vue';
-import type { Coords } from '@/types';
+import type { Coords } from 'src/types';
 import Svg from '@/components/Svg/Svg.vue';
+import { getIsoProjectionCss } from 'src/utils';
+import { TRANSFORM_ANCHOR_SIZE, TRANSFORM_CONTROLS_COLOR } from 'src/config';
 
 interface Props {
   position: Coords;
@@ -39,9 +41,7 @@ const svgStyles = ref<CSSProperties>({});
 const fillColor = ref('');
 const strokeColor = ref('#333');
 const strokeWidth = 2;
-
-const TRANSFORM_ANCHOR_SIZE = 12;
-const TRANSFORM_CONTROLS_COLOR = '#1976d2';
+// 使用全局配置中的尺寸和颜色
 
 const rectSize = TRANSFORM_ANCHOR_SIZE - strokeWidth * 2;
 
@@ -63,11 +63,6 @@ const updateStyles = () => {
 
   fillColor.value = isHovered.value ? '#1565c0' : 'white';
   strokeColor.value = TRANSFORM_CONTROLS_COLOR;
-};
-
-// 简化的等距投影CSS生成函数
-const getIsoProjectionCss = () => {
-  return 'matrix(0.866, 0.5, -0.866, 0.5, 0, 0)';
 };
 
 const handleMouseOver = () => {
@@ -92,10 +87,6 @@ updateStyles();
 </script>
 
 <style scoped>
-.transform-anchor {
-  /* 变换锚点样式 */
-}
-
 .transform-anchor:hover {
   z-index: 10;
 }

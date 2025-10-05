@@ -47,7 +47,10 @@ const getAnchor = (
   tile: Coords,
   scene: ReturnType<typeof useScene>
 ) => {
-  const connector = getItemByIdOrThrow(scene.connectors, connectorId).value;
+  const connector = getItemByIdOrThrow(
+    scene.connectors.value,
+    connectorId
+  ).value;
   const anchor = getAnchorAtTile(tile, connector.anchors);
 
   if (!anchor) {
@@ -60,7 +63,7 @@ const getAnchor = (
       .map((anch) => {
         return {
           ...anch,
-          ordering: getAnchorOrdering(anch, connector, scene.currentView)
+          ordering: getAnchorOrdering(anch, connector, scene.currentView.value)
         };
       })
       .sort((a, b) => {

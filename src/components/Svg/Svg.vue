@@ -25,9 +25,9 @@ const props = withDefaults(defineProps<Props>(), {
   viewboxSize: undefined
 });
 
-const viewBox = ref('');
-const width = ref('');
-const height = ref('');
+const viewBox = ref();
+const width = ref();
+const height = ref();
 
 // 更新尺寸属性
 const updateDimensions = () => {
@@ -36,9 +36,9 @@ const updateDimensions = () => {
     width.value = `${props.viewboxSize.width}px`;
     height.value = `${props.viewboxSize.height}px`;
   } else {
-    viewBox.value = '';
-    width.value = '';
-    height.value = '';
+    viewBox.value = undefined;
+    width.value = undefined;
+    height.value = undefined;
   }
 };
 

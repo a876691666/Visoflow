@@ -2,7 +2,7 @@
   <TransformControls
     :from="rectangleData.from"
     :to="rectangleData.to"
-    @anchor-mouse-down="handleAnchorMouseDown"
+    :onAnchorMouseDown="handleAnchorMouseDown"
   />
 </template>
 

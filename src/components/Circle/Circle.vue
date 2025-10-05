@@ -1,5 +1,5 @@
 <template>
-  <circle :="$props" :cx="tile.x" :cy="tile.y" :r="radius" />
+  <circle :="$attrs" :cx="tile.x" :cy="tile.y" :r="radius" />
 </template>
 
 <script setup lang="ts">
