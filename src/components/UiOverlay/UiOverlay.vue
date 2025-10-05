@@ -51,28 +51,6 @@
       <MainMenu />
     </div>
 
-    <!-- View Title -->
-    <div
-      v-if="availableTools.includes('VIEW_TITLE')"
-      class="view-title-container"
-      :style="{
-        left: `${rendererSize.width / 2}px`,
-        top: `${rendererSize.height - appPadding.y * 2}px`,
-        width: `${rendererSize.width - 500}px`,
-        height: `${appPadding.y}px`
-      }"
-    >
-      <div class="ui-element view-title">
-        <div class="title-stack">
-          <span class="title-text">{{ modelStore.title }}</span>
-          <svg class="chevron-icon" viewBox="0 0 24 24" width="24" height="24">
-            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
-          </svg>
-          <span class="title-text">{{ currentView?.name }}</span>
-        </div>
-      </div>
-    </div>
-
     <!-- Debug Tools -->
     <div
       v-if="uiStateStore.enableDebugTools"

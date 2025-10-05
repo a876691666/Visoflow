@@ -31,11 +31,16 @@ const colors = ref<any[]>([]);
 const connectors = ref<(Connector & SceneConnector)[]>([]);
 const rectangles = ref<Rectangle[]>([]);
 const textBoxes = ref<(TextBox & SceneTextBox)[]>([]);
+const globel = ref<{
+  style: Record<string, any>;
+}>({
+  style: {}
+});
 
 let watchTextBoxes: any;
 
 export const useScene = () => {
-  const modelStore = useIsoflowModelStore<any>();
+  const modelStore = useIsoflowModelStore();
   const sceneStore = useIsoflowSceneStore<any>();
   const uiStateStore = useIsoflowUiStateStore<any>();
 
@@ -59,6 +64,12 @@ export const useScene = () => {
   // 更新colors
   const updateColors = () => {
     colors.value = modelStore.colors;
+  };
+
+  const updateGlobel = () => {
+    globel.value = {
+      style: modelStore.globel?.style ?? {}
+    };
   };
 
   // 更新connectors
@@ -112,6 +123,7 @@ export const useScene = () => {
   const sceneTextBoxes = computed(() => sceneStore.textBoxes);
   const modelColors = computed(() => modelStore.colors);
 
+  watch(() => modelStore.globel, updateGlobel, { immediate: true });
   watch([currentViewId, modelViews], updateCurrentView, { immediate: true });
   watch(() => currentView.value?.items, updateItems, { immediate: true });
   watch(modelColors, updateColors, { immediate: true });
@@ -288,6 +300,8 @@ export const useScene = () => {
     connectors,
     rectangles,
     textBoxes,
+    globel,
+    updateGlobel,
     createModelItem,
     updateModelItem,
     deleteModelItem,

@@ -4,9 +4,10 @@ import {
   useIsoflowModelStore,
   useIsoflowUiStateStore
 } from 'src/context/isoflowContext';
+import { ModelStore } from 'src/types';
 
 export const useRectangle = (id: string) => {
-  const modelStore = useIsoflowModelStore<any>();
+  const modelStore = useIsoflowModelStore<ModelStore>();
   const uiStateStore = useIsoflowUiStateStore<any>();
   const rectangle = ref<any>(null);
 
@@ -18,7 +19,7 @@ export const useRectangle = (id: string) => {
         modelStore.views || [],
         currentViewId
       ).value;
-      const rectangles = (currentView as any).rectangles || [];
+      const rectangles = currentView.rectangles || [];
 
       rectangle.value = getItemByIdOrThrow(rectangles, id).value;
     } catch (error) {

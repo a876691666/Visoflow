@@ -1,27 +1,85 @@
 <template>
-  <div class="grid-component">
-    <div ref="gridElement" class="grid-background" :style="gridStyle" />
+  <div
+    class="grid-component"
+    :style="{
+      width: '50000px',
+      height: '50000px',
+      position: 'absolute',
+      left: '-25072px',
+      top: '-25000px'
+    }"
+  >
+    <div
+      ref="gridElement"
+      class="grid-background"
+      :style="{
+        transform: transform,
+        transformOrigin: 'center',
+        background: `repeat url('${gridTileSvg}')`
+      }"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue';
 import { gsap } from 'gsap';
-import type { Size } from 'src/types';
-import gridTileSvg from 'src/assets/grid-tile-bg.svg';
+import { ProjectionOrientationEnum, type Size } from 'src/types';
 import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
-import { PROJECTED_TILE_SIZE, GSAP_ZOOM_CONFIG } from 'src/config';
+import { GSAP_ZOOM_CONFIG } from 'src/config';
 import { SizeUtils } from 'src/utils/SizeUtils';
 import { useResizeObserver } from 'src/hooks/useResizeObserver';
+import { getIsoMatrix } from 'src/utils';
+
+const generateBackground = (style: any) => {
+  const svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" >
+  <g stroke="${style.stroke}" stroke-opacity="${style.strokeOpacity}" stroke-width="${style.strokeWidth}" stroke-alignment="center">
+    <polyline points="0,0 100,0 100,100 0,100 0,0" fill="${style.fill}" />
+    <line x2="100" />
+    <line y2="100" />
+    <line x1="100" y1="0" x2="100" y2="100" />
+    <line x1="0" y1="100" x2="100" y2="100" />
+  </g>
+</svg>`;
+
+  return `data:image/svg+xml;base64,${btoa(svgString)}`; // 使用Base64编码
+};
+
+const gridTileSvg = ref();
+
+const props = withDefaults(
+  defineProps<{
+    style?: {
+      fill?: string;
+      stroke?: string;
+      strokeOpacity?: number;
+      strokeWidth?: number;
+    };
+  }>(),
+  {}
+);
+
+watch(
+  () => props.style,
+  (newStyle) => {
+    gridTileSvg.value = generateBackground({
+      fill: newStyle?.fill || 'none',
+      stroke: newStyle?.stroke || '#000000',
+      strokeOpacity: newStyle?.strokeOpacity ?? 0.15,
+      strokeWidth: newStyle?.strokeWidth ?? 5
+    });
+  },
+  { immediate: true }
+);
 
 const gridElement = ref<HTMLDivElement | null>(null);
 const isFirstRender = ref(true);
 const uiStateStore = useIsoflowUiStateStore<any>();
 
-// 使用resize observer监听元素大小变化
+const transform = getIsoMatrix(ProjectionOrientationEnum.X);
+
 const { size } = useResizeObserver(gridElement);
 
-// 使用 ref 替代 computed - scroll 状态
 const scroll = ref(uiStateStore.scroll);
 watch(
   () => uiStateStore.scroll,
@@ -31,7 +89,6 @@ watch(
   { deep: true, immediate: true }
 );
 
-// 使用 ref 替代 computed - zoom 状态
 const zoom = ref(uiStateStore.zoom);
 watch(
   () => uiStateStore.zoom,
@@ -41,18 +98,15 @@ watch(
   { immediate: true }
 );
 
-// 使用 ref 替代 computed - 网格样式
-const gridStyle = ref({
-  background: `repeat url("${gridTileSvg}")`
-});
-
-// 监听scroll、zoom和size变化，更新网格位置和大小
 watch(
   [scroll, zoom, size],
   () => {
     if (!gridElement.value) return;
 
-    const tileSize = SizeUtils.multiply(PROJECTED_TILE_SIZE, zoom.value);
+    const tileSize = SizeUtils.multiply(
+      { width: 100, height: 100 },
+      zoom.value
+    );
     const elRect = gridElement.value.getBoundingClientRect();
 
     const backgroundPosition: Size = {
@@ -62,9 +116,9 @@ watch(
 
     gsap.to(gridElement.value, {
       duration: GSAP_ZOOM_CONFIG.duration,
-      ease: GSAP_ZOOM_CONFIG.ease,
-      backgroundSize: `${tileSize.width}px ${tileSize.height * 2}px`,
-      backgroundPosition: `${backgroundPosition.width}px ${backgroundPosition.height}px`
+      ease: GSAP_ZOOM_CONFIG.ease
+      // backgroundSize: `${tileSize.width}px ${tileSize.height}px`,
+      // backgroundPosition: `${backgroundPosition.width}px ${backgroundPosition.height}px`
     });
 
     if (isFirstRender.value) {

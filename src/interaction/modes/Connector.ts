@@ -24,7 +24,7 @@ export const Connector: ModeActions = {
       return;
 
     const connector = getItemByIdOrThrow(
-      scene.currentView.connectors ?? [],
+      scene.currentView.value.connectors ?? [],
       uiState.mode.id
     );
 
@@ -55,7 +55,7 @@ export const Connector: ModeActions = {
 
     const newConnector: ConnectorI = {
       id: generateId(),
-      color: scene.colors[0].id,
+      color: scene.colors.value[0].id,
       anchors: []
     };
 

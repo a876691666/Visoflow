@@ -3,6 +3,7 @@ import { inject, provide, type InjectionKey } from 'vue';
 import { useModelStore } from 'src/stores/modelStore';
 import { useSceneStore } from 'src/stores/sceneStore';
 import { useUiStateStore } from 'src/stores/uiStateStore';
+import { ModelStore } from 'src/types';
 
 // Minimal context shape; we intentionally keep loose types so it can wrap Pinia stores
 export interface IsoflowContext {
@@ -22,11 +23,9 @@ export function useIsoflowContext(): IsoflowContext | null {
   return inject(IsoflowContextKey, null);
 }
 
-export function useIsoflowModelStore<T = any>(): T {
+export function useIsoflowModelStore<T = ModelStore>(): T {
   const ctx = useIsoflowContext();
   if (ctx && ctx.modelStore) return ctx.modelStore as T;
-  // Graceful fallback: use Pinia store directly if no provider (same-component access)
-  // Note: This assumes Pinia has been installed in the app (see src/main.ts)
   return useModelStore() as unknown as T;
 }
 

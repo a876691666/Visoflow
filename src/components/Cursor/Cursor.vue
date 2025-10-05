@@ -1,10 +1,5 @@
 <template>
-  <IsoTileArea
-    :from="tile"
-    :to="tile"
-    :fill="fill"
-    :corner-radius="cornerRadius"
-  />
+  <IsoTileArea :from="tile" :to="tile" :fill="fill" :rx="cornerRadius" />
 </template>
 
 <script setup lang="ts">

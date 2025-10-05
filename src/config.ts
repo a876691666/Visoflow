@@ -81,7 +81,12 @@ export const INITIAL_DATA: InitialData = {
   colors: [DEFAULT_COLOR],
   items: [],
   views: [],
-  fitToView: false
+  fitToView: false,
+  global: {
+    grid: {
+      style: {}
+    }
+  }
 };
 export const INITIAL_UI_STATE = {
   zoom: 1,

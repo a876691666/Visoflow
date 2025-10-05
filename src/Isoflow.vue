@@ -51,7 +51,6 @@ const emit = defineEmits<{
   modelUpdated: [model: any];
 }>();
 
-// Stores (Pinia) and provide as context for children
 const modelStore = useModelStore();
 const sceneStore = useSceneStore();
 const uiStateStore = useUiStateStore();

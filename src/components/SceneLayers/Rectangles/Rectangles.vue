@@ -5,7 +5,7 @@
       :key="rectangle.id"
       :from="rectangle.from"
       :to="rectangle.to"
-      :color="rectangle.color || ''"
+      :style="rectangle.style"
     />
   </div>
 </template>

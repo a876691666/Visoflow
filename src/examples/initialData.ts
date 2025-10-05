@@ -52,6 +52,13 @@ export const initialData: InitialData = {
   title: 'Airport management software system',
   icons,
   colors,
+  global: {
+    grid: {
+      style: {
+        fill: '#eee'
+      }
+    }
+  },
   items: [
     {
       id: 'item1',
@@ -697,7 +704,16 @@ export const initialData: InitialData = {
           id: '75637566-6d10-49fb-b3ec-85584250475d',
           color: 'color6',
           from: { x: 1, y: -10 },
-          to: { x: 6, y: -12 }
+          to: { x: 6, y: -12 },
+          style: {
+            fill: 'rgb(250, 214, 172)',
+            'fill-opacity': 0.5,
+            stroke: 'rgb(210, 174, 132)',
+            'stroke-width': 5,
+            'stroke-opacity': 1,
+            'stroke-dasharray': '0',
+            rx: 50
+          }
         },
         {
           id: '35cbdf0d-daa1-4939-9901-dd9aee36903f',

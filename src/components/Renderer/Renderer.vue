@@ -6,15 +6,17 @@
       backgroundColor: backgroundColor || '#f5f5f5'
     }"
   >
+    <!-- Grid -->
+    <div v-if="isShowGrid" class="grid-container">
+      <SceneLayer>
+        <Grid :style="modelStore.global?.grid?.style" />
+      </SceneLayer>
+    </div>
+
     <!-- Background rectangles -->
     <SceneLayer>
       <Rectangles :rectangles="rectangles" />
     </SceneLayer>
-
-    <!-- Grid -->
-    <div v-if="isShowGrid" class="grid-container">
-      <Grid />
-    </div>
 
     <!-- Cursor -->
     <SceneLayer v-if="uiStateStore.mode.showCursor">
@@ -74,7 +76,9 @@ import TextBoxes from 'src/components/SceneLayers/TextBoxes/TextBoxes.vue';
 import SizeIndicator from 'src/components/DebugUtils/SizeIndicator.vue';
 import SceneLayer from 'src/components/SceneLayer/SceneLayer.vue';
 import TransformControlsManager from 'src/components/TransformControlsManager/TransformControlsManager.vue';
+import { useModelStore } from 'src/stores/modelStore';
 
+const modelStore = useModelStore();
 interface Props {
   showGrid?: RendererProps['showGrid'];
   backgroundColor?: RendererProps['backgroundColor'];

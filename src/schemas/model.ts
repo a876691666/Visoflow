@@ -15,7 +15,16 @@ export const modelSchema = z
     items: modelItemsSchema,
     views: viewsSchema,
     icons: iconsSchema,
-    colors: colorsSchema
+    colors: colorsSchema,
+    global: z
+      .object({
+        grid: z
+          .object({
+            style: z.record(z.any())
+          })
+          .optional()
+      })
+      .optional()
   })
   .superRefine((model, ctx) => {
     const issues = validateModel({ ...INITIAL_DATA, ...model });
