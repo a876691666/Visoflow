@@ -19,17 +19,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed } from 'vue';
 import IconButton from '../IconButton/IconButton.vue';
+import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 
-const isMenuOpen = ref(false);
+const uiStateStore = useIsoflowUiStateStore<any>();
+const isMenuOpen = computed({
+  get: () => uiStateStore.isMainMenuOpen,
+  set: (val: boolean) => uiStateStore.setIsMainMenuOpen(val)
+});
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
 };
 
 const handleMenuAction = (action: string) => {
-  console.log('Menu action:', action);
   isMenuOpen.value = false;
 
   // Menu action logic will be implemented here
@@ -44,7 +48,7 @@ const handleMenuAction = (action: string) => {
       // Load logic
       break;
     case 'export':
-      // Export logic
+      uiStateStore.setDialog('EXPORT_IMAGE');
       break;
   }
 };

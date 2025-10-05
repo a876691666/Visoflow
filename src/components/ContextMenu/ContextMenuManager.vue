@@ -12,7 +12,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
+import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 
 interface Props {
   anchorEl?: HTMLElement;
@@ -21,7 +22,8 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  visible: false
+  visible: undefined,
+  position: undefined
 });
 
 const emit = defineEmits<{
@@ -29,6 +31,7 @@ const emit = defineEmits<{
   close: [];
 }>();
 
+const uiStateStore = useIsoflowUiStateStore<any>();
 const isVisible = ref(false);
 const menuStyle = ref({
   position: 'absolute' as const,
@@ -37,28 +40,34 @@ const menuStyle = ref({
   zIndex: 3000
 });
 
-watch(
-  () => props.visible,
-  (newVisible) => {
-    isVisible.value = newVisible;
+const syncFromStore = () => {
+  const ctx = uiStateStore.contextMenu;
+  if (props.visible !== undefined) {
+    isVisible.value = !!props.visible;
+  } else {
+    isVisible.value = !!ctx;
   }
-);
+
+  const pos = props.position ?? ctx?.tile;
+  if (pos) {
+    menuStyle.value.left = `${pos.x}px`;
+    menuStyle.value.top = `${pos.y}px`;
+  }
+};
 
 watch(
-  () => props.position,
-  (newPosition) => {
-    if (newPosition) {
-      menuStyle.value.left = `${newPosition.x}px`;
-      menuStyle.value.top = `${newPosition.y}px`;
-    }
-  }
+  () => [props.visible, props.position, uiStateStore.contextMenu],
+  syncFromStore,
+  { immediate: true, deep: true }
 );
+onMounted(syncFromStore);
 
 const handleAction = (action: string) => {
   console.log('Context menu action:', action);
   emit('action', action);
   emit('close');
   isVisible.value = false;
+  uiStateStore.setContextMenu(null);
 };
 </script>
 

@@ -7,10 +7,13 @@ export const textBoxSchema = z.object({
   tile: coords,
   content: constrainedStrings.name,
   fontSize: z.number().optional(),
+  textStyle: z.record(z.string()).optional(),
   orientation: z
     .union([
       z.literal(ProjectionOrientationEnum.X),
-      z.literal(ProjectionOrientationEnum.Y)
+      z.literal(ProjectionOrientationEnum.Y),
+      z.literal(ProjectionOrientationEnum.DX),
+      z.literal(ProjectionOrientationEnum.DY)
     ])
     .optional()
 });

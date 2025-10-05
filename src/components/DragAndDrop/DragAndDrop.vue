@@ -9,6 +9,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import { getTilePosition } from 'src/utils/renderer';
 
 interface Props {
   iconId: string;
@@ -29,13 +30,11 @@ const dragStyle = ref({
 watch(
   () => props.tile,
   (newTile) => {
-    // Convert tile coordinates to screen coordinates
-    // This is a simplified conversion - actual implementation would use the scene transformation
-    const tileSize = 32; // Default tile size
-    dragStyle.value.left = `${newTile.x * tileSize}px`;
-    dragStyle.value.top = `${newTile.y * tileSize}px`;
+    const pos = getTilePosition({ tile: newTile, origin: 'LEFT' });
+    dragStyle.value.left = `${pos.x}px`;
+    dragStyle.value.top = `${pos.y}px`;
   },
-  { immediate: true }
+  { immediate: true, deep: true }
 );
 </script>
 

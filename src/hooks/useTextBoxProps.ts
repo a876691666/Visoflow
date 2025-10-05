@@ -1,4 +1,4 @@
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import type { TextBox } from '@/types';
 import {
   UNPROJECTED_TILE_SIZE,
@@ -9,8 +9,9 @@ import {
 } from '@/config';
 
 export const useTextBoxProps = (textBox: TextBox) => {
+  const fontSize = textBox.fontSize ?? TEXTBOX_DEFAULTS.fontSize;
   const fontProps = ref({
-    fontSize: `${UNPROJECTED_TILE_SIZE * TEXTBOX_DEFAULTS.fontSize}px`,
+    fontSize: `${UNPROJECTED_TILE_SIZE * fontSize}px`,
     fontFamily: DEFAULT_FONT_FAMILY,
     fontWeight: TEXTBOX_FONT_WEIGHT
   });
@@ -18,7 +19,7 @@ export const useTextBoxProps = (textBox: TextBox) => {
   const paddingX = ref(UNPROJECTED_TILE_SIZE * TEXTBOX_PADDING);
 
   // 更新字体属性
-  const updateFontProps = () => {
+  const update = (textBox: TextBox) => {
     const fontSize = textBox.fontSize ?? TEXTBOX_DEFAULTS.fontSize;
     fontProps.value = {
       fontSize: `${UNPROJECTED_TILE_SIZE * fontSize}px`,
@@ -27,11 +28,9 @@ export const useTextBoxProps = (textBox: TextBox) => {
     };
   };
 
-  // 监听textBox.fontSize变化
-  watch(() => textBox.fontSize, updateFontProps, { immediate: true });
-
   return {
     paddingX,
+    update,
     fontProps
   };
 };

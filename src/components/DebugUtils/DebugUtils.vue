@@ -33,15 +33,38 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 
 const fps = ref(60);
-const mousePos = ref({
-  screen: { x: 0, y: 0 },
-  tile: { x: 0, y: 0 }
-});
+const mousePos = ref({ screen: { x: 0, y: 0 }, tile: { x: 0, y: 0 } });
 const zoom = ref(1.0);
 const currentMode = ref('CURSOR');
+
+const uiStateStore = useIsoflowUiStateStore<any>();
+
+watch(
+  () => uiStateStore.mouse,
+  (m) => {
+    mousePos.value = {
+      screen: { ...m.position.screen },
+      tile: { ...m.position.tile }
+    };
+  },
+  { immediate: true, deep: true }
+);
+
+watch(
+  () => uiStateStore.zoom,
+  (z) => (zoom.value = z),
+  { immediate: true }
+);
+
+watch(
+  () => uiStateStore.mode?.type,
+  (t) => (currentMode.value = t ?? 'CURSOR'),
+  { immediate: true }
+);
 
 // FPS counter
 let frameCount = 0;

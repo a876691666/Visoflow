@@ -1,6 +1,11 @@
-import { ref, watch, type CSSProperties, type Ref } from 'vue';
+import { ref, type CSSProperties, type Ref } from 'vue';
 import type { Coords, Size, ProjectionOrientationEnum } from '@/types';
-import { getBoundingBox, getIsoProjectionCss, getTilePosition } from '@/utils';
+import {
+  getBoundingBox,
+  getIsoProjectionCss,
+  getIsoProjectionOrigin,
+  getTilePosition
+} from '@/utils';
 import { UNPROJECTED_TILE_SIZE } from '@/config';
 
 interface Props {
@@ -12,23 +17,19 @@ interface Props {
 
 interface UseIsoProjectionReturn {
   css: Ref<CSSProperties>;
+  update: (props: Props) => void;
   position: Ref<Coords>;
   gridSize: Ref<Size>;
   pxSize: Ref<Size>;
 }
 
-export const useIsoProjection = ({
-  from,
-  to,
-  originOverride,
-  orientation
-}: Props): UseIsoProjectionReturn => {
+export const useIsoProjection = (): UseIsoProjectionReturn => {
   const css = ref<CSSProperties>({});
   const position = ref<Coords>({ x: 0, y: 0 });
   const gridSize = ref<Size>({ width: 0, height: 0 });
   const pxSize = ref<Size>({ width: 0, height: 0 });
 
-  const updateProjection = () => {
+  const update = ({ from, to, originOverride, orientation }: Props) => {
     // 计算网格尺寸
     const newGridSize = {
       width: Math.abs(from.x - to.x) + 1,
@@ -61,22 +62,13 @@ export const useIsoProjection = ({
       width: `${newPxSize.width}px`,
       height: `${newPxSize.height}px`,
       transform: getIsoProjectionCss(orientation),
-      transformOrigin: 'top left'
+      transformOrigin: getIsoProjectionOrigin(orientation)
     };
   };
 
-  // 监听属性变化
-  watch(
-    [() => from, () => to, () => originOverride, () => orientation],
-    updateProjection,
-    {
-      immediate: true,
-      deep: true
-    }
-  );
-
   return {
     css,
+    update,
     position,
     gridSize,
     pxSize

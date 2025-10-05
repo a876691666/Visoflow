@@ -1,6 +1,6 @@
 <template>
-  <div v-if="isVisible" class="connector-container" :style="containerStyles">
-    <Svg :viewbox-size="viewboxSize" :style="svgStyles">
+  <div v-if="isVisible" class="connector-container" :style="css">
+    <Svg :viewbox-size="pxSize" :style="svgStyles">
       <!-- 背景线条 -->
       <polyline
         v-if="pathString"
@@ -104,10 +104,8 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 // 响应式数据
-const containerStyles = ref<CSSProperties>({});
 const svgStyles = ref<CSSProperties>({});
 const pathString = ref('');
-const viewboxSize = ref({ width: 100, height: 100 });
 const backgroundStroke = ref('white');
 const backgroundStrokeWidth = ref(20);
 const mainStroke = ref('#333');
@@ -138,21 +136,18 @@ const color = useColor(props.connector.color);
 // 获取当前视图（用于解析锚点的实际 tile）
 const { currentView } = useScene();
 
+// 更新等距投影
+const { css, pxSize, update } = useIsoProjection();
 // 更新连接器数据
 const updateConnector = () => {
   const connector = props.connector;
   if (!connector?.path) return;
 
   const connectorPath = connector.path;
-
-  // 更新等距投影
-  const { css, pxSize } = useIsoProjection({
+  update({
     from: connectorPath.rectangle.from,
     to: connectorPath.rectangle.to
   });
-
-  containerStyles.value = css.value || {};
-  viewboxSize.value = pxSize.value || { width: 100, height: 100 };
 
   // 更新路径字符串
   if (connectorPath.tiles && connectorPath.tiles.length > 0) {

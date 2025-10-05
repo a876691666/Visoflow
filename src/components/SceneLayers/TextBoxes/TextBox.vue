@@ -27,9 +27,9 @@ const contentStyle = ref<CSSProperties>({});
 const textStyle = ref<CSSProperties>({});
 
 // 缓存的属性值
-const { paddingX, fontProps } = useTextBoxProps(props.textBox);
-const projectionCSS = ref<CSSProperties>({});
+const { paddingX, fontProps, update } = useTextBoxProps(props.textBox);
 
+const { css, update: updateProjectionHooks } = useIsoProjection();
 // 更新等距投影
 const updateProjection = () => {
   if (!props.textBox?.tile || !props.textBox?.size) return;
@@ -39,19 +39,18 @@ const updateProjection = () => {
     y: 0
   });
 
-  const { css } = useIsoProjection({
+  updateProjectionHooks({
     from: props.textBox.tile,
     to: toCoords,
     orientation: props.textBox.orientation
   });
-
-  projectionCSS.value = css.value;
 };
 
 // 更新容器样式
 const updateContainerStyle = () => {
+  updateProjection();
   containerStyle.value = {
-    ...projectionCSS.value,
+    ...css.value,
     pointerEvents: 'none',
     userSelect: 'none'
   };
@@ -76,6 +75,8 @@ const updateContentStyle = () => {
 
 // 更新文本样式
 const updateTextStyle = () => {
+  update(props.textBox);
+
   textStyle.value = {
     ...fontProps.value,
     margin: 0,
@@ -84,13 +85,13 @@ const updateTextStyle = () => {
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    color: 'inherit'
+    color: 'inherit',
+    ...(props.textBox.textStyle ?? {})
   };
 };
 
 // 监听textBox变化并更新所有样式
 const updateAllStyles = () => {
-  updateProjection();
   updateContainerStyle();
   updateContentStyle();
   updateTextStyle();
@@ -103,8 +104,7 @@ watch(
     updateAllStyles();
   },
   {
-    immediate: true,
-    deep: true
+    immediate: true
   }
 );
 
@@ -140,21 +140,6 @@ watch(
     updateProjection();
     updateContainerStyle();
   }
-);
-
-watch(
-  () => paddingX.value,
-  () => {
-    updateContentStyle();
-  }
-);
-
-watch(
-  () => fontProps.value,
-  () => {
-    updateTextStyle();
-  },
-  { deep: true }
 );
 </script>
 

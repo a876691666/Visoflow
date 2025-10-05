@@ -56,10 +56,7 @@ const rectHeight = ref(0);
 const anchors = ref<Array<{ position: any; onMouseDown: () => void }>>([]);
 
 // 使用投影Hook
-const { css, pxSize } = useIsoProjection({
-  from: props.from,
-  to: props.to
-});
+const { css, pxSize, update } = useIsoProjection();
 
 const updateSvgStyles = () => {
   svgStyles.value = {
@@ -82,6 +79,7 @@ const updateAnchors = () => {
   // 使用真实 utils 计算四个角并映射到命名锚点
   const corners = getBoundingBox([props.from, props.to]);
   const namedCorners = convertBoundsToNamedAnchors(corners);
+  console.log('update');
 
   const cornerPositions = (
     Object.entries(namedCorners) as Array<[AnchorPosition, Coords]>
@@ -93,19 +91,33 @@ const updateAnchors = () => {
 
     return {
       position,
-      onMouseDown: () => props.onAnchorMouseDown?.(key)
+      onMouseDown: () => {
+        props.onAnchorMouseDown?.(key);
+      }
     };
   });
 
   anchors.value = cornerPositions;
 };
 
+watch(
+  [() => props.from, () => props.to],
+  () => {
+    update({
+      from: props.from,
+      to: props.to
+    });
+  },
+  { immediate: true }
+);
+
 // 监听变化
-watch(() => css.value, updateSvgStyles, { immediate: true, deep: true });
-watch(() => pxSize.value, updateRectSize, { immediate: true, deep: true });
-watch(() => [props.from, props.to, props.onAnchorMouseDown], updateAnchors, {
-  immediate: true,
-  deep: true
+watch(() => css.value, updateSvgStyles, { immediate: true });
+watch(() => pxSize.value, updateRectSize, {
+  immediate: true
+});
+watch([() => props.from, () => props.to], updateAnchors, {
+  immediate: true
 });
 </script>
 

@@ -762,6 +762,7 @@ export const initialData: InitialData = {
         {
           orientation: 'X',
           fontSize: 0.6,
+          textStyle: { color: 'red' },
           content: 'AODB',
           id: '52070439-245d-45ab-974a-615427c1c3d1',
           tile: { x: 2, y: -2 }

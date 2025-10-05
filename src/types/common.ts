@@ -15,7 +15,9 @@ export interface Rect {
 
 export const ProjectionOrientationEnum = {
   X: 'X',
-  Y: 'Y'
+  Y: 'Y',
+  DX: 'DX',
+  DY: 'DY'
 } as const;
 
 export type BoundingBox = [Coords, Coords, Coords, Coords];

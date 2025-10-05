@@ -1,63 +1,28 @@
 <template>
   <div class="textboxes-layer">
     <TextBox
-      v-for="(textBox, id) in combinedTextBoxes"
-      :key="id"
+      v-for="textBox in reversedTextBoxes"
+      :key="textBox.id"
       :textBox="textBox"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed } from 'vue';
 import TextBox from './TextBox.vue';
 import type { TextBox as TextBoxType, SceneTextBox } from '@/types';
 
 interface Props {
-  textBoxes:
-    | Array<TextBoxType & Partial<SceneTextBox>>
-    | Record<string, TextBoxType>;
-  sceneTextBoxes?: Record<string, SceneTextBox>;
+  // 已与 Scene 合并后的文本框数组
+  textBoxes: Array<TextBoxType & SceneTextBox>;
 }
+const props = defineProps<Props>();
 
-const props = withDefaults(defineProps<Props>(), {
-  sceneTextBoxes: () => ({})
+// 与 React 版本保持一致：反向渲染，确保后创建的在更上层
+const reversedTextBoxes = computed(() => {
+  return [...props.textBoxes].reverse();
 });
-
-// 合并视图和场景数据
-const combinedTextBoxes = ref<Record<string, TextBoxType & SceneTextBox>>({});
-
-const updateCombinedTextBoxes = () => {
-  const combined: Record<string, TextBoxType & SceneTextBox> = {};
-
-  if (Array.isArray(props.textBoxes)) {
-    props.textBoxes.forEach((tb: any) => {
-      const id = tb.id;
-      const sceneData = props.sceneTextBoxes?.[id];
-      combined[id] = {
-        ...(tb as TextBoxType),
-        ...(sceneData as SceneTextBox)
-      } as any;
-    });
-  } else {
-    Object.entries(props.textBoxes).forEach(([id, textBox]) => {
-      const sceneData = props.sceneTextBoxes?.[id];
-      combined[id] = {
-        ...textBox,
-        ...(sceneData as SceneTextBox)
-      } as any;
-    });
-  }
-
-  combinedTextBoxes.value = combined;
-};
-
-// 监听props变化
-watch(
-  [() => props.textBoxes, () => props.sceneTextBoxes],
-  updateCombinedTextBoxes,
-  { immediate: true }
-);
 </script>
 
 <style scoped>

@@ -39,11 +39,7 @@ const strokeColor = ref('none');
 const strokeWidth = ref(0);
 
 // 使用IsoProjection
-const { css, pxSize } = useIsoProjection({
-  from: props.from,
-  to: props.to,
-  originOverride: props.origin
-});
+const { css, pxSize, update } = useIsoProjection();
 
 // 更新stroke参数
 const updateStroke = () => {
@@ -59,17 +55,15 @@ const updateStroke = () => {
 // 监听stroke变化
 watch(() => props.stroke, updateStroke, { immediate: true, deep: true });
 watch(
-  () => props.from,
+  [() => props.from, () => props.to, () => props.origin],
   () => {
-    const newState = useIsoProjection({
+    update({
       from: props.from,
       to: props.to,
       originOverride: props.origin
     });
-
-    css.value = newState.css.value;
-    pxSize.value = newState.pxSize.value;
-  }
+  },
+  { immediate: true }
 );
 </script>
 

@@ -11,6 +11,7 @@
       }"
     >
       <Renderer v-bind="renderer" />
+      <UiOverlay v-if="uiStateStore.rendererEl" />
     </div>
   </div>
 </template>
@@ -24,6 +25,7 @@ import { setWindowCursor, modelFromModelStore } from './utils';
 import { INITIAL_DATA, MAIN_MENU_OPTIONS } from './config';
 import { useInitialDataManager } from './hooks/useInitialDataManager';
 import Renderer from './components/Renderer/Renderer.vue';
+import UiOverlay from './components/UiOverlay/UiOverlay.vue';
 import type { IsoflowProps } from './types';
 import { provideIsoflow } from './context/isoflowContext';
 
@@ -32,7 +34,6 @@ interface Props {
   mainMenuOptions?: IsoflowProps['mainMenuOptions'];
   width?: IsoflowProps['width'];
   height?: IsoflowProps['height'];
-  onModelUpdated?: IsoflowProps['onModelUpdated'];
   enableDebugTools?: IsoflowProps['enableDebugTools'];
   editorMode?: IsoflowProps['editorMode'];
   renderer?: IsoflowProps['renderer'];
@@ -104,20 +105,16 @@ watch(
   }
 );
 
-// Watch for model changes and emit updates
 watch(
-  () => modelFromModelStore(modelStore),
+  () => modelStore.$state,
   (newModel) => {
     model.value = newModel;
-    if (initialDataManager.isReady && props.onModelUpdated) {
-      props.onModelUpdated(newModel);
+    if (initialDataManager.isReady) {
       emit('modelUpdated', newModel);
     }
-  },
-  { deep: true }
+  }
 );
 
-// Provide composition API for external access
 const useIsoflow = () => {
   return {
     Model: modelStore,

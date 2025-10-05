@@ -201,17 +201,34 @@ export const getBoundingBoxSize = (boundingBox: Coords[]): Size => {
   };
 };
 
-const isoProjectionBaseValues = [0.707, -0.409, 0.707, 0.409, 0, -0.816];
+// transform: translate(0px, -0.816px) rotate(-30deg) skewX(30deg) scale(0.817, 0.707);
+const isoProjectionBaseValues =
+  'translate(0px, -0.816px) rotate(-30deg) skewX(30deg) scale(0.817, 0.707)';
+
+// transform: translate(0px, -0.816px) rotate(30deg) skewX(-30deg) scale(0.817, 0.707);
+const isoProjectionYValues =
+  'translate(0px, -0.816px) rotate(30deg) skewX(-30deg) scale(0.817, 0.707)';
+
+// transform: translate(0px, -100%) rotate(-30deg) skewX(330deg) scale(0.817, 0.707);
+const isoProjectionDXValues =
+  'translate(0px, -100%) rotate(-30deg) skewX(330deg) scale(0.817, 0.707)';
+
+// transform: translate(0px, -100%) rotate(30deg) skewX(-330deg) scale(0.817, 0.707);
+const isoProjectionDYValues =
+  'translate(0px, -100%) rotate(30deg) skewX(-330deg) scale(0.817, 0.707)';
 
 export const getIsoMatrix = (
   orientation?: keyof typeof ProjectionOrientationEnum
 ) => {
   switch (orientation) {
     case ProjectionOrientationEnum.Y:
-      return updateState(isoProjectionBaseValues, (draft) => {
-        draft[1] = -draft[1];
-        draft[2] = -draft[2];
-      });
+      return isoProjectionYValues;
+    case ProjectionOrientationEnum.DX:
+      // Mirror horizontally from X orientation (flip a and c)
+      return isoProjectionDXValues;
+    case ProjectionOrientationEnum.DY:
+      // Start from Y orientation, then mirror horizontally (flip a and c)
+      return isoProjectionDYValues;
     case ProjectionOrientationEnum.X:
     default:
       return isoProjectionBaseValues;
@@ -223,7 +240,23 @@ export const getIsoProjectionCss = (
 ) => {
   const matrixTransformValues = getIsoMatrix(orientation);
 
-  return `matrix(${matrixTransformValues.join(', ')})`;
+  return matrixTransformValues;
+};
+
+export const getIsoProjectionOrigin = (
+  orientation?: keyof typeof ProjectionOrientationEnum
+) => {
+  switch (orientation) {
+    case ProjectionOrientationEnum.Y:
+      return 'left top';
+    case ProjectionOrientationEnum.DX:
+      return 'left bottom';
+    case ProjectionOrientationEnum.DY:
+      return 'left bottom';
+    case ProjectionOrientationEnum.X:
+    default:
+      return 'left top';
+  }
 };
 
 export const getTranslateCSS = (translate: Coords = { x: 0, y: 0 }) => {
@@ -428,7 +461,10 @@ export const connectorPathTileToGlobal = (
 };
 
 export const getTextBoxEndTile = (textBox: TextBox, size: Size) => {
-  if (textBox.orientation === ProjectionOrientationEnum.X) {
+  if (
+    textBox.orientation === ProjectionOrientationEnum.X ||
+    textBox.orientation === ProjectionOrientationEnum.DX
+  ) {
     return CoordsUtils.add(textBox.tile, {
       x: size.width,
       y: 0
@@ -468,7 +504,7 @@ export const getItemAtTile = ({
       {
         x: Math.ceil(textBoxTo.x),
         y:
-          tb.orientation === 'X'
+          tb.orientation === 'X' || tb.orientation === 'DX'
             ? Math.ceil(textBoxTo.y)
             : Math.floor(textBoxTo.y)
       }

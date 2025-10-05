@@ -81,9 +81,6 @@ const handleMouseDown = () => {
 
 // 监听position变化
 watch(() => props.position, updateStyles, { immediate: true, deep: true });
-
-// 初始化样式
-updateStyles();
 </script>
 
 <style scoped>

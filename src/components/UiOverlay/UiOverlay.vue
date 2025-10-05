@@ -20,7 +20,7 @@
       v-if="availableTools.includes('TOOL_MENU')"
       class="tool-menu-container"
       :style="{
-        left: `${rendererSize.width - appPadding.x}px`,
+        left: `${rendererSize.width / 2}px`,
         top: `${appPadding.y}px`
       }"
     >
@@ -106,7 +106,14 @@
     <!-- Context Menu -->
     <SceneLayer>
       <div ref="contextMenuAnchorRef" />
-      <ContextMenuManager :anchor-el="contextMenuAnchorRef" />
+      <ContextMenuManager
+        :anchor-el="contextMenuAnchorRef"
+        :visible="!!uiStateStore.contextMenu"
+        :position="
+          uiStateStore.contextMenu ? uiStateStore.contextMenu.tile : undefined
+        "
+        @close="uiStateStore.setContextMenu(null)"
+      />
     </SceneLayer>
   </div>
 </template>
@@ -204,7 +211,10 @@ const appPadding = {
 
 .tool-menu-container {
   position: absolute;
-  transform: translateX(-100%);
+  display: flex;
+  justify-content: center;
+  transform: translateX(-50%);
+  width: auto;
 }
 
 .zoom-controls-container {

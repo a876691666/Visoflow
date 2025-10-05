@@ -5,7 +5,7 @@
         <label class="input-label">Text Content</label>
         <textarea
           class="text-input"
-          :value="textBoxData.content"
+          :value="textBox?.content || ''"
           @input="handleContentChange"
           rows="3"
         />
@@ -18,12 +18,14 @@
           type="range"
           min="0.3"
           max="0.9"
-          step="0.1"
-          :value="textBoxData.fontSize"
+          step="0.3"
+          :value="textBox?.fontSize ?? 0.3"
           @input="handleFontSizeChange"
           class="slider"
         />
-        <span class="slider-value">{{ textBoxData.fontSize }}</span>
+        <span class="slider-value">{{
+          (textBox?.fontSize ?? 0.3).toFixed(1)
+        }}</span>
       </div>
     </Section>
 
@@ -31,8 +33,10 @@
       <div class="toggle-group">
         <button
           class="toggle-button"
-          :class="{ active: textBoxData.orientation === 'X' }"
-          @click="() => handleOrientationChange('X')"
+          :class="{
+            active: textBox?.orientation === ProjectionOrientationEnum.X
+          }"
+          @click="() => handleOrientationChange(ProjectionOrientationEnum.X)"
         >
           <svg
             class="orientation-icon"
@@ -46,12 +50,48 @@
         </button>
         <button
           class="toggle-button"
-          :class="{ active: textBoxData.orientation === 'Y' }"
-          @click="() => handleOrientationChange('Y')"
+          :class="{
+            active: textBox?.orientation === ProjectionOrientationEnum.Y
+          }"
+          @click="() => handleOrientationChange(ProjectionOrientationEnum.Y)"
         >
           <svg
             class="orientation-icon"
             :style="yOrientationStyles"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
+            />
+          </svg>
+        </button>
+        <button
+          class="toggle-button"
+          :class="{
+            active: textBox?.orientation === ProjectionOrientationEnum.DX
+          }"
+          @click="() => handleOrientationChange(ProjectionOrientationEnum.DX)"
+        >
+          <svg
+            class="orientation-icon"
+            :style="dxOrientationStyles"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
+            />
+          </svg>
+        </button>
+        <button
+          class="toggle-button"
+          :class="{
+            active: textBox?.orientation === ProjectionOrientationEnum.DY
+          }"
+          @click="() => handleOrientationChange(ProjectionOrientationEnum.DY)"
+        >
+          <svg
+            class="orientation-icon"
+            :style="dyOrientationStyles"
             viewBox="0 0 24 24"
           >
             <path
@@ -69,12 +109,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, type CSSProperties } from 'vue';
-import {
-  useIsoflowSceneStore,
-  useIsoflowUiStateStore
-} from 'src/context/isoflowContext';
+import { computed, type CSSProperties } from 'vue';
+import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import { useTextBox } from 'src/hooks/useTextBox';
+import { useScene } from 'src/hooks/useScene';
+import { getIsoProjectionCss } from 'src/utils';
+import { ProjectionOrientationEnum } from 'src/types';
 import ControlsContainer from '../components/ControlsContainer.vue';
 import Section from '../components/Section.vue';
 import DeleteButton from '../components/DeleteButton.vue';
@@ -84,90 +124,71 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-
-const sceneStore = useIsoflowSceneStore<any>();
 const uiStateStore = useIsoflowUiStateStore<any>();
+const { updateTextBox, deleteTextBox } = useScene();
+const textBoxRef = useTextBox(props.id);
 
-const textBoxData = ref<any>({
-  id: '',
-  content: '',
-  fontSize: 0.5,
-  orientation: 'X'
-});
+const textBox = computed(() => textBoxRef.value);
 
-const xOrientationStyles = ref<CSSProperties>({});
-const yOrientationStyles = ref<CSSProperties>({});
+const xOrientationStyles = computed<CSSProperties>(() => ({
+  transform: getIsoProjectionCss(ProjectionOrientationEnum.X),
+  width: '16px',
+  height: '16px',
+  fill: 'currentColor'
+}));
 
-const updateTextBoxData = () => {
-  // 从store获取文本框数据
-  const textBox = sceneStore.textBoxes?.[props.id];
-  if (textBox) {
-    textBoxData.value = { ...textBox };
-  } else {
-    // 使用composable获取数据
-    const textBoxRef = useTextBox(props.id);
-    if (textBoxRef.value) {
-      textBoxData.value = textBoxRef.value as any;
-    }
-  }
-};
-
-const updateOrientationStyles = () => {
-  // 简化的等距投影CSS
-  const isoTransform = 'matrix(0.866, 0.5, -0.866, 0.5, 0, 0)';
-
-  xOrientationStyles.value = {
-    transform: isoTransform,
-    width: '16px',
-    height: '16px',
-    fill: 'currentColor'
-  };
-
-  yOrientationStyles.value = {
-    transform: `scale(-1, 1) ${isoTransform} scale(-1, 1)`,
-    width: '16px',
-    height: '16px',
-    fill: 'currentColor'
-  };
-};
+const yOrientationStyles = computed<CSSProperties>(() => ({
+  transform: getIsoProjectionCss(ProjectionOrientationEnum.Y),
+  width: '16px',
+  height: '16px',
+  fill: 'currentColor'
+}));
+const dxOrientationStyles = computed<CSSProperties>(() => ({
+  transform: getIsoProjectionCss(ProjectionOrientationEnum.DX).replace(
+    '-100%',
+    '0%'
+  ),
+  width: '16px',
+  height: '16px',
+  fill: 'currentColor'
+}));
+const dyOrientationStyles = computed<CSSProperties>(() => ({
+  transform: getIsoProjectionCss(ProjectionOrientationEnum.DY).replace(
+    '-100%',
+    '0%'
+  ),
+  width: '16px',
+  height: '16px',
+  fill: 'currentColor'
+}));
 
 const handleContentChange = (event: Event) => {
+  if (!textBox.value) return;
   const target = event.target as HTMLTextAreaElement;
   const content = target.value;
-  updateTextBox({ content });
+  updateTextBox(textBox.value.id, { content });
 };
 
 const handleFontSizeChange = (event: Event) => {
+  if (!textBox.value) return;
   const target = event.target as HTMLInputElement;
   const fontSize = parseFloat(target.value);
-  updateTextBox({ fontSize });
+  updateTextBox(textBox.value.id, { fontSize });
 };
 
-const handleOrientationChange = (orientation: string) => {
-  if (textBoxData.value.orientation === orientation) return;
-  updateTextBox({ orientation });
-};
-
-const updateTextBox = (updates: any) => {
-  // 更新本地数据
-  textBoxData.value = { ...textBoxData.value, ...updates };
-
-  // 更新store中的数据
-  sceneStore.updateTextBoxes({
-    [props.id]: { ...textBoxData.value, ...updates }
-  });
+const handleOrientationChange = (
+  orientation: keyof typeof ProjectionOrientationEnum
+) => {
+  if (!textBox.value) return;
+  if (textBox.value.orientation === orientation) return;
+  updateTextBox(textBox.value.id, { orientation });
 };
 
 const handleDelete = () => {
+  if (!textBox.value) return;
   uiStateStore.setItemControls(null);
-  sceneStore.removeTextBox(props.id);
+  deleteTextBox(textBox.value.id);
 };
-
-// 监听ID变化
-watch(() => props.id, updateTextBoxData, { immediate: true });
-
-// 初始化样式
-updateOrientationStyles();
 </script>
 
 <style scoped>
@@ -244,4 +265,8 @@ updateOrientationStyles();
 }
 
 /* .orientation-icon intentionally inherits styles declared inline */
+.orientation-label {
+  font-size: 12px;
+  font-weight: 600;
+}
 </style>

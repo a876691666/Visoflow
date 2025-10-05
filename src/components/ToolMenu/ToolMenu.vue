@@ -18,9 +18,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import IconButton from '../IconButton/IconButton.vue';
 import { useGSAPAnimations } from 'src/hooks/useGSAPAnimations';
+import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
+import { useScene } from 'src/hooks/useScene';
+import { TEXTBOX_DEFAULTS } from 'src/config';
+import { generateId } from 'src/utils';
 
 interface Tool {
   id: string;
@@ -29,14 +33,31 @@ interface Tool {
   isActive: boolean;
 }
 
-const tools = ref<Tool[]>([
-  { id: 'cursor', name: 'Cursor', icon: '↖', isActive: true },
-  { id: 'pan', name: 'Pan', icon: '✋', isActive: false },
-  { id: 'icon', name: 'Add Icon', icon: '📦', isActive: false },
-  { id: 'connector', name: 'Connector', icon: '🔗', isActive: false },
-  { id: 'rectangle', name: 'Rectangle', icon: '▭', isActive: false },
-  { id: 'textbox', name: 'Text Box', icon: 'T', isActive: false }
+const uiStateStore = useIsoflowUiStateStore<any>();
+
+const rawTools = ref<Omit<Tool, 'isActive'>[]>([
+  { id: 'cursor', name: 'Cursor', icon: '↖' },
+  { id: 'pan', name: 'Pan', icon: '✋' },
+  { id: 'icon', name: 'Add Icon', icon: '📦' },
+  { id: 'connector', name: 'Connector', icon: '🔗' },
+  { id: 'rectangle', name: 'Rectangle', icon: '▭' },
+  { id: 'textbox', name: 'Text Box', icon: 'T' }
 ]);
+
+const tools = computed<Tool[]>(() => {
+  const mode = uiStateStore.mode?.type ?? 'CURSOR';
+  return rawTools.value.map((t) => ({
+    ...t,
+    isActive:
+      (t.id === 'cursor' && (mode === 'CURSOR' || mode === 'DRAG_ITEMS')) ||
+      (t.id === 'pan' && mode === 'PAN') ||
+      (t.id === 'icon' && mode === 'PLACE_ICON') ||
+      (t.id === 'connector' && mode === 'CONNECTOR') ||
+      (t.id === 'rectangle' &&
+        (mode === 'RECTANGLE.DRAW' || mode === 'RECTANGLE.TRANSFORM')) ||
+      (t.id === 'textbox' && mode === 'TEXTBOX')
+  }));
+});
 
 const { staggerIn, pulse } = useGSAPAnimations();
 const toolMenuRef = ref<HTMLElement>();
@@ -51,12 +72,26 @@ onMounted(() => {
   }
 });
 
-const handleToolClick = (tool: Tool) => {
-  // Reset all tools
-  tools.value.forEach((t) => (t.isActive = false));
-  // Activate clicked tool
-  tool.isActive = true;
+const { createTextBox } = useScene();
 
+const createTextBoxProxy = () => {
+  const textBoxId = generateId();
+  const mouseTile = uiStateStore.mouse?.position?.tile;
+
+  createTextBox({
+    ...TEXTBOX_DEFAULTS,
+    id: textBoxId,
+    tile: mouseTile
+  } as any);
+
+  uiStateStore.setMode({
+    type: 'TEXTBOX',
+    showCursor: false,
+    id: textBoxId
+  } as any);
+};
+
+const handleToolClick = (tool: Tool) => {
   // Add pulse animation to clicked tool
   const clickedButton = document.querySelector(
     `[data-tool-id="${tool.id}"]`
@@ -65,8 +100,41 @@ const handleToolClick = (tool: Tool) => {
     pulse(clickedButton);
   }
 
-  console.log('Tool selected:', tool.name);
-  // Tool selection logic will be implemented here
+  // Update global mode
+  switch (tool.id) {
+    case 'cursor':
+      uiStateStore.setMode({
+        type: 'CURSOR',
+        showCursor: true,
+        mousedownItem: null
+      });
+      uiStateStore.setItemControls(null);
+      break;
+    case 'pan':
+      uiStateStore.setMode({ type: 'PAN', showCursor: false });
+      uiStateStore.setItemControls(null);
+      break;
+    case 'icon':
+      uiStateStore.setMode({ type: 'PLACE_ICON', showCursor: true, id: null });
+      uiStateStore.setItemControls({ type: 'ADD_ITEM' });
+      break;
+    case 'connector':
+      uiStateStore.setMode({ type: 'CONNECTOR', showCursor: true, id: null });
+      uiStateStore.setItemControls(null);
+      break;
+    case 'rectangle':
+      uiStateStore.setMode({
+        type: 'RECTANGLE.DRAW',
+        showCursor: true,
+        id: null
+      });
+      uiStateStore.setItemControls(null);
+      break;
+    case 'textbox':
+      // Create a new TextBox at current mouse tile and switch to edit mode
+      createTextBoxProxy();
+      break;
+  }
 };
 </script>
 
@@ -81,7 +149,7 @@ const handleToolClick = (tool: Tool) => {
 
 .tool-menu-content {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
 }
 
 .tool-icon {
