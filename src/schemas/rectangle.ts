@@ -5,5 +5,6 @@ export const rectangleSchema = z.object({
   id,
   from: coords,
   to: coords,
+  color: z.string().optional(),
   style: z.record(z.string(), z.any()).optional()
 });

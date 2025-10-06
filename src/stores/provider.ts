@@ -25,6 +25,7 @@ export const useProvider = () => {
   const colors = shallowRef<Model['colors']>([]);
   const icons = shallowRef<Model['icons']>([]);
   const items = shallowRef<Items>([]);
+  const modelItems = shallowRef<Model['items']>(INITIAL_DATA.items ?? []);
   const rectangles = shallowRef<Rectangle[]>([]);
   const view = shallowRef<string>('');
   const views = shallowRef<View[]>([]);
@@ -35,6 +36,7 @@ export const useProvider = () => {
     textBoxs,
     colors,
     icons,
+    modelItems,
     model,
     items,
     views,
@@ -210,6 +212,44 @@ export const useProvider = () => {
     colors.value = newColors;
   };
 
+  // modelItems（管理 model.items）
+  const getModelItems = () => modelItems.value;
+  const getModelItem = (id: string) =>
+    modelItems.value.find((item) => item.id === id);
+  const updateModelItems = (newItems: Model['items']) => {
+    modelItems.value = newItems;
+    triggerUpdate('modelItems');
+  };
+  const updateModelItem = (
+    id: string,
+    updates: Partial<Model['items'][number]>
+  ) => {
+    const index = modelItems.value.findIndex((i) => i.id === id);
+    if (index !== -1) {
+      // 仅更新 modelItems 自身
+      modelItems.value[index] = {
+        ...modelItems.value[index],
+        ...updates
+      } as any;
+      triggerUpdate('modelItems');
+      return modelItems.value[index];
+    } else {
+      return addModelItem({
+        id,
+        ...(updates as any)
+      } as Model['items'][number]);
+    }
+  };
+  const addModelItem = (item: Model['items'][number]) => {
+    modelItems.value = [...modelItems.value, item];
+    triggerUpdate('modelItems');
+    return item;
+  };
+  const removeModelItem = (id: string) => {
+    modelItems.value = modelItems.value.filter((i) => i.id !== id);
+    triggerUpdate('modelItems');
+  };
+
   // items
   const getItems = () => items.value;
   const getItem = (id: string) => items.value.find((item) => item.id === id);
@@ -283,6 +323,8 @@ export const useProvider = () => {
 
     updateColors(newModel.colors);
     updateIcons(newModel.icons);
+    // 同步 model.items -> modelItems
+    modelItems.value = newModel.items;
 
     const items =
       _view?.items
@@ -374,6 +416,15 @@ export const useProvider = () => {
     colors,
     getColors,
     updateColors,
+
+    // modelItems
+    modelItems,
+    getModelItems,
+    getModelItem,
+    updateModelItems,
+    updateModelItem,
+    addModelItem,
+    removeModelItem,
 
     // items
     items,

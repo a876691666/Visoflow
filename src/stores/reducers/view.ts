@@ -1,13 +1,10 @@
 import { updateState } from 'src/utils/reactivity';
 import { View } from 'src/types';
 import { getItemByIdOrThrow } from 'src/utils';
-import { VIEW_DEFAULTS, INITIAL_SCENE_STATE } from 'src/config';
+import { VIEW_DEFAULTS } from 'src/config';
 import type { ViewReducerContext, State, ViewReducerParams } from './types';
 import { syncConnector } from './connector';
 import { syncTextBox } from './textBox';
-import * as viewItemReducers from './viewItem';
-import * as connectorReducers from './connector';
-import * as textBoxReducers from './textBox';
 import * as layerOrderingReducers from './layerOrdering';
 import { useSceneStore } from '../provider';
 
@@ -77,9 +74,6 @@ export const view = ({ action, payload, ctx }: ViewReducerParams) => {
   let newState: State;
 
   switch (action) {
-    case 'SYNC_SCENE':
-      syncScene(ctx);
-      break;
     case 'CREATE_VIEW':
       newState = createView(payload, ctx);
       break;
@@ -89,36 +83,6 @@ export const view = ({ action, payload, ctx }: ViewReducerParams) => {
     case 'DELETE_VIEW':
       newState = deleteView(ctx);
       break;
-    case 'CREATE_VIEWITEM':
-      newState = viewItemReducers.createViewItem(payload, ctx);
-      break;
-    case 'UPDATE_VIEWITEM':
-      newState = viewItemReducers.updateViewItem(payload, ctx);
-      break;
-    case 'DELETE_VIEWITEM':
-      newState = viewItemReducers.deleteViewItem(payload, ctx);
-      break;
-    case 'CREATE_CONNECTOR':
-      newState = connectorReducers.createConnector(payload, ctx);
-      break;
-    case 'UPDATE_CONNECTOR':
-      newState = connectorReducers.updateConnector(payload, ctx);
-      break;
-    case 'SYNC_CONNECTOR':
-      newState = connectorReducers.syncConnector(payload, ctx);
-      break;
-    case 'DELETE_CONNECTOR':
-      newState = connectorReducers.deleteConnector(payload, ctx);
-      break;
-    case 'CREATE_TEXTBOX':
-      newState = textBoxReducers.createTextBox(payload, ctx);
-      break;
-    case 'UPDATE_TEXTBOX':
-      newState = textBoxReducers.updateTextBox(payload, ctx);
-      break;
-    case 'DELETE_TEXTBOX':
-      newState = textBoxReducers.deleteTextBox(payload, ctx);
-      break;
     case 'CHANGE_LAYER_ORDER':
       newState = layerOrderingReducers.changeLayerOrder(payload, ctx);
       break;
@@ -127,7 +91,6 @@ export const view = ({ action, payload, ctx }: ViewReducerParams) => {
   }
 
   switch (action) {
-    case 'SYNC_SCENE':
     case 'DELETE_VIEW':
       return newState;
     default:

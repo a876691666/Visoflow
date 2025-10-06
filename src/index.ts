@@ -19,11 +19,5 @@ export function install(app: App) {
 
 // 默认导出
 export default {
-  install,
-  Isoflow
+  install
 };
-
-// 在非模块环境中的全局安装
-if (typeof window !== 'undefined' && window.Vue) {
-  install(window.Vue);
-}

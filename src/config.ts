@@ -60,14 +60,16 @@ export const TEXTBOX_DEFAULTS: Required<Omit<TextBox, 'id' | 'tile'>> = {
   orientation: 'X',
   fontSize: 0.6,
   content: 'Text',
-  textStyle: {}
+  textStyle: {},
+  containerStyle: {},
+  contentStyle: {}
 };
 
 export const TEXTBOX_PADDING = 0.2;
 export const TEXTBOX_FONT_WEIGHT = 'bold';
 
 export const RECTANGLE_DEFAULTS: Required<
-  Omit<Rectangle, 'id' | 'from' | 'to'>
+  Omit<Rectangle, 'id' | 'from' | 'to' | 'color'>
 > = { style: {} };
 
 export const ZOOM_INCREMENT = 0.2;

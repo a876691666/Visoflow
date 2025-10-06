@@ -24,10 +24,9 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue';
 import { gsap } from 'gsap';
-import { ProjectionOrientationEnum, type Size } from 'src/types';
+import { ProjectionOrientationEnum } from 'src/types';
 import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import { GSAP_ZOOM_CONFIG } from 'src/config';
-import { SizeUtils } from 'src/utils/SizeUtils';
 import { useResizeObserver } from 'src/hooks/useResizeObserver';
 import { getIsoMatrix } from 'src/utils';
 
@@ -103,22 +102,9 @@ watch(
   () => {
     if (!gridElement.value) return;
 
-    const tileSize = SizeUtils.multiply(
-      { width: 100, height: 100 },
-      zoom.value
-    );
-    const elRect = gridElement.value.getBoundingClientRect();
-
-    const backgroundPosition: Size = {
-      width: elRect.width / 2 + scroll.value.position.x + tileSize.width / 2,
-      height: elRect.height / 2 + scroll.value.position.y
-    };
-
     gsap.to(gridElement.value, {
       duration: GSAP_ZOOM_CONFIG.duration,
       ease: GSAP_ZOOM_CONFIG.ease
-      // backgroundSize: `${tileSize.width}px ${tileSize.height}px`,
-      // backgroundPosition: `${backgroundPosition.width}px ${backgroundPosition.height}px`
     });
 
     if (isFirstRender.value) {

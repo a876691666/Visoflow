@@ -108,6 +108,7 @@ const updateContentContainerStyles = () => {
       : undefined,
     scrollbarWidth: 'none', // Firefox
     msOverflowStyle: 'none', // IE/Edge
+    // @ts-ignore
     '&::-webkit-scrollbar': {
       display: 'none' // Chrome/Safari
     }

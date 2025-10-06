@@ -70,7 +70,7 @@ export const Connector: ModeActions = {
       ];
     }
 
-    scene.addConnector(newConnector);
+    scene.addConnector(newConnector as any);
     syncConnector(newConnector.id, scene);
 
     uiState.setMode({

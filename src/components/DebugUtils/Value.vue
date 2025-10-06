@@ -11,7 +11,7 @@ interface Props {
   value: string;
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 
 const containerStyles = ref<CSSProperties>({
   display: 'inline-block',

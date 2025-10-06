@@ -19,7 +19,7 @@ export const TextBox: ModeActions = {
     if (uiState.mode.type !== 'TEXTBOX' || !uiState.mode.id) return;
 
     if (!isRendererInteraction) {
-      scene.deleteTextBox(uiState.mode.id);
+      scene.removeTextBox(uiState.mode.id);
     } else {
       uiState.setItemControls({
         type: 'TEXTBOX',

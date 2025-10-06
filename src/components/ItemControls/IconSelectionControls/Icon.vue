@@ -23,7 +23,7 @@ interface Props {
   icon: IconType;
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 
 const emit = defineEmits<{
   click: [];

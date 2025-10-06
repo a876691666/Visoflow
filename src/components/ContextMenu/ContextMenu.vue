@@ -72,7 +72,7 @@ const handleItemClick = (item: MenuItem) => {
   props.onClose();
 };
 
-const handleClickOutside = (event: MouseEvent) => {
+const handleClickOutside = (_event: MouseEvent) => {
   props.onClose();
 };
 

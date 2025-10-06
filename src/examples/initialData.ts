@@ -1,7 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import { Colors, Icons, InitialData } from 'src/Isoflow';
 import { flattenCollections } from '@isoflow/isopacks/dist/utils';
 import isoflowIsopack from '@isoflow/isopacks/dist/isoflow';
+import { Colors, Icons, InitialData } from 'src/types';
 
 const isopacks = flattenCollections([isoflowIsopack]);
 

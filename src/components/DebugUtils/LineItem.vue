@@ -18,7 +18,7 @@ interface Props {
   value: string | number;
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 
 const lineItemStyles = ref<CSSProperties>({
   display: 'flex',

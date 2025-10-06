@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch, ref } from 'vue';
+import { onMounted, onUnmounted, watch } from 'vue';
 import { useUiStateStore } from './stores/uiStateStore';
 import { setWindowCursor } from './utils';
 import { INITIAL_DATA, MAIN_MENU_OPTIONS } from './config';
