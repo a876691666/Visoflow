@@ -1,7 +1,7 @@
 <template>
   <div class="nodes-layer">
     <Node
-      v-for="(node, index) in nodes"
+      v-for="(node, index) in items"
       :key="node.id"
       :node="node"
       :order="index"
@@ -10,14 +10,10 @@
 </template>
 
 <script setup lang="ts">
-import type { ViewItem } from '@/types';
 import Node from './Node/Node.vue';
+import { useSceneStore } from 'src/stores/provider';
 
-interface Props {
-  nodes: ViewItem[];
-}
-
-defineProps<Props>();
+const { items } = useSceneStore();
 </script>
 
 <style scoped>

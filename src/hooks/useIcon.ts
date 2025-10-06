@@ -1,28 +1,23 @@
 import { ref, watch, h, type VNode } from 'vue';
-import { useIsoflowModelStore } from 'src/context/isoflowContext';
-import { getItemByIdOrThrow } from '@/utils';
 import IsometricIcon from '@/components/SceneLayers/Nodes/Node/IconTypes/IsometricIcon.vue';
 import NonIsometricIcon from '@/components/SceneLayers/Nodes/Node/IconTypes/NonIsometricIcon.vue';
 import { DEFAULT_ICON } from '@/config';
+import { useSceneStore } from 'src/stores/provider';
 
 export const useIcon = (id: string | undefined) => {
   const hasLoaded = ref(false);
   const icon = ref<any>(DEFAULT_ICON);
   const iconComponent = ref<VNode | null>(null);
 
-  const modelStore = useIsoflowModelStore<any>();
+  const sceneStore = useSceneStore();
+  const icons = sceneStore.icons;
 
   const updateIcon = () => {
     if (!id) {
       icon.value = DEFAULT_ICON;
     } else {
-      try {
-        const foundIcon = getItemByIdOrThrow(modelStore.icons, id);
-        icon.value = foundIcon.value;
-      } catch (error) {
-        console.warn('Icon not found:', id);
-        icon.value = DEFAULT_ICON;
-      }
+      const foundIcon = sceneStore.getIcon(id);
+      icon.value = foundIcon || DEFAULT_ICON;
     }
   };
 
@@ -58,7 +53,7 @@ export const useIcon = (id: string | undefined) => {
   watch(() => icon.value?.url, resetLoadState);
 
   // 监听icons store变化
-  watch(() => modelStore.icons, updateIcon, { deep: true });
+  watch(icons, updateIcon);
 
   return {
     icon,

@@ -1,14 +1,9 @@
 import { inject, provide, type InjectionKey } from 'vue';
 // Fallbacks to Pinia stores when context isn't provided (e.g., same-component usage)
-import { useModelStore } from 'src/stores/modelStore';
-import { useSceneStore } from 'src/stores/sceneStore';
 import { useUiStateStore } from 'src/stores/uiStateStore';
-import { ModelStore } from 'src/types';
 
 // Minimal context shape; we intentionally keep loose types so it can wrap Pinia stores
 export interface IsoflowContext {
-  modelStore: any;
-  sceneStore: any;
   uiStateStore: any;
 }
 
@@ -21,18 +16,6 @@ export function provideIsoflow(context: IsoflowContext) {
 
 export function useIsoflowContext(): IsoflowContext | null {
   return inject(IsoflowContextKey, null);
-}
-
-export function useIsoflowModelStore<T = ModelStore>(): T {
-  const ctx = useIsoflowContext();
-  if (ctx && ctx.modelStore) return ctx.modelStore as T;
-  return useModelStore() as unknown as T;
-}
-
-export function useIsoflowSceneStore<T = any>(): T {
-  const ctx = useIsoflowContext();
-  if (ctx && ctx.sceneStore) return ctx.sceneStore as T;
-  return useSceneStore() as unknown as T;
 }
 
 export function useIsoflowUiStateStore<T = any>(): T {

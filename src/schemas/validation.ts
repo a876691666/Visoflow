@@ -157,16 +157,17 @@ export const validateConnector = (
     try {
       getItemByIdOrThrow(ctx.model.colors, connector.color);
     } catch (e) {
-      issues.push({
-        type: 'INVALID_CONNECTOR_COLOR_REF',
-        params: {
-          connector: connector.id,
-          view: ctx.view.id,
-          color: connector.color
-        },
-        message:
-          'Connector references a color that does not exist in the model.'
-      });
+      // TODO: 等待兼容直接颜色和色卡
+      // issues.push({
+      //   type: 'INVALID_CONNECTOR_COLOR_REF',
+      //   params: {
+      //     connector: connector.id,
+      //     view: ctx.view.id,
+      //     color: connector.color
+      //   },
+      //   message:
+      //     'Connector references a color that does not exist in the model.'
+      // });
     }
   }
 

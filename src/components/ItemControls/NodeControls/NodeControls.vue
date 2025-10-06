@@ -37,31 +37,32 @@
     <NodeSettings
       v-if="mode === 'SETTINGS'"
       :key="props.id"
-      :node="currentViewItem"
-      @model-item-updated="handleModelItemUpdate"
-      @view-item-updated="handleViewItemUpdate"
-      @deleted="handleDeleted"
+      :node="nodeView"
+      :on-model-item-updated="handleModelItemUpdate"
+      :on-view-item-updated="handleViewItemUpdate"
+      :on-deleted="handleDeleted"
     />
 
     <Icons
       v-if="mode === 'CHANGE_ICON'"
       :key="props.id"
-      :icon-categories="currentIconCategories"
+      :icon-categories="iconCategories"
       @click="handleIconSelect"
     />
   </ControlsContainer>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, type CSSProperties } from 'vue';
-import {
-  useIsoflowSceneStore,
-  useIsoflowUiStateStore
-} from 'src/context/isoflowContext';
+import { ref, watch, computed, type CSSProperties } from 'vue';
+import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import ControlsContainer from '../components/ControlsContainer.vue';
 import Section from '../components/Section.vue';
 import NodeSettings from './NodeSettings/NodeSettings.vue';
 import Icons from '../IconSelectionControls/Icons.vue';
+import { useSceneStore } from 'src/stores/provider';
+import { useIconCategories } from 'src/hooks/useIconCategories';
+import { DEFAULT_ICON } from 'src/config';
+import type { ViewItem } from '@/types';
 
 interface Props {
   id: string;
@@ -71,14 +72,27 @@ const props = defineProps<Props>();
 
 type Mode = 'SETTINGS' | 'CHANGE_ICON';
 
-const sceneStore = useIsoflowSceneStore<any>();
+const sceneStore = useSceneStore();
 const uiStateStore = useIsoflowUiStateStore<any>();
 
 const mode = ref<Mode>('SETTINGS');
-const currentViewItem = ref<any>({});
-const currentModelItem = ref<any>({});
-const iconUrl = ref<string>('');
-const currentIconCategories = ref<any[]>([]);
+const currentItem = ref<any>(null);
+const { iconCategories } = useIconCategories();
+
+// 提供给 NodeSettings 的视图数据（最少字段）
+const nodeView = computed<ViewItem>(() => ({
+  id: currentItem.value?.id ?? props.id,
+  tile: currentItem.value?.tile ?? { x: 0, y: 0 },
+  labelHeight: currentItem.value?.labelHeight ?? 120
+}));
+
+// 当前图标 URL（来自模型 icons）
+const iconUrl = computed<string>(() => {
+  const iconId = currentItem.value?.icon as string | undefined;
+  if (!iconId) return DEFAULT_ICON.url;
+  const icon = sceneStore.getIcon(iconId) || DEFAULT_ICON;
+  return icon.url || DEFAULT_ICON.url;
+});
 
 const headerStyles = ref<CSSProperties>({});
 const iconStyles = ref<CSSProperties>({});
@@ -106,16 +120,8 @@ const updateStyles = () => {
   };
 };
 
-const updateData = () => {
-  // 从store获取数据，而不是使用composables
-  currentViewItem.value = sceneStore.viewItems?.[props.id] || {};
-  currentModelItem.value = sceneStore.modelItems?.[props.id] || {};
-
-  // 设置默认图标URL
-  iconUrl.value = 'https://via.placeholder.com/70x70?text=Icon';
-
-  // 设置默认图标分类
-  currentIconCategories.value = [];
+const updateCurrentItem = () => {
+  currentItem.value = sceneStore.getItem(props.id) || null;
 };
 
 const switchToChangeIcon = () => {
@@ -127,25 +133,34 @@ const switchToSettings = () => {
 };
 
 const handleModelItemUpdate = (updates: any) => {
-  // 这些方法需要在store中实现
-  console.log('Model item update:', updates);
+  // 更新模型相关字段（name/description/icon 等）
+  sceneStore.updateItem(props.id, { ...updates });
+  // 同步本地状态
+  updateCurrentItem();
 };
 
 const handleViewItemUpdate = (updates: any) => {
-  console.log('View item update:', updates);
+  // 更新视图相关字段（例如 labelHeight 等）
+  sceneStore.updateItem(props.id, { ...updates });
+  updateCurrentItem();
 };
 
 const handleDeleted = () => {
   uiStateStore.setItemControls(null);
-  console.log('Delete item:', props.id);
+  sceneStore.removeItem(props.id);
 };
 
 const handleIconSelect = (iconItem: any) => {
-  console.log('Icon select:', iconItem);
+  // 选择图标后更新 item 的 icon 字段并返回设置页
+  sceneStore.updateItem(props.id, { icon: iconItem.id });
+  updateCurrentItem();
+  switchToSettings();
 };
 
 // 监听ID变化
-watch(() => props.id, updateData, { immediate: true });
+watch([() => props.id, sceneStore.items], updateCurrentItem, {
+  immediate: true
+});
 
 // 初始化样式
 updateStyles();

@@ -23,15 +23,15 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
-import { useScene } from 'src/hooks/useScene';
 import type { AnchorPosition } from 'src/types';
 
 import NodeTransformControls from './NodeTransformControls.vue';
 import RectangleTransformControls from './RectangleTransformControls.vue';
 import TextBoxTransformControls from './TextBoxTransformControls.vue';
+import { useSceneStore } from 'src/stores/provider';
 
 const uiStateStore = useIsoflowUiStateStore<any>();
-const scene = useScene();
+const sceneStore = useSceneStore();
 
 // 在矩形变换时更新模式中的 selectedAnchor
 const startRectangleTransform = (
@@ -58,21 +58,21 @@ const currentRectangle = computed(() => {
         ? itemControls.value.id
         : null;
   if (!rectId) return null;
-  return scene.rectangles.value.find((r: any) => r.id === rectId) ?? null;
+  return sceneStore.rectangles.value.find((r: any) => r.id === rectId) ?? null;
 });
 
 const currentNode = computed(() => {
   const nodeId =
     itemControls.value?.type === 'ITEM' ? itemControls.value.id : null;
   if (!nodeId) return null;
-  return scene.items.value.find((n: any) => n.id === nodeId) ?? null;
+  return sceneStore.items.value.find((n: any) => n.id === nodeId) ?? null;
 });
 
 const currentTextBox = computed(() => {
   const tbId =
     itemControls.value?.type === 'TEXTBOX' ? itemControls.value.id : null;
   if (!tbId) return null;
-  return scene.textBoxes.value.find((t: any) => t.id === tbId) ?? null;
+  return sceneStore.textBoxs.value.find((t: any) => t.id === tbId) ?? null;
 });
 </script>
 

@@ -9,13 +9,13 @@
     <!-- Grid -->
     <div v-if="isShowGrid" class="grid-container">
       <SceneLayer>
-        <Grid :style="modelStore.global?.grid?.style" />
+        <Grid :style="model?.global?.grid?.style" />
       </SceneLayer>
     </div>
 
     <!-- Background rectangles -->
     <SceneLayer>
-      <Rectangles :rectangles="rectangles" />
+      <Rectangles />
     </SceneLayer>
 
     <!-- Cursor -->
@@ -25,17 +25,17 @@
 
     <!-- Connectors -->
     <SceneLayer>
-      <Connectors :connectors="connectors" />
+      <Connectors />
     </SceneLayer>
 
     <!-- Text Boxes -->
     <SceneLayer>
-      <TextBoxes :text-boxes="textBoxes" />
+      <TextBoxes />
     </SceneLayer>
 
     <!-- Connector Labels -->
     <SceneLayer>
-      <ConnectorLabels :connectors="connectors" />
+      <ConnectorLabels />
     </SceneLayer>
 
     <!-- Debug Size Indicator -->
@@ -48,7 +48,7 @@
 
     <!-- Nodes/Items -->
     <SceneLayer>
-      <Nodes :nodes="items" />
+      <Nodes />
     </SceneLayer>
 
     <!-- Transform Controls -->
@@ -62,7 +62,6 @@
 import { ref, onMounted, watch } from 'vue';
 import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import { useInteractionManager } from 'src/interaction/useInteractionManager';
-import { useScene } from 'src/hooks/useScene';
 import type { RendererProps } from 'src/types/rendererProps';
 
 // Import components
@@ -76,9 +75,10 @@ import TextBoxes from 'src/components/SceneLayers/TextBoxes/TextBoxes.vue';
 import SizeIndicator from 'src/components/DebugUtils/SizeIndicator.vue';
 import SceneLayer from 'src/components/SceneLayer/SceneLayer.vue';
 import TransformControlsManager from 'src/components/TransformControlsManager/TransformControlsManager.vue';
-import { useModelStore } from 'src/stores/modelStore';
+import { useSceneStore } from 'src/stores/provider';
 
-const modelStore = useModelStore();
+const { model } = useSceneStore();
+
 interface Props {
   showGrid?: RendererProps['showGrid'];
   backgroundColor?: RendererProps['backgroundColor'];
@@ -95,7 +95,6 @@ const interactionsRef = ref<HTMLDivElement>();
 // Stores and hooks
 const uiStateStore = useIsoflowUiStateStore<any>();
 const { setInteractionsElement } = useInteractionManager();
-const { items, rectangles, connectors, textBoxes } = useScene();
 
 // Show grid reactive value
 const isShowGrid = ref(true);

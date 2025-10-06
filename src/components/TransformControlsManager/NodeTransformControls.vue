@@ -3,17 +3,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useViewItem } from 'src/hooks/useViewItem';
+import { shallowRef, watch } from 'vue';
 import TransformControls from './TransformControls.vue';
+import { useSceneStore } from 'src/stores/provider';
 
 interface Props {
   id: string;
 }
 const props = defineProps<Props>();
 
-const nodeRef = useViewItem(props.id);
-const node = computed(() => nodeRef.value);
+const sceneStore = useSceneStore();
+const node = shallowRef();
+
+watch(
+  () => props.id,
+  () => {
+    node.value = sceneStore.getItem(props.id);
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>

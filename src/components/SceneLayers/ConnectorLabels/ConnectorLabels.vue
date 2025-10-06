@@ -9,48 +9,33 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useScene } from '@/hooks/useScene';
+import { computed, shallowRef, watch } from 'vue';
+import type { Connector as ConnectorType, SceneConnector } from '@/types';
+import { useSceneStore } from 'src/stores/provider';
 import ConnectorLabel from './ConnectorLabel.vue';
+const sceneStore = useSceneStore();
 
-interface ConnectorWithPath {
-  id: string;
-  description?: string;
-  path?: {
-    tiles: Array<{ x: number; y: number }>;
-    rectangle: {
-      from: { x: number; y: number };
-      to: { x: number; y: number };
-    };
-  };
-}
+// 与 Connectors.vue 一致：反向渲染，保证后添加的在上层
+const reversedConnectors = shallowRef<(ConnectorType & SceneConnector)[]>([]);
 
-interface Props {
-  connectors?: Record<string, any>;
-}
+watch(
+  sceneStore.connectors,
+  (newVal) => {
+    reversedConnectors.value = [...newVal].reverse();
+  },
+  { immediate: true }
+);
 
-const props = defineProps<Props>();
-
-const scene = useScene();
-
-// 获取可见的连接器（有description且有path的）
+// 获取可见的连接器（有 description 且有 path 的）
 const visibleConnectors = computed(() => {
-  const sourceConnectors = props.connectors || scene.connectors.value || [];
-
-  // 将对象或数组转换为数组
-  const connectorsArray = Array.isArray(sourceConnectors)
-    ? sourceConnectors
-    : Object.values(sourceConnectors);
-
-  // 过滤出有描述和路径的连接器
-  return connectorsArray.filter((connector: ConnectorWithPath) => {
-    return (
-      connector.description &&
-      connector.description.trim() !== '' &&
-      connector.path &&
-      connector.path.tiles &&
-      connector.path.tiles.length > 0
-    );
+  return reversedConnectors.value.filter((connector) => {
+    const hasDesc =
+      !!connector.description && connector.description.trim() !== '';
+    const hasPath =
+      !!connector.path &&
+      !!connector.path.tiles &&
+      connector.path.tiles.length > 0;
+    return hasDesc && hasPath;
   });
 });
 </script>

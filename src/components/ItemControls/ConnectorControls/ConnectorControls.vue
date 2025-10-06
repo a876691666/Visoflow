@@ -2,7 +2,7 @@
   <ControlsContainer>
     <Section>
       <div class="input-group">
-        <label class="input-label" :style="labelStyles">Description</label>
+        <label class="input-label" :style="labelStyles">描述</label>
         <input
           class="text-input"
           :style="inputStyles"
@@ -13,19 +13,30 @@
     </Section>
 
     <Section>
-      <ColorSelector
-        :active-color="connectorData.color"
-        @change="handleColorChange"
+      <input
+        type="color"
+        :value="connectorData.color || '#000000'"
+        @input="handleColorChange"
+        class="color-input"
       />
     </Section>
 
-    <Section title="Width">
+    <Section title="背景描边颜色">
+      <input
+        type="color"
+        :value="connectorData.backgroundColor || '#ffffff'"
+        @input="handleBackgroundColorChange"
+        class="color-input"
+      />
+    </Section>
+
+    <Section title="宽度">
       <div class="slider-container">
         <input
           type="range"
-          min="10"
-          max="30"
-          step="10"
+          min="0"
+          max="100"
+          step="1"
           :value="connectorData.width"
           @input="handleWidthChange"
           class="slider"
@@ -35,7 +46,7 @@
       </div>
     </Section>
 
-    <Section title="Style">
+    <Section title="样式">
       <select
         class="select-input"
         :style="selectStyles"
@@ -48,6 +59,40 @@
       </select>
     </Section>
 
+    <Section title="虚线段长度">
+      <div class="slider-container">
+        <input
+          type="range"
+          min="0"
+          max="100"
+          step="1"
+          :value="connectorData.dashLength ?? 0"
+          @input="handleDashLengthChange"
+          class="slider"
+          :style="sliderStyles"
+        />
+        <span class="slider-value">{{
+          connectorData.dashLength ?? '默认'
+        }}</span>
+      </div>
+    </Section>
+
+    <Section title="虚线段间隔">
+      <div class="slider-container">
+        <input
+          type="range"
+          min="0"
+          max="100"
+          step="1"
+          :value="connectorData.dashGap ?? 0"
+          @input="handleDashGapChange"
+          class="slider"
+          :style="sliderStyles"
+        />
+        <span class="slider-value">{{ connectorData.dashGap ?? '默认' }}</span>
+      </div>
+    </Section>
+
     <Section>
       <DeleteButton @click="handleDelete" />
     </Section>
@@ -56,14 +101,11 @@
 
 <script setup lang="ts">
 import { ref, watch, type CSSProperties } from 'vue';
-import {
-  useIsoflowSceneStore,
-  useIsoflowUiStateStore
-} from 'src/context/isoflowContext';
+import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import ControlsContainer from '../components/ControlsContainer.vue';
 import Section from '../components/Section.vue';
 import DeleteButton from '../components/DeleteButton.vue';
-import ColorSelector from '@/components/ColorSelector/ColorSelector.vue';
+import { useSceneStore } from 'src/stores/provider';
 
 interface Props {
   id: string;
@@ -71,17 +113,20 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const sceneStore = useIsoflowSceneStore<any>();
+const sceneStore = useSceneStore();
 const uiStateStore = useIsoflowUiStateStore<any>();
 
 const connectorData = ref<any>({
   description: '',
   color: '',
+  backgroundColor: '',
   width: 20,
-  style: 'solid'
+  style: 'SOLID',
+  dashLength: undefined,
+  dashGap: undefined
 });
 
-const styleOptions = ref(['solid', 'dashed', 'dotted']);
+const styleOptions = ref(['SOLID', 'DASHED', 'DOTTED']);
 
 const labelStyles = ref<CSSProperties>({});
 const inputStyles = ref<CSSProperties>({});
@@ -123,10 +168,9 @@ const updateStyles = () => {
 };
 
 const updateConnectorData = () => {
-  // 从store获取connector数据
-  const connector = sceneStore.connectors?.[props.id];
-  if (connector) {
-    connectorData.value = { ...connector };
+  connectorData.value = sceneStore.getConnector(props.id);
+  if (!connectorData.value) {
+    debugger;
   }
 };
 
@@ -136,8 +180,16 @@ const handleDescriptionChange = (event: Event) => {
   updateConnector({ description });
 };
 
-const handleColorChange = (color: string) => {
+const handleColorChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const color = target.value;
   updateConnector({ color });
+};
+
+const handleBackgroundColorChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const backgroundColor = target.value;
+  updateConnector({ backgroundColor });
 };
 
 const handleWidthChange = (event: Event) => {
@@ -148,18 +200,30 @@ const handleWidthChange = (event: Event) => {
 
 const handleStyleChange = (event: Event) => {
   const target = event.target as HTMLSelectElement;
-  const style = target.value;
+  const style = target.value as 'SOLID' | 'DASHED' | 'DOTTED';
   updateConnector({ style });
 };
 
-const updateConnector = (updates: any) => {
-  // 更新本地数据
-  connectorData.value = { ...connectorData.value, ...updates };
+const handleDashLengthChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const dashLength = parseInt(target.value);
+  updateConnector({ dashLength: isNaN(dashLength) ? undefined : dashLength });
+};
 
-  // 更新store中的数据
-  sceneStore.updateConnectors({
-    [props.id]: { ...connectorData.value, ...updates }
-  });
+const handleDashGapChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const dashGap = parseInt(target.value);
+  updateConnector({ dashGap: isNaN(dashGap) ? undefined : dashGap });
+};
+
+const updateConnector = (updates: any) => {
+  connectorData.value = {
+    ...connectorData.value,
+    ...updates,
+    anchors: connectorData.value.anchors
+  };
+
+  sceneStore.updateConnector(props.id, connectorData.value);
 };
 
 const handleDelete = () => {
@@ -168,7 +232,9 @@ const handleDelete = () => {
 };
 
 // 监听ID变化
-watch(() => props.id, updateConnectorData, { immediate: true });
+watch([() => props.id, sceneStore.connectors], updateConnectorData, {
+  immediate: true
+});
 
 // 初始化样式
 updateStyles();
@@ -207,5 +273,13 @@ updateStyles();
 .select-input:focus {
   border-color: #1976d2;
   outline: none;
+}
+
+.color-input {
+  width: 48px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
 }
 </style>

@@ -1,12 +1,11 @@
-import { updateState } from 'src/utils/reactivity';
 import {
   generateId,
   getItemAtTile,
-  getItemByIdOrThrow,
   hasMovedTile,
   setWindowCursor
 } from 'src/utils';
 import { ModeActions, Connector as ConnectorI } from 'src/types';
+import { syncConnector } from 'src/stores/reducers/connector';
 
 export const Connector: ModeActions = {
   entry: () => {
@@ -23,10 +22,7 @@ export const Connector: ModeActions = {
     )
       return;
 
-    const connector = getItemByIdOrThrow(
-      scene.currentView.value.connectors ?? [],
-      uiState.mode.id
-    );
+    const connector = scene.getConnector(uiState.mode.id)!;
 
     const itemAtTile = getItemAtTile({
       tile: uiState.mouse.position.tile,
@@ -34,20 +30,18 @@ export const Connector: ModeActions = {
     });
 
     if (itemAtTile?.type === 'ITEM') {
-      const newConnector = updateState(connector.value, (draft) => {
-        draft.anchors[1] = { id: generateId(), ref: { item: itemAtTile.id } };
-      });
+      connector.anchors[1] = { id: generateId(), ref: { item: itemAtTile.id } };
 
-      scene.updateConnector(uiState.mode.id, newConnector);
+      scene.updateConnector(uiState.mode.id, connector);
+      syncConnector(connector.id, scene);
     } else {
-      const newConnector = updateState(connector.value, (draft) => {
-        draft.anchors[1] = {
-          id: generateId(),
-          ref: { tile: uiState.mouse.position.tile }
-        };
-      });
+      connector.anchors[1] = {
+        id: generateId(),
+        ref: { tile: uiState.mouse.position.tile }
+      };
 
-      scene.updateConnector(uiState.mode.id, newConnector);
+      scene.updateConnector(uiState.mode.id, connector);
+      syncConnector(connector.id, scene);
     }
   },
   mousedown: ({ uiState, scene, isRendererInteraction }) => {
@@ -76,7 +70,8 @@ export const Connector: ModeActions = {
       ];
     }
 
-    scene.createConnector(newConnector);
+    scene.addConnector(newConnector);
+    syncConnector(newConnector.id, scene);
 
     uiState.setMode({
       type: 'CONNECTOR',
@@ -87,19 +82,20 @@ export const Connector: ModeActions = {
   mouseup: ({ uiState, scene }) => {
     if (uiState.mode.type !== 'CONNECTOR' || !uiState.mode.id) return;
 
-    const connector = getItemByIdOrThrow(
-      scene.connectors.value,
-      uiState.mode.id
-    );
-    const firstAnchor = connector.value.anchors[0];
-    const lastAnchor =
-      connector.value.anchors[connector.value.anchors.length - 1];
+    const connector = scene.getConnector(uiState.mode.id);
+    if (connector) {
+      const firstAnchor = connector.anchors[0];
+      const lastAnchor = connector.anchors[connector.anchors.length - 1];
 
-    if (
-      connector.value.path.tiles.length < 2 ||
-      !(firstAnchor.ref.item && lastAnchor.ref.item)
-    ) {
-      scene.deleteConnector(uiState.mode.id);
+      if (
+        connector.path.tiles.length < 2 ||
+        !(firstAnchor.ref.item && lastAnchor.ref.item)
+      ) {
+        scene.removeConnector(uiState.mode.id);
+      }
+
+      scene.updateConnector(uiState.mode.id, connector);
+      syncConnector(connector.id, scene);
     }
 
     uiState.setMode({

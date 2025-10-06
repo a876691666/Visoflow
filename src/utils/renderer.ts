@@ -1,4 +1,3 @@
-import { updateState } from './reactivity';
 import {
   UNPROJECTED_TILE_SIZE,
   PROJECTED_TILE_SIZE,
@@ -38,7 +37,7 @@ import {
   toPx,
   getItemByIdOrThrow
 } from 'src/utils';
-import { useScene } from 'src/hooks/useScene';
+import { useSceneStore } from 'src/stores/provider';
 
 interface ScreenToIso {
   mouse: Coords;
@@ -479,7 +478,7 @@ export const getTextBoxEndTile = (textBox: TextBox, size: Size) => {
 
 interface GetItemAtTile {
   tile: Coords;
-  scene: ReturnType<typeof useScene>;
+  scene: ReturnType<typeof useSceneStore>;
 }
 
 export const getItemAtTile = ({
@@ -497,7 +496,7 @@ export const getItemAtTile = ({
     };
   }
 
-  const textBox = scene.textBoxes.value.find((tb) => {
+  const textBox = scene.textBoxs.value.find((tb) => {
     const textBoxTo = getTextBoxEndTile(tb, tb.size);
     const textBoxBounds = getBoundingBox([
       tb.tile,

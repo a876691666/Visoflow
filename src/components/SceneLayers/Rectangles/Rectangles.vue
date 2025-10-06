@@ -11,20 +11,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { shallowRef } from 'vue';
 import Rectangle from './Rectangle.vue';
 import type { Rectangle as RectangleType } from 'src/types';
+import { watch } from 'vue';
+import { useSceneStore } from 'src/stores/provider';
 
-interface Props {
-  rectangles: RectangleType[];
-}
+const sceneStore = useSceneStore();
 
-const props = defineProps<Props>();
+const reversedRectangles = shallowRef<RectangleType[]>([]);
 
-// 反转rectangles数组以匹配React组件的行为
-const reversedRectangles = computed(() => {
-  return [...props.rectangles].reverse();
-});
+watch(
+  sceneStore.rectangles,
+  (newRectangles) => {
+    reversedRectangles.value = [...newRectangles].reverse();
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>

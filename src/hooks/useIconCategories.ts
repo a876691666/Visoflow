@@ -1,17 +1,15 @@
 import { ref, watch } from 'vue';
 import type { IconCollectionStateWithIcons } from '@/types';
-import {
-  useIsoflowModelStore,
-  useIsoflowUiStateStore
-} from 'src/context/isoflowContext';
+import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
+import { useSceneStore } from 'src/stores/provider';
 
 export const useIconCategories = () => {
-  const modelStore = useIsoflowModelStore<any>();
+  const model = useSceneStore().model;
   const uiStateStore = useIsoflowUiStateStore<any>();
   const iconCategories = ref<IconCollectionStateWithIcons[]>([]);
 
   const updateIconCategories = () => {
-    const icons = modelStore.icons || [];
+    const icons = model.value.icons || [];
     const iconCategoriesState = uiStateStore.iconCategoriesState || [];
 
     iconCategories.value = iconCategoriesState.map((collection: any) => {
@@ -26,11 +24,10 @@ export const useIconCategories = () => {
 
   // 监听icons和iconCategoriesState变化
   watch(
-    [() => modelStore.icons, () => uiStateStore.iconCategoriesState],
+    [() => model.value.icons, () => uiStateStore.iconCategoriesState],
     updateIconCategories,
     {
-      immediate: true,
-      deep: true
+      immediate: true
     }
   );
 

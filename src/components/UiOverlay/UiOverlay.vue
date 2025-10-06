@@ -98,11 +98,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import {
-  useIsoflowModelStore,
-  useIsoflowUiStateStore
-} from 'src/context/isoflowContext';
-import { useScene } from 'src/hooks/useScene';
+import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import { useResizeObserver } from 'src/hooks/useResizeObserver';
 import { EditorModeEnum } from 'src/types';
 
@@ -129,12 +125,8 @@ const EDITOR_MODE_MAPPING: Record<keyof typeof EditorModeEnum, string[]> = {
   [EditorModeEnum.NON_INTERACTIVE]: []
 };
 
-// Stores
-const modelStore = useIsoflowModelStore<any>();
 const uiStateStore = useIsoflowUiStateStore<any>();
 
-// Hooks
-const { currentView } = useScene();
 const { size: rendererSize } = useResizeObserver(uiStateStore.rendererEl);
 
 // Template refs

@@ -2,21 +2,19 @@ import { updateState } from 'src/utils/reactivity';
 import { TextBox } from 'src/types';
 import { getItemByIdOrThrow, getTextBoxDimensions } from 'src/utils';
 import { State, ViewReducerContext } from './types';
+import { useSceneStore } from '../provider';
 
 export const syncTextBox = (
   id: string,
-  { viewId, state }: ViewReducerContext
-): State => {
-  const newState = updateState(state, (draft) => {
-    const view = getItemByIdOrThrow(draft.model.views, viewId);
-    const textBox = getItemByIdOrThrow(view.value.textBoxes ?? [], id);
+  sceneStore: ReturnType<typeof useSceneStore>
+) => {
+  const view = sceneStore.getCurrentView();
+  if (!view) return;
+  const textBox = getItemByIdOrThrow(view.textBoxes ?? [], id);
 
-    const textBoxSize = getTextBoxDimensions(textBox.value);
+  const textBoxSize = getTextBoxDimensions(textBox.value);
 
-    draft.scene.textBoxes[textBox.value.id] = { size: textBoxSize };
-  });
-
-  return newState;
+  sceneStore.updateTextBox(id, { ...textBox.value, size: textBoxSize });
 };
 
 export const updateTextBox = (

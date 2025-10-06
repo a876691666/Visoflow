@@ -9,18 +9,19 @@ import {
   getItemByIdOrThrow
 } from 'src/utils';
 import * as reducers from 'src/stores/reducers';
-import { useIsoflowModelStore } from 'src/context/isoflowContext';
-import { useView } from 'src/hooks/useView';
 import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import { modelSchema } from 'src/schemas/model';
+import { useSceneStore } from 'src/stores/provider';
+import { syncTextBox } from 'src/stores/reducers/textBox';
+import { syncConnector } from 'src/stores/reducers/connector';
 
-export const useInitialDataManager = () => {
+export const useInitialDataManager = (
+  sceneStore: ReturnType<typeof useSceneStore>
+) => {
   const isReady = ref(false);
   const prevInitialData = ref<InitialData>();
 
-  const modelStore = useIsoflowModelStore<any>();
   const uiStateStore = useIsoflowUiStateStore<any>();
-  const { changeView } = useView();
 
   const load = (_initialData: InitialData) => {
     if (!_initialData || prevInitialData.value === _initialData) return;
@@ -53,14 +54,26 @@ export const useInitialDataManager = () => {
     }
 
     prevInitialData.value = initialData;
-    modelStore.loadData(initialData);
 
     const view = getItemByIdOrThrow(
       initialData.views,
       initialData.view ?? initialData.views[0].id
     );
 
-    changeView(view.value.id, initialData);
+    sceneStore.view.value = view.value.id;
+    sceneStore.updateModel(initialData);
+
+    uiStateStore.setView(view.value.id);
+
+    const _view = sceneStore.getCurrentView();
+
+    _view?.connectors?.forEach((connector) => {
+      syncConnector(connector.id, sceneStore);
+    });
+
+    _view?.textBoxes?.forEach((textBox) => {
+      syncTextBox(textBox.id, sceneStore);
+    });
 
     if (initialData.fitToView) {
       const rendererSize = uiStateStore.rendererEl?.getBoundingClientRect();
@@ -94,9 +107,7 @@ export const useInitialDataManager = () => {
 
   const clear = () => {
     load({
-      ...INITIAL_DATA,
-      icons: modelStore.icons,
-      colors: modelStore.colors
+      ...INITIAL_DATA
     });
     uiStateStore.resetUiState();
   };

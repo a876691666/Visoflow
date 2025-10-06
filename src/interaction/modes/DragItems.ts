@@ -1,6 +1,5 @@
 import { updateState } from 'src/utils/reactivity';
 import { ModeActions, Coords, ItemReference } from 'src/types';
-import { useScene } from 'src/hooks/useScene';
 import {
   getItemByIdOrThrow,
   CoordsUtils,
@@ -8,18 +7,21 @@ import {
   getAnchorParent,
   getItemAtTile
 } from 'src/utils';
+import { useSceneStore } from 'src/stores/provider';
+import { syncConnector } from 'src/stores/reducers/connector';
+import { syncTextBox } from 'src/stores/reducers/textBox';
 
 const dragItems = (
   items: ItemReference[],
   tile: Coords,
   delta: Coords,
-  scene: ReturnType<typeof useScene>
+  scene: ReturnType<typeof useSceneStore>
 ) => {
   items.forEach((item) => {
     if (item.type === 'ITEM') {
       const node = getItemByIdOrThrow(scene.items.value, item.id).value;
 
-      scene.updateViewItem(item.id, {
+      scene.updateItem(item.id, {
         tile: CoordsUtils.add(node.tile, delta)
       });
     } else if (item.type === 'RECTANGLE') {
@@ -32,11 +34,12 @@ const dragItems = (
 
       scene.updateRectangle(item.id, { from: newFrom, to: newTo });
     } else if (item.type === 'TEXTBOX') {
-      const textBox = getItemByIdOrThrow(scene.textBoxes.value, item.id).value;
+      const textBox = scene.getTextBox(item.id)!;
 
       scene.updateTextBox(item.id, {
         tile: CoordsUtils.add(textBox.tile, delta)
       });
+      syncTextBox(textBox.id, scene);
     } else if (item.type === 'CONNECTOR_ANCHOR') {
       const connector = getAnchorParent(item.id, scene.connectors.value);
 
@@ -74,6 +77,7 @@ const dragItems = (
       });
 
       scene.updateConnector(connector.id, newConnector);
+      syncConnector(connector.id, scene);
     }
   });
 };

@@ -10,20 +10,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, shallowRef, watch } from 'vue';
 import type { Connector as ConnectorType, SceneConnector } from '@/types';
 import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
-import { useScene } from '@/hooks/useScene';
 import Connector from './Connector.vue';
+import { useSceneStore } from 'src/stores/provider';
 
-interface Props {
-  // From useScene().connectors (already merged with SceneConnector.path)
-  connectors?: (ConnectorType & SceneConnector)[];
-}
-
-const props = defineProps<Props>();
 const uiState = useIsoflowUiStateStore<any>();
-const scene = useScene();
+
+const sceneStore = useSceneStore();
 
 // 选中逻辑：优先 mode 为 CONNECTOR，其次 itemControls 为 CONNECTOR
 const selectedConnectorId = computed<string | null>(() => {
@@ -38,15 +33,16 @@ const selectedConnectorId = computed<string | null>(() => {
   return null;
 });
 
-// 渲染的连接器数据：优先使用传入的 props.connectors，否则从 useScene 拿
-const sourceConnectors = computed<(ConnectorType & SceneConnector)[]>(() => {
-  return (props.connectors as any) ?? (scene.connectors.value as any) ?? [];
-});
-
 // 与 React 版本一致：反向渲染，保证后添加的在上层
-const reversedConnectors = computed<(ConnectorType & SceneConnector)[]>(() => {
-  return [...sourceConnectors.value].reverse();
-});
+const reversedConnectors = shallowRef<(ConnectorType & SceneConnector)[]>([]);
+
+watch(
+  sceneStore.connectors,
+  (newVal) => {
+    reversedConnectors.value = [...newVal].reverse();
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>

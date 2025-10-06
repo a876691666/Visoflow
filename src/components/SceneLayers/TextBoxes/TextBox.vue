@@ -52,7 +52,12 @@ const updateContainerStyle = () => {
   containerStyle.value = {
     ...css.value,
     pointerEvents: 'none',
-    userSelect: 'none'
+    userSelect: 'none',
+    ...(props.textBox.containerStyle
+      ? {
+          height: toPx(props.textBox.containerStyle.height)
+        }
+      : {})
   };
 };
 
@@ -69,7 +74,8 @@ const updateContentStyle = () => {
     height: '100%',
     paddingLeft: toPx(paddingX.value),
     paddingRight: toPx(paddingX.value),
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
+    ...(props.textBox.contentStyle ?? {})
   };
 };
 

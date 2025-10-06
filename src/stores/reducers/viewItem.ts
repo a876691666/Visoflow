@@ -4,50 +4,48 @@ import { getItemByIdOrThrow, getConnectorsByViewItem } from 'src/utils';
 import { validateView } from 'src/schemas/validation';
 import { State, ViewReducerContext } from './types';
 import * as reducers from './view';
+import { useSceneStore } from '../provider';
 
 export const updateViewItem = (
   { id, ...updates }: { id: string } & Partial<ViewItem>,
   { viewId, state }: ViewReducerContext
 ): State => {
-  const newState = updateState(state, (draft) => {
-    const view = getItemByIdOrThrow(draft.model.views, viewId);
-    const { items } = view.value;
+  const sceneStore = useSceneStore();
+  const item = sceneStore.getItem(id);
 
-    if (!items) return;
+  if (!item) return state;
 
-    const viewItem = getItemByIdOrThrow(items, id);
-    const newItem = { ...viewItem.value, ...updates };
-    items[viewItem.index] = newItem;
+  const newItem = { ...item, ...updates };
+  sceneStore.updateItem(id, newItem);
 
-    if (updates.tile) {
-      const connectorsToUpdate = getConnectorsByViewItem(
-        viewItem.value.id,
-        view.value.connectors ?? []
-      );
+  if (updates.tile) {
+    const connectorsToUpdate = getConnectorsByViewItem(
+      id,
+      sceneStore.getConnectors()
+    );
 
-      const updatedConnectors = connectorsToUpdate.reduce((acc, connector) => {
-        return reducers.view({
-          action: 'UPDATE_CONNECTOR',
-          payload: connector,
-          ctx: { viewId, state: acc }
-        });
-      }, draft);
+    const updatedConnectors = connectorsToUpdate.reduce((acc, connector) => {
+      return reducers.view({
+        action: 'UPDATE_CONNECTOR',
+        payload: connector,
+        ctx: { viewId, state: acc }
+      });
+    }, state);
 
-      draft.model.views[view.index].connectors =
-        updatedConnectors.model.views[view.index].connectors;
+    state.model.views[view.index].connectors =
+      updatedConnectors.model.views[view.index].connectors;
 
-      draft.scene.connectors = updatedConnectors.scene.connectors;
-    }
-  });
+    state.scene.connectors = updatedConnectors.scene.connectors;
+  }
 
-  const newView = getItemByIdOrThrow(newState.model.views, viewId);
-  const issues = validateView(newView.value, { model: newState.model });
+  const newView = getItemByIdOrThrow(state.model.views, viewId);
+  const issues = validateView(newView.value, { model: state.model });
 
   if (issues.length > 0) {
     throw new Error(issues[0].message);
   }
 
-  return newState;
+  return state;
 };
 
 export const createViewItem = (

@@ -1,9 +1,9 @@
 import { ref, watch } from 'vue';
-import { useIsoflowModelStore } from 'src/context/isoflowContext';
 import type { Icon } from '@/types';
+import { useSceneStore } from 'src/stores/provider';
 
 export const useIconFiltering = () => {
-  const modelStore = useIsoflowModelStore<any>();
+  const icons = useSceneStore().icons;
   const filter = ref<string>('');
   const filteredIcons = ref<Icon[] | null>(null);
 
@@ -18,9 +18,8 @@ export const useIconFiltering = () => {
     }
 
     const regex = new RegExp(filter.value, 'gi');
-    const icons = modelStore.icons || [];
 
-    filteredIcons.value = icons.filter((icon: Icon) => {
+    filteredIcons.value = icons.value.filter((icon: Icon) => {
       if (!filter.value) {
         return true;
       }
@@ -30,9 +29,8 @@ export const useIconFiltering = () => {
   };
 
   // 监听filter和icons变化
-  watch([filter, () => modelStore.icons], updateFilteredIcons, {
-    immediate: true,
-    deep: true
+  watch([filter, icons], updateFilteredIcons, {
+    immediate: true
   });
 
   return {

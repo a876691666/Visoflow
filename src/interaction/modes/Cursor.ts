@@ -17,7 +17,8 @@ import {
   getAnchorTile,
   connectorPathTileToGlobal
 } from 'src/utils';
-import { useScene } from 'src/hooks/useScene';
+import { useSceneStore } from 'src/stores/provider';
+import { syncConnector } from 'src/stores/reducers/connector';
 
 const getAnchorOrdering = (
   anchor: ConnectorAnchor,
@@ -45,7 +46,7 @@ const getAnchorOrdering = (
 const getAnchor = (
   connectorId: string,
   tile: Coords,
-  scene: ReturnType<typeof useScene>
+  scene: ReturnType<typeof useSceneStore>
 ) => {
   const connector = getItemByIdOrThrow(
     scene.connectors.value,
@@ -63,7 +64,7 @@ const getAnchor = (
       .map((anch) => {
         return {
           ...anch,
-          ordering: getAnchorOrdering(anch, connector, scene.currentView.value)
+          ordering: getAnchorOrdering(anch, connector, scene.getCurrentView()!)
         };
       })
       .sort((a, b) => {
@@ -71,6 +72,7 @@ const getAnchor = (
       });
 
     scene.updateConnector(connector.id, { anchors: orderedAnchors });
+    syncConnector(connector.id, scene);
     return newAnchor;
   }
 

@@ -72,7 +72,7 @@ const modelItemData = ref<ModelItem>({
 const nodeData = ref<ViewItem>({
   id: '',
   labelHeight: 120
-});
+} as any);
 
 const marks = ref([60, 100, 140, 180, 220, 260, 280]);
 

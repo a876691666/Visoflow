@@ -9,20 +9,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { shallowRef, watch } from 'vue';
 import TextBox from './TextBox.vue';
-import type { TextBox as TextBoxType, SceneTextBox } from '@/types';
+import type { SceneTextBox, TextBox as TextBoxType } from '@/types';
+import { useSceneStore } from 'src/stores/provider';
 
-interface Props {
-  // 已与 Scene 合并后的文本框数组
-  textBoxes: Array<TextBoxType & SceneTextBox>;
-}
-const props = defineProps<Props>();
+const sceneStore = useSceneStore();
 
-// 与 React 版本保持一致：反向渲染，确保后创建的在更上层
-const reversedTextBoxes = computed(() => {
-  return [...props.textBoxes].reverse();
-});
+const reversedTextBoxes = shallowRef<(TextBoxType & SceneTextBox)[]>([]);
+
+watch(
+  sceneStore.textBoxs,
+  (newTextBoxs) => {
+    reversedTextBoxes.value = [...newTextBoxs].reverse();
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>

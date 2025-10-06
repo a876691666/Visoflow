@@ -8,8 +8,8 @@ import { syncTextBox } from './textBox';
 import * as viewItemReducers from './viewItem';
 import * as connectorReducers from './connector';
 import * as textBoxReducers from './textBox';
-import * as rectangleReducers from './rectangle';
 import * as layerOrderingReducers from './layerOrdering';
+import { useSceneStore } from '../provider';
 
 export const updateViewTimestamp = (ctx: ViewReducerContext): State => {
   const now = new Date().toISOString();
@@ -23,27 +23,17 @@ export const updateViewTimestamp = (ctx: ViewReducerContext): State => {
   return newState;
 };
 
-export const syncScene = ({ viewId, state }: ViewReducerContext): State => {
+export const syncScene = ({ viewId, state }: ViewReducerContext) => {
   const view = getItemByIdOrThrow(state.model.views, viewId);
+  const sceneStore = useSceneStore();
 
-  const startingState: State = {
-    model: state.model,
-    scene: INITIAL_SCENE_STATE
-  };
+  view.value.connectors?.forEach((connector) => {
+    syncConnector(connector.id, sceneStore);
+  });
 
-  const stateAfterConnectorsSynced = [
-    ...(view.value.connectors ?? [])
-  ].reduce<State>((acc, connector) => {
-    return syncConnector(connector.id, { viewId, state: acc });
-  }, startingState);
-
-  const stateAfterTextBoxesSynced = [
-    ...(view.value.textBoxes ?? [])
-  ].reduce<State>((acc, textBox) => {
-    return syncTextBox(textBox.id, { viewId, state: acc });
-  }, stateAfterConnectorsSynced);
-
-  return stateAfterTextBoxesSynced;
+  view.value.textBoxes?.forEach((textBox) => {
+    syncTextBox(textBox.id, sceneStore);
+  });
 };
 
 export const deleteView = (ctx: ViewReducerContext): State => {
@@ -88,7 +78,7 @@ export const view = ({ action, payload, ctx }: ViewReducerParams) => {
 
   switch (action) {
     case 'SYNC_SCENE':
-      newState = syncScene(ctx);
+      syncScene(ctx);
       break;
     case 'CREATE_VIEW':
       newState = createView(payload, ctx);
@@ -128,15 +118,6 @@ export const view = ({ action, payload, ctx }: ViewReducerParams) => {
       break;
     case 'DELETE_TEXTBOX':
       newState = textBoxReducers.deleteTextBox(payload, ctx);
-      break;
-    case 'CREATE_RECTANGLE':
-      newState = rectangleReducers.createRectangle(payload, ctx);
-      break;
-    case 'UPDATE_RECTANGLE':
-      newState = rectangleReducers.updateRectangle(payload, ctx);
-      break;
-    case 'DELETE_RECTANGLE':
-      newState = rectangleReducers.deleteRectangle(payload, ctx);
       break;
     case 'CHANGE_LAYER_ORDER':
       newState = layerOrderingReducers.changeLayerOrder(payload, ctx);

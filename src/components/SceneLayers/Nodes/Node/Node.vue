@@ -33,7 +33,7 @@
               {{ modelItem.name }}
             </div>
             <div v-if="description" class="node-description">
-              <MarkdownEditor :value="description" :read-only="true" />
+              <MarkdownView :value="description" :read-only="true" />
             </div>
           </div>
         </ExpandableLabel>
@@ -66,7 +66,7 @@ import { useIcon } from '@/hooks/useIcon';
 import type { ViewItem } from '@/types';
 import { useModelItem } from '@/hooks/useModelItem';
 import ExpandableLabel from '@/components/Label/ExpandableLabel.vue';
-import MarkdownEditor from '@/components/MarkdownEditor/MarkdownEditor.vue';
+import MarkdownView from '@/components/MarkdownEditor/MarkdownView.vue';
 
 interface Props {
   node: ViewItem;

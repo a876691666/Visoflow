@@ -102,15 +102,12 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
-import {
-  useIsoflowSceneStore,
-  useIsoflowUiStateStore
-} from 'src/context/isoflowContext';
+import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import { useRectangle } from 'src/hooks/useRectangle';
-import { useScene } from 'src/hooks/useScene';
 import ControlsContainer from '../components/ControlsContainer.vue';
 import Section from '../components/Section.vue';
 import DeleteButton from '../components/DeleteButton.vue';
+import { useSceneStore } from 'src/stores/provider';
 
 interface Props {
   id: string;
@@ -118,9 +115,8 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const sceneStore = useIsoflowSceneStore<any>();
+const sceneStore = useSceneStore();
 const uiStateStore = useIsoflowUiStateStore<any>();
-const { updateRectangle, deleteRectangle } = useScene();
 
 const rectangleData = ref<any>({
   id: '',
@@ -166,7 +162,7 @@ const strokeHex = computed(() => toHexColor(rectangleData.value.style?.stroke));
 
 const updateRectangleData = () => {
   // 从store获取矩形数据
-  const rect = sceneStore.rectangles?.[props.id];
+  const rect = sceneStore.rectangles.value.find((r) => r.id === props.id);
   if (rect) {
     rectangleData.value = { ...rect };
   } else {
@@ -191,7 +187,7 @@ const applyStyleFromText = () => {
   try {
     const parsed = JSON.parse(styleText.value || '{}');
     rectangleData.value.style = parsed;
-    updateRectangle(rectangleData.value.id, { style: parsed });
+    sceneStore.updateRectangle(rectangleData.value.id, { style: parsed });
     styleError.value = '';
   } catch (err: any) {
     styleError.value = '无效的 JSON';
@@ -212,7 +208,7 @@ const updateStyle = (updates: Record<string, any>) => {
     else next[k] = v;
   });
   rectangleData.value.style = next;
-  updateRectangle(rectangleData.value.id, { style: next });
+  sceneStore.updateRectangle(rectangleData.value.id, { style: next });
   styleText.value = JSON.stringify(next, null, 2);
 };
 
@@ -228,7 +224,7 @@ const onNumberChange = (e: Event, key: string) => {
 
 const handleDelete = () => {
   uiStateStore.setItemControls(null);
-  deleteRectangle(rectangleData.value.id);
+  sceneStore.removeRectangle(rectangleData.value.id);
 };
 
 // 监听ID变化

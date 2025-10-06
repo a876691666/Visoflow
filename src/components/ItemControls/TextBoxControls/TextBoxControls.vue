@@ -17,14 +17,31 @@
         <input
           type="range"
           min="0.3"
-          max="0.9"
-          step="0.3"
+          max="3"
+          step="0.1"
           :value="textBox?.fontSize ?? 0.3"
           @input="handleFontSizeChange"
           class="slider"
         />
         <span class="slider-value">{{
           (textBox?.fontSize ?? 0.3).toFixed(1)
+        }}</span>
+      </div>
+    </Section>
+
+    <Section title="框高度">
+      <div class="slider-container">
+        <input
+          type="range"
+          min="12"
+          max="500"
+          step="1"
+          :value="textBox?.containerStyle?.height ?? 100"
+          @input="handleContainerHeightChange"
+          class="slider"
+        />
+        <span class="slider-value">{{
+          (textBox?.containerStyle?.height ?? 100).toFixed(0)
         }}</span>
       </div>
     </Section>
@@ -112,12 +129,13 @@
 import { computed, type CSSProperties } from 'vue';
 import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import { useTextBox } from 'src/hooks/useTextBox';
-import { useScene } from 'src/hooks/useScene';
 import { getIsoProjectionCss } from 'src/utils';
 import { ProjectionOrientationEnum } from 'src/types';
 import ControlsContainer from '../components/ControlsContainer.vue';
 import Section from '../components/Section.vue';
 import DeleteButton from '../components/DeleteButton.vue';
+import { useSceneStore } from 'src/stores/provider';
+import { syncTextBox } from 'src/stores/reducers/textBox';
 
 interface Props {
   id: string;
@@ -125,7 +143,7 @@ interface Props {
 
 const props = defineProps<Props>();
 const uiStateStore = useIsoflowUiStateStore<any>();
-const { updateTextBox, deleteTextBox } = useScene();
+const sceneStore = useSceneStore();
 const textBoxRef = useTextBox(props.id);
 
 const textBox = computed(() => textBoxRef.value);
@@ -166,14 +184,29 @@ const handleContentChange = (event: Event) => {
   if (!textBox.value) return;
   const target = event.target as HTMLTextAreaElement;
   const content = target.value;
-  updateTextBox(textBox.value.id, { content });
+  sceneStore.updateTextBox(textBox.value.id, { content });
+  syncTextBox(textBox.value.id, sceneStore);
 };
 
 const handleFontSizeChange = (event: Event) => {
   if (!textBox.value) return;
   const target = event.target as HTMLInputElement;
   const fontSize = parseFloat(target.value);
-  updateTextBox(textBox.value.id, { fontSize });
+  sceneStore.updateTextBox(textBox.value.id, { fontSize });
+  syncTextBox(textBox.value.id, sceneStore);
+};
+
+const handleContainerHeightChange = (event: Event) => {
+  if (!textBox.value) return;
+  const target = event.target as HTMLInputElement;
+  const containerHeight = parseFloat(target.value);
+  sceneStore.updateTextBox(textBox.value.id, {
+    containerStyle: {
+      ...textBox.value.containerStyle,
+      height: containerHeight
+    }
+  });
+  syncTextBox(textBox.value.id, sceneStore);
 };
 
 const handleOrientationChange = (
@@ -181,13 +214,14 @@ const handleOrientationChange = (
 ) => {
   if (!textBox.value) return;
   if (textBox.value.orientation === orientation) return;
-  updateTextBox(textBox.value.id, { orientation });
+  sceneStore.updateTextBox(textBox.value.id, { orientation });
+  syncTextBox(textBox.value.id, sceneStore);
 };
 
 const handleDelete = () => {
   if (!textBox.value) return;
   uiStateStore.setItemControls(null);
-  deleteTextBox(textBox.value.id);
+  sceneStore.removeTextBox(textBox.value.id);
 };
 </script>
 

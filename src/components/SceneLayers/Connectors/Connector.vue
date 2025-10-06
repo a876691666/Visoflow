@@ -9,7 +9,7 @@
         :stroke-width="backgroundStrokeWidth"
         stroke-linecap="round"
         stroke-linejoin="round"
-        :stroke-opacity="0.7"
+        :stroke-opacity="1"
         :stroke-dasharray="dashArray"
         fill="none"
       />
@@ -63,13 +63,12 @@
 <script setup lang="ts">
 import { ref, computed, watch, type CSSProperties } from 'vue';
 import type { Coords } from '@/types';
-import { useColor } from '@/hooks/useColor';
 import { useIsoProjection } from '@/hooks/useIsoProjection';
 import { getConnectorDirectionIcon, getAnchorTile } from '@/utils';
 import { UNPROJECTED_TILE_SIZE } from '@/config';
 import Circle from '@/components/Circle/Circle.vue';
 import Svg from '@/components/Svg/Svg.vue';
-import { useScene } from '@/hooks/useScene';
+import { useSceneStore } from 'src/stores/provider';
 
 interface ConnectorWithPath {
   id: string;
@@ -83,8 +82,14 @@ interface ConnectorWithPath {
   }>;
   style?: 'SOLID' | 'DOTTED' | 'DASHED';
   color?: string;
+  // 背景描边颜色（用于加粗白底的那条线）
+  backgroundColor?: string;
   width?: number;
   description?: string;
+  // 自定义虚线段长度（与 width 一样采用基于 UNPROJECTED_TILE_SIZE 的相对像素转换）
+  dashLength?: number;
+  // 自定义虚线段间隔（与 width 一样采用基于 UNPROJECTED_TILE_SIZE 的相对像素转换）
+  dashGap?: number;
   path?: {
     tiles: Coords[];
     rectangle: {
@@ -131,11 +136,7 @@ const isVisible = computed(() => {
   );
 });
 
-// 获取颜色
-const color = useColor(props.connector.color);
-// 获取当前视图（用于解析锚点的实际 tile）
-const { currentView } = useScene();
-
+const sceneStore = useSceneStore();
 // 更新等距投影
 const { css, pxSize, update } = useIsoProjection();
 // 更新连接器数据
@@ -168,28 +169,64 @@ const updateConnector = () => {
 
   backgroundStrokeWidth.value = connectorWidthPx * 1.4;
   mainStrokeWidth.value = connectorWidthPx;
-  mainStroke.value = color.value?.value || '#333';
+  mainStroke.value = props.connector.color || '#333';
+  // 背景描边颜色（可配置）
+  backgroundStroke.value = props.connector.backgroundColor || 'white';
 
   // 更新虚线样式
+  // 自定义虚线：分为段长与间隔
+  // - DASHED:  使用 "len, gap"
+  // - DOTTED:  使用 "0, gap"（当 len=0 时呈现为点；若用户设置了 len>0，也按照 "len, gap" 渲染）
+  // 若未提供 dashLength/dashGap，则保持原有基于 width 的比例
+  const defaultDashForStyle = (style?: 'SOLID' | 'DOTTED' | 'DASHED') => {
+    switch (style) {
+      case 'DASHED':
+        return connectorWidthPx * 2;
+      case 'DOTTED':
+        return connectorWidthPx * 1.8;
+      default:
+        return 0;
+    }
+  };
+
+  const dashLenPx =
+    typeof connector.dashLength === 'number' && connector.dashLength > 0
+      ? (UNPROJECTED_TILE_SIZE / 100) * connector.dashLength
+      : defaultDashForStyle(connector.style);
+  const dashGapPx =
+    typeof connector.dashGap === 'number' && connector.dashGap > 0
+      ? (UNPROJECTED_TILE_SIZE / 100) * connector.dashGap
+      : defaultDashForStyle(connector.style);
+
   switch (connector.style) {
     case 'DASHED':
-      dashArray.value = `${connectorWidthPx * 2}, ${connectorWidthPx * 2}`;
+      dashArray.value =
+        dashLenPx > 0 && dashGapPx > 0 ? `${dashLenPx}, ${dashGapPx}` : 'none';
       break;
     case 'DOTTED':
-      dashArray.value = `0, ${connectorWidthPx * 1.8}`;
+      // 点样式：若段长未设或为0，则使用 0,gap；否则允许用户指定 len,gap
+      if (!connector.dashLength || connector.dashLength <= 0) {
+        dashArray.value = dashGapPx > 0 ? `0, ${dashGapPx}` : 'none';
+      } else {
+        dashArray.value =
+          dashLenPx > 0 && dashGapPx > 0
+            ? `${dashLenPx}, ${dashGapPx}`
+            : 'none';
+      }
       break;
     case 'SOLID':
     default:
       dashArray.value = 'none';
   }
 
+  const currentView = sceneStore.getCurrentView();
   // 更新锚点位置（如果选中）
   if (props.isSelected && connector.anchors) {
     // 参照 React 版本：根据 anchor 引用解析到全局 tile，再转换为局部像素坐标
-    if (connector.path?.rectangle && currentView.value) {
+    if (connector.path?.rectangle && currentView) {
       const origin = connector.path.rectangle.from;
       anchorPositions.value = connector.anchors.map((anchor) => {
-        const position = getAnchorTile(anchor as any, currentView.value);
+        const position = getAnchorTile(anchor as any, currentView);
 
         return {
           id: anchor.id,
@@ -226,11 +263,9 @@ const updateConnector = () => {
 };
 
 // 监听器
-watch(
-  [() => props.connector, () => props.isSelected, () => color.value],
-  updateConnector,
-  { immediate: true, deep: true }
-);
+watch([() => props.connector, () => props.isSelected], updateConnector, {
+  immediate: true
+});
 </script>
 
 <style scoped>

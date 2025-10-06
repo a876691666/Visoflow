@@ -74,18 +74,6 @@ type ViewReducerAction =
       payload: Parameters<typeof textBoxReducers.deleteTextBox>[0];
     }
   | {
-      action: 'CREATE_RECTANGLE';
-      payload: Parameters<typeof rectangleReducers.createRectangle>[0];
-    }
-  | {
-      action: 'UPDATE_RECTANGLE';
-      payload: Parameters<typeof rectangleReducers.updateRectangle>[0];
-    }
-  | {
-      action: 'DELETE_RECTANGLE';
-      payload: Parameters<typeof rectangleReducers.deleteRectangle>[0];
-    }
-  | {
       action: 'CHANGE_LAYER_ORDER';
       payload: Parameters<typeof layerOrderingReducers.changeLayerOrder>[0];
     };

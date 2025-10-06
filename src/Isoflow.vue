@@ -18,16 +18,15 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch, ref } from 'vue';
-import { useModelStore } from './stores/modelStore';
-import { useSceneStore } from './stores/sceneStore';
 import { useUiStateStore } from './stores/uiStateStore';
-import { setWindowCursor, modelFromModelStore } from './utils';
+import { setWindowCursor } from './utils';
 import { INITIAL_DATA, MAIN_MENU_OPTIONS } from './config';
 import { useInitialDataManager } from './hooks/useInitialDataManager';
 import Renderer from './components/Renderer/Renderer.vue';
 import UiOverlay from './components/UiOverlay/UiOverlay.vue';
 import type { IsoflowProps } from './types';
 import { provideIsoflow } from './context/isoflowContext';
+import { useSceneStore } from './stores/provider';
 
 interface Props {
   initialData?: IsoflowProps['initialData'];
@@ -51,28 +50,21 @@ const emit = defineEmits<{
   modelUpdated: [model: any];
 }>();
 
-const modelStore = useModelStore();
 const sceneStore = useSceneStore();
 const uiStateStore = useUiStateStore();
-provideIsoflow({ modelStore, sceneStore, uiStateStore });
 
-// Initial data manager
-const initialDataManager = useInitialDataManager();
+provideIsoflow({ uiStateStore });
 
-// Model tracking
-const model = ref(modelFromModelStore(modelStore));
+const initialDataManager = useInitialDataManager(sceneStore);
 
 onMounted(() => {
-  // Load initial data
   const dataToLoad = { ...INITIAL_DATA, ...props.initialData };
   initialDataManager.load(dataToLoad);
 
-  // Set UI state
   uiStateStore.setEditorMode(props.editorMode);
   uiStateStore.setMainMenuOptions(props.mainMenuOptions);
   uiStateStore.setEnableDebugTools(props.enableDebugTools);
 
-  // Clean up cursor on unmount
   return () => {
     setWindowCursor('default');
   };
@@ -105,9 +97,8 @@ watch(
 );
 
 watch(
-  () => modelStore.$state,
+  () => sceneStore.model,
   (newModel) => {
-    model.value = newModel;
     if (initialDataManager.isReady) {
       emit('modelUpdated', newModel);
     }
@@ -116,18 +107,15 @@ watch(
 
 const useIsoflow = () => {
   return {
-    Model: modelStore,
     uiState: uiStateStore,
-    rendererEl: ref(() => uiStateStore.rendererEl)
+    useSceneStore: () => sceneStore,
+    rendererEl: () => uiStateStore.rendererEl
   };
 };
 
 // Export for external use
 defineExpose({
-  useIsoflow,
-  modelStore,
-  uiStateStore,
-  sceneStore
+  useIsoflow
 });
 </script>
 

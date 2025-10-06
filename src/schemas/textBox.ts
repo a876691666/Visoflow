@@ -8,6 +8,8 @@ export const textBoxSchema = z.object({
   content: constrainedStrings.name,
   fontSize: z.number().optional(),
   textStyle: z.record(z.string()).optional(),
+  containerStyle: z.record(z.string()).optional(),
+  contentStyle: z.record(z.string()).optional(),
   orientation: z
     .union([
       z.literal(ProjectionOrientationEnum.X),

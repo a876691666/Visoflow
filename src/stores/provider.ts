@@ -1,0 +1,430 @@
+import { INITIAL_DATA, RECTANGLE_DEFAULTS } from 'src/config';
+import {
+  Connector,
+  Model,
+  Rectangle,
+  Scene,
+  TextBox,
+  View,
+  ViewItem
+} from 'src/types';
+import { inject, InjectionKey, provide } from 'vue';
+import { shallowRef, triggerRef } from 'vue';
+
+export type Connectors = (Connector & Scene['connectors'][string])[];
+export type TextBoxs = (TextBox & Scene['textBoxes'][string])[];
+export type Icons = Model['icons'];
+export type Colors = Model['colors'];
+export type Items = (ViewItem & Model['items'][number])[];
+export type Views = View[];
+export type Rectangles = Rectangle[];
+
+export const useProvider = () => {
+  const connectors = shallowRef<Connectors>([]);
+  const textBoxs = shallowRef<TextBoxs>([]);
+  const colors = shallowRef<Model['colors']>([]);
+  const icons = shallowRef<Model['icons']>([]);
+  const items = shallowRef<Items>([]);
+  const rectangles = shallowRef<Rectangle[]>([]);
+  const view = shallowRef<string>('');
+  const views = shallowRef<View[]>([]);
+  const model = shallowRef<Model>(INITIAL_DATA);
+
+  const triggerMaps = {
+    connectors,
+    textBoxs,
+    colors,
+    icons,
+    model,
+    items,
+    views,
+    rectangles
+  };
+
+  // 通用触发更新函数
+  const triggerUpdate = (refName: keyof typeof triggerMaps) => {
+    triggerRef(triggerMaps[refName]);
+  };
+
+  // // 更新connectors
+  // const updateConnectors = () => {
+  //   connectors.value = (currentView.value.connectors ?? []).map(
+  //     (connector: any) => {
+  //       const sceneConnector = sceneStore.getConnector(connector.id);
+  //       return {
+  //         ...CONNECTOR_DEFAULTS,
+  //         ...connector,
+  //         ...sceneConnector
+  //       };
+  //     }
+  //   );
+  // };
+
+  // // 更新textBoxs
+  // const updateTextBoxs = () => {
+  //   textBoxs.value = (currentView.value.textBoxs ?? []).map((textBox: any) => {
+  //     const sceneTextBox = sceneStore.getTextBox(textBox.id);
+  //     return {
+  //       ...TEXTBOX_DEFAULTS,
+  //       ...textBox,
+  //       ...sceneTextBox
+  //     };
+  //   });
+  // };
+
+  // ===== 提取的独立函数定义 START =====
+  // connectors
+  const getConnectors = () => connectors.value;
+  const getConnector = (id: string) =>
+    connectors.value.find((c) => c.id === id);
+  const updateConnectors = (newConnectors: Connectors) => {
+    connectors.value = newConnectors;
+  };
+  const addConnector = (connector: Connectors[number]) => {
+    connectors.value = [...connectors.value, connector];
+
+    const view = getCurrentView();
+    if (view) {
+      if (!view.connectors) view.connectors = [];
+      if (!view.connectors.find((c) => c.id === connector.id)) {
+        view.connectors.push(connector);
+      }
+    }
+
+    return connector;
+  };
+  const removeConnector = (id: string) => {
+    debugger;
+    connectors.value = connectors.value.filter((c) => c.id !== id);
+
+    const view = getCurrentView();
+    if (view && view.connectors) {
+      view.connectors = view.connectors.filter((c) => c.id !== id);
+    }
+  };
+  const updateConnector = (
+    id: string,
+    connector: Partial<Connectors[number]>
+  ) => {
+    const index = connectors.value.findIndex((c) => c.id === id);
+    if (index !== -1) {
+      connectors.value[index] = {
+        ...connectors.value[index],
+        ...connector
+      };
+      triggerUpdate('connectors');
+
+      const view = getCurrentView();
+      if (view && view.connectors) {
+        const vIndex = view.connectors.findIndex((c) => c.id === id);
+        if (vIndex !== -1) {
+          view.connectors[vIndex] = {
+            ...view.connectors[vIndex],
+            ...connector
+          };
+        }
+      }
+
+      return connectors.value[index];
+    } else {
+      return addConnector({ ...connector, id } as Connectors[number]);
+    }
+  };
+
+  // textBoxs
+  const getTextBoxs = () => textBoxs.value;
+  const getTextBox = (id: string) => textBoxs.value.find((t) => t.id === id);
+  const updateTextBoxs = (newTextBoxs: TextBoxs) => {
+    textBoxs.value = newTextBoxs;
+  };
+  const updateTextBox = (id: string, textBox: Partial<TextBoxs[number]>) => {
+    const index = textBoxs.value.findIndex((t) => t.id === id);
+    if (index !== -1) {
+      textBoxs.value[index] = { ...textBoxs.value[index], ...textBox };
+      triggerUpdate('textBoxs');
+
+      // 同步更新当前视图中的 textBoxes
+      const view = getCurrentView();
+      if (view && view.textBoxes) {
+        const vIndex = view.textBoxes.findIndex((t) => t.id === id);
+        if (vIndex !== -1) {
+          view.textBoxes[vIndex] = {
+            ...view.textBoxes[vIndex],
+            ...textBox
+          } as any;
+        }
+      }
+
+      return textBoxs.value[index];
+    } else {
+      return addTextBox({ ...textBox, id } as TextBoxs[number]);
+    }
+  };
+  const addTextBox = (textBox: TextBoxs[number]) => {
+    textBoxs.value = [...textBoxs.value, textBox];
+
+    // 同步添加到当前视图的 textBoxes
+    const view = getCurrentView();
+    if (view) {
+      if (!view.textBoxes) view.textBoxes = [];
+      if (!view.textBoxes.find((t) => t.id === textBox.id)) {
+        view.textBoxes.push(textBox as any);
+      }
+    }
+
+    return textBox;
+  };
+  const removeTextBox = (id: string) => {
+    textBoxs.value = textBoxs.value.filter((t) => t.id !== id);
+
+    // 同步从当前视图移除
+    const view = getCurrentView();
+    if (view && view.textBoxes) {
+      view.textBoxes = view.textBoxes.filter((t) => t.id !== id);
+    }
+  };
+
+  // icons
+  const getIcons = () => icons.value;
+  const getIcon = (id: string) => icons.value.find((icon) => icon.id === id);
+  const updateIcons = (newIcons: Model['icons']) => {
+    icons.value = newIcons;
+  };
+  const updateIcon = (id: string, icon: Model['icons'][number]) => {
+    const index = icons.value.findIndex((i) => i.id === id);
+    if (index !== -1) {
+      icons.value[index] = { ...icons.value[index], ...icon };
+      triggerUpdate('icons');
+    }
+  };
+  const addIcon = (icon: Model['icons'][number]) => {
+    icons.value = [...icons.value, icon];
+  };
+  const removeIcon = (id: string) => {
+    icons.value = icons.value.filter((icon) => icon.id !== id);
+  };
+
+  // colors
+  const getColors = () => colors.value;
+  const updateColors = (newColors: Model['colors']) => {
+    colors.value = newColors;
+  };
+
+  // items
+  const getItems = () => items.value;
+  const getItem = (id: string) => items.value.find((item) => item.id === id);
+  const updateItems = (newItems: Items) => {
+    items.value = newItems;
+  };
+  const updateItem = (id: string, item: Partial<Items[number]>) => {
+    const index = items.value.findIndex((i) => i.id === id);
+    if (index !== -1) {
+      items.value[index] = { ...items.value[index], ...item };
+      triggerUpdate('items');
+    }
+  };
+  const addItem = (item: Items[number]) => {
+    items.value = [...items.value, item];
+  };
+  const removeItem = (id: string) => {
+    items.value = items.value.filter((item) => item.id !== id);
+  };
+
+  // rectangles
+  const getRectangles = () => rectangles.value;
+  const getRectangle = (id: string) =>
+    rectangles.value.find((rect) => rect.id === id);
+  const updateRectangles = (newRectangles: Rectangle[]) => {
+    rectangles.value = newRectangles;
+  };
+  const updateRectangle = (id: string, rectangle: Partial<Rectangle>) => {
+    const index = rectangles.value.findIndex((r) => r.id === id);
+    if (index !== -1) {
+      rectangles.value[index] = { ...rectangles.value[index], ...rectangle };
+      triggerUpdate('rectangles');
+    }
+  };
+  const addRectangle = (rectangle: Rectangle) => {
+    rectangles.value = [...rectangles.value, rectangle];
+  };
+  const removeRectangle = (id: string) => {
+    rectangles.value = rectangles.value.filter((rect) => rect.id !== id);
+  };
+
+  // views
+  const getViews = () => views.value;
+  const getView = (id: string) => views.value.find((v) => v.id === id);
+  const getCurrentView = () => getView(view.value);
+  const updateViews = (newViews: View[]) => {
+    views.value = newViews;
+  };
+  const updateView = (id: string, viewData: View) => {
+    const index = views.value.findIndex((v) => v.id === id);
+    if (index !== -1) {
+      views.value[index] = { ...views.value[index], ...viewData };
+      triggerUpdate('views');
+    }
+  };
+  const addView = (viewData: View) => {
+    views.value = [...views.value, viewData];
+  };
+  const removeView = (id: string) => {
+    views.value = views.value.filter((v) => v.id !== id);
+  };
+
+  // model
+  const getModel = () => model.value;
+  const updateModel = (newModel: Model) => {
+    model.value = newModel;
+
+    updateViews(newModel.views);
+
+    const _view = getView(view.value);
+
+    updateColors(newModel.colors);
+    updateIcons(newModel.icons);
+
+    const items =
+      _view?.items
+        .map((item) => {
+          const _i = newModel.items.find((mi) => mi.id === item.id);
+          if (!_i) return false;
+          return { ...item, ..._i };
+        })
+        .filter((item) => item !== false) || [];
+
+    updateItems(items);
+    updateRectangles(
+      _view?.rectangles?.map((rectangle) => ({
+        ...RECTANGLE_DEFAULTS,
+        ...rectangle
+      })) || []
+    );
+    // updateTextBoxs();
+    // updateConnectors();
+  };
+
+  // 将当前状态整理为可导出的 Model（确保 items 已与 model.items 同步）
+  const getExportModel = (): Model => {
+    // 基于当前 model 创建一个浅拷贝
+    const exportModel: Model = JSON.parse(JSON.stringify(model.value));
+
+    // 同步当前视图下 items 的模型字段到 model.items
+    items.value.forEach((it) => {
+      const mi = exportModel.items.findIndex((m) => m.id === it.id);
+      if (mi !== -1) {
+        exportModel.items[mi] = {
+          ...exportModel.items[mi],
+          name: it.name,
+          description: it.description,
+          icon: it.icon
+        } as any;
+      } else {
+        // 如果不存在则补齐（通常不会发生，但以防万一）
+        exportModel.items.push({
+          id: it.id,
+          name: it.name,
+          description: it.description,
+          icon: it.icon
+        } as any);
+      }
+    });
+
+    return exportModel;
+  };
+
+  // 返回 JSON 字符串（不触发下载，供外部自行处理）
+  const exportModelAsJSON = (): string => {
+    return JSON.stringify(getExportModel());
+  };
+
+  // ===== 提取的独立函数定义 END =====
+
+  return {
+    triggerUpdate,
+
+    // connectors
+    connectors,
+    getConnectors,
+    getConnector,
+    updateConnectors,
+    updateConnector,
+    addConnector,
+    removeConnector,
+
+    // textBoxs
+    textBoxs,
+    getTextBoxs,
+    getTextBox,
+    updateTextBoxs,
+    updateTextBox,
+    addTextBox,
+    removeTextBox,
+
+    // icons
+    icons,
+    getIcons,
+    getIcon,
+    updateIcons,
+    updateIcon,
+    addIcon,
+    removeIcon,
+
+    // colors
+    colors,
+    getColors,
+    updateColors,
+
+    // items
+    items,
+    getItems,
+    getItem,
+    updateItems,
+    updateItem,
+    addItem,
+    removeItem,
+
+    // rectangles
+    rectangles,
+    getRectangles,
+    getRectangle,
+    updateRectangles,
+    updateRectangle,
+    addRectangle,
+    removeRectangle,
+
+    // view(s)
+    view,
+    views,
+    getViews,
+    getView,
+    getCurrentView,
+    updateViews,
+    updateView,
+    addView,
+    removeView,
+
+    // model
+    model,
+    getModel,
+    updateModel,
+
+    // export helpers
+    getExportModel,
+    exportModelAsJSON
+  };
+};
+
+export type SceneStore = ReturnType<typeof useProvider>;
+export const SceneStoreKey: InjectionKey<SceneStore> = Symbol('SceneStore');
+
+export const provideSceneStore = (actions: SceneStore) => {
+  provide(SceneStoreKey, actions);
+};
+export const useSceneStore = () => {
+  const actions = inject(SceneStoreKey);
+  if (!actions) {
+    throw new Error('Scene store is not provided');
+  }
+  return actions;
+};

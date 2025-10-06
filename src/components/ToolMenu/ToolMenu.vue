@@ -22,9 +22,10 @@ import { ref, onMounted, computed } from 'vue';
 import IconButton from '../IconButton/IconButton.vue';
 import { useGSAPAnimations } from 'src/hooks/useGSAPAnimations';
 import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
-import { useScene } from 'src/hooks/useScene';
 import { TEXTBOX_DEFAULTS } from 'src/config';
 import { generateId } from 'src/utils';
+import { useSceneStore } from 'src/stores/provider';
+import { syncTextBox } from 'src/stores/reducers/textBox';
 
 interface Tool {
   id: string;
@@ -72,17 +73,18 @@ onMounted(() => {
   }
 });
 
-const { createTextBox } = useScene();
+const sceneStore = useSceneStore();
 
 const createTextBoxProxy = () => {
   const textBoxId = generateId();
   const mouseTile = uiStateStore.mouse?.position?.tile;
 
-  createTextBox({
+  sceneStore.addTextBox({
     ...TEXTBOX_DEFAULTS,
     id: textBoxId,
     tile: mouseTile
   } as any);
+  syncTextBox(textBoxId, sceneStore);
 
   uiStateStore.setMode({
     type: 'TEXTBOX',

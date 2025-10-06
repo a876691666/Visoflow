@@ -1,12 +1,8 @@
 import { ref, onUnmounted, watch } from 'vue';
-import {
-  useIsoflowModelStore,
-  useIsoflowUiStateStore
-} from 'src/context/isoflowContext';
+import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import { ModeActions, State, SlimMouseEvent } from 'src/types';
 import { getMouse, getItemAtTile } from 'src/utils';
 import { useResizeObserver } from 'src/hooks/useResizeObserver';
-import { useScene } from 'src/hooks/useScene';
 import { Cursor } from './modes/Cursor';
 import { DragItems } from './modes/DragItems';
 import { DrawRectangle } from './modes/Rectangle/DrawRectangle';
@@ -15,6 +11,7 @@ import { Connector } from './modes/Connector';
 import { Pan } from './modes/Pan';
 import { PlaceIcon } from './modes/PlaceIcon';
 import { TextBox } from './modes/TextBox';
+import { useSceneStore } from 'src/stores/provider';
 
 const modes: { [k in string]: ModeActions } = {
   CURSOR: Cursor,
@@ -45,8 +42,7 @@ export const useInteractionManager = () => {
   const rendererRef = ref<HTMLElement>();
   const reducerTypeRef = ref<string>();
   const uiStateStore = useIsoflowUiStateStore<any>();
-  const modelStore = useIsoflowModelStore<any>();
-  const scene = useScene();
+  const sceneStore = useSceneStore();
   // 本地持有 rendererEl 的 Ref，确保在其有值后再开始监听尺寸变化，并在变更时重新观察
   const rendererElRef = ref<HTMLElement | null>(null);
   const { size: rendererSize } = useResizeObserver(rendererElRef);
@@ -80,8 +76,7 @@ export const useInteractionManager = () => {
     uiStateStore.setMouse(nextMouse);
 
     const baseState: State = {
-      model: modelStore,
-      scene: scene,
+      scene: sceneStore,
       uiState: uiStateStore,
       rendererRef: rendererRef.value,
       rendererSize: rendererSize.value,
@@ -111,7 +106,7 @@ export const useInteractionManager = () => {
 
     const itemAtTile = getItemAtTile({
       tile: uiStateStore.mouse.position.tile,
-      scene
+      scene: sceneStore
     });
 
     if (itemAtTile?.type === 'RECTANGLE') {
