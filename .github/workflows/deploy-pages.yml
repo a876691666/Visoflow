@@ -25,16 +25,10 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 20
-          cache: 'pnpm'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          # 使用与你本地接近的 pnpm 版本，未指定则使用默认稳定版
-          run_install: false
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm install --frozen-lockfile
 
       - name: Determine base path
         id: base
@@ -50,7 +44,7 @@ jobs:
           echo "base=$BASE" >> $GITHUB_OUTPUT
 
       - name: Typecheck + Build (Vite)
-        run: pnpm run build -- --base=${{ steps.base.outputs.base }}
+        run: npm run build -- --base=${{ steps.base.outputs.base }}
       
       - name: SPA fallback for GitHub Pages
         if: ${{ always() }}
