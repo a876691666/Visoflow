@@ -8,8 +8,6 @@ export default defineConfig(({ mode }) => {
   const inGithubActions = process.env.GITHUB_ACTIONS === 'true';
 
   return {
-    // 仅在 GitHub Actions 环境下设置 base，方便部署到 GitHub Pages 的子路径 /visoflow/
-    // 库模式不设置 base，以免影响包输出路径
     base: isLib ? undefined : inGithubActions ? '/visoflow/' : '/',
     plugins: [vue(), ...(isLib ? [dts({ include: ['src'] })] : [])],
     resolve: {
@@ -22,7 +20,7 @@ export default defineConfig(({ mode }) => {
       ? {
           lib: {
             entry: resolve(__dirname, 'src/index.ts'),
-            name: 'Isoflow',
+            name: 'Visoflow',
             fileName: (format) => `index.${format === 'es' ? 'esm' : format}.js`
           },
           rollupOptions: {

@@ -1,12 +1,12 @@
 {
-  "name": "isoflow",
+  "name": "Visoflow",
   "version": "1.1.1",
   "private": false,
   "description": "An open-source Vue 3 component for drawing network diagrams.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/markmanx/isoflow.git"
+    "url": "https://github.com/a876691666/Visoflow.git"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.esm.js",

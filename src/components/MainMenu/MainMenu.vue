@@ -174,7 +174,7 @@ const renderedMenu = computed<MenuEntry[]>(() => {
     entries.push({
       type: 'item',
       label: 'GitHub',
-      onClick: () => openLink('https://github.com/markmanx/isoflow')
+      onClick: () => openLink('https://github.com/a876691666/Visoflow')
     });
   }
 
