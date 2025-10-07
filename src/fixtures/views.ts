@@ -8,6 +8,9 @@ export const views: Model['views'] = [
     items: [
       {
         id: 'node1',
+        name: 'Node1',
+        icon: 'icon1',
+        description: 'Node1Description',
         tile: {
           x: 0,
           y: 0
@@ -15,6 +18,8 @@ export const views: Model['views'] = [
       },
       {
         id: 'node2',
+        name: 'Node2',
+        icon: 'icon2',
         tile: {
           x: 0,
           y: 4
@@ -22,6 +27,8 @@ export const views: Model['views'] = [
       },
       {
         id: 'node3',
+        name: 'Node3',
+        icon: 'icon1',
         tile: {
           x: 0,
           y: -4

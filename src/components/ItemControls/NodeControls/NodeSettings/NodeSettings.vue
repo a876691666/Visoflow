@@ -44,27 +44,28 @@
 <script setup lang="ts">
 import { ref, watch, type CSSProperties } from 'vue';
 import { useModelItem } from 'src/hooks/useModelItem';
-import type { ModelItem, ViewItem } from '@/types';
+import type { ViewItem } from '@/types';
 import MarkdownEditor from '@/components/MarkdownEditor/MarkdownEditor.vue';
 import DeleteButton from '../../components/DeleteButton.vue';
 import Section from '../../components/Section.vue';
 
 export type NodeUpdates = {
-  model: Partial<ModelItem>;
+  model: Partial<ViewItem>;
   view: Partial<ViewItem>;
 };
 
 interface Props {
   node: ViewItem;
-  onModelItemUpdated: (updates: Partial<ModelItem>) => void;
+  onModelItemUpdated: (updates: Partial<ViewItem>) => void;
   onViewItemUpdated: (updates: Partial<ViewItem>) => void;
   onDeleted: () => void;
 }
 
 const props = defineProps<Props>();
 
-const modelItemData = ref<ModelItem>({
+const modelItemData = ref<ViewItem>({
   id: '',
+  tile: { x: 0, y: 0 },
   name: '',
   description: ''
 });
@@ -141,7 +142,7 @@ watch(() => props.node, updateNodeData, { immediate: true, deep: true });
 
 <style scoped>
 .node-settings {
-  /* 节点设置样式 */
+  display: block;
 }
 
 .text-input {
@@ -171,14 +172,12 @@ watch(() => props.node, updateNodeData, { immediate: true, deep: true });
 }
 
 .slider-marks {
-  /* 滑块标记样式 */
+  display: block;
 }
-
 .mark {
-  /* 标记样式 */
+  display: inline-block;
 }
-
 .delete-section {
-  /* 删除区域样式 */
+  display: block;
 }
 </style>

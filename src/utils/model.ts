@@ -7,16 +7,7 @@ export const fixModel = (model: Model): Model => {
   const issues = validateModel(model);
 
   return issues.reduce((acc, issue) => {
-    if (issue.type === 'INVALID_MODEL_TO_ICON_REF') {
-      return updateState(acc, (draft) => {
-        const { index: itemIndex } = getItemByIdOrThrow(
-          draft.items,
-          issue.params.modelItem
-        );
-
-        draft.items[itemIndex].icon = undefined;
-      });
-    }
+    // 顶层 items 已移除，相关修复逻辑不再需要
 
     if (issue.type === 'CONNECTOR_TOO_FEW_ANCHORS') {
       return updateState(acc, (draft) => {
@@ -61,7 +52,6 @@ export const modelFromModelStore = (modelStore: any): Model => {
     description: modelStore.description,
     colors: modelStore.colors,
     icons: modelStore.icons,
-    items: modelStore.items,
     views: modelStore.views
   };
 };

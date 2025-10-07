@@ -1,6 +1,5 @@
 import type {
   Model,
-  ModelItem,
   Connector,
   ConnectorAnchor,
   View,
@@ -43,13 +42,7 @@ type IssueType =
         connector: string;
       };
     }
-  | {
-      type: 'INVALID_VIEW_ITEM_TO_MODEL_ITEM_REF';
-      params: {
-        view: string;
-        modelItem: string;
-      };
-    }
+  // 视图项即为源数据，不再校验到顶层 items 的引用
   | {
       type: 'INVALID_ANCHOR_REF';
       params: {
@@ -58,13 +51,7 @@ type IssueType =
         connector: string;
       };
     }
-  | {
-      type: 'INVALID_MODEL_TO_ICON_REF';
-      params: {
-        modelItem: string;
-        icon: string;
-      };
-    }
+  // 顶层 items 已移除，相关校验作废
   | {
       type: 'CONNECTOR_TOO_FEW_ANCHORS';
       params: {
@@ -239,58 +226,15 @@ export const validateView = (view: View, ctx: { model: Model }): Issue[] => {
     });
   }
 
-  view.items.forEach((viewItem) => {
-    try {
-      getItemByIdOrThrow(ctx.model.items, viewItem.id);
-    } catch (e) {
-      issues.push({
-        type: 'INVALID_VIEW_ITEM_TO_MODEL_ITEM_REF',
-        params: {
-          modelItem: viewItem.id,
-          view: view.id
-        },
-        message:
-          'Invalid item in view.  The item references a non-existant item in the model.'
-      });
-    }
-  });
+  // 不再需要校验 view.items 到 model.items 的引用一致性
 
   return issues;
 };
 
-export const validateModelItem = (
-  modelItem: ModelItem,
-  ctx: {
-    model: Model;
-  }
-): Issue[] => {
-  const issues: Issue[] = [];
-
-  if (!modelItem.icon) return issues;
-
-  try {
-    getItemByIdOrThrow(ctx.model.icons, modelItem.icon);
-  } catch (e) {
-    issues.push({
-      type: 'INVALID_MODEL_TO_ICON_REF',
-      params: {
-        modelItem: modelItem.id,
-        icon: modelItem.icon
-      },
-      message:
-        'Invalid item found in the model.  The item references an icon that does not exist.'
-    });
-  }
-
-  return issues;
-};
+// 顶层 ModelItem 已废弃
 
 export const validateModel = (model: Model): Issue[] => {
   const issues: Issue[] = [];
-
-  model.items.forEach((modelItem) => {
-    issues.push(...validateModelItem(modelItem, { model }));
-  });
 
   model.views.forEach((view) => {
     issues.push(...validateView(view, { model }));

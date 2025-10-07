@@ -36,12 +36,6 @@ export const PlaceIcon: ModeActions = {
         tile: uiState.mouse.position.tile,
         icon: uiState.mode.id
       });
-
-      scene.addModelItem({
-        id: modelItemId,
-        name: 'Untitled',
-        icon: uiState.mode.id
-      });
     }
 
     uiState.setMode(

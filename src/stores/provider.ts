@@ -15,7 +15,7 @@ export type Connectors = (Connector & Scene['connectors'][string])[];
 export type TextBoxs = (TextBox & Scene['textBoxes'][string])[];
 export type Icons = Model['icons'];
 export type Colors = Model['colors'];
-export type Items = (ViewItem & Model['items'][number])[];
+export type Items = ViewItem[];
 export type Views = View[];
 export type Rectangles = Rectangle[];
 
@@ -25,7 +25,6 @@ export const useProvider = () => {
   const colors = shallowRef<Model['colors']>([]);
   const icons = shallowRef<Model['icons']>([]);
   const items = shallowRef<Items>([]);
-  const modelItems = shallowRef<Model['items']>(INITIAL_DATA.items ?? []);
   const rectangles = shallowRef<Rectangle[]>([]);
   const view = shallowRef<string>('');
   const views = shallowRef<View[]>([]);
@@ -36,7 +35,7 @@ export const useProvider = () => {
     textBoxs,
     colors,
     icons,
-    modelItems,
+
     model,
     items,
     views,
@@ -242,43 +241,7 @@ export const useProvider = () => {
     triggerUpdate('colors');
   };
 
-  // modelItems（管理 model.items）
-  const getModelItems = () => modelItems.value;
-  const getModelItem = (id: string) =>
-    modelItems.value.find((item) => item.id === id);
-  const updateModelItems = (newItems: Model['items']) => {
-    modelItems.value = newItems;
-    triggerUpdate('modelItems');
-  };
-  const updateModelItem = (
-    id: string,
-    updates: Partial<Model['items'][number]>
-  ) => {
-    const index = modelItems.value.findIndex((i) => i.id === id);
-    if (index !== -1) {
-      // 仅更新 modelItems 自身
-      modelItems.value[index] = {
-        ...modelItems.value[index],
-        ...updates
-      } as any;
-      triggerUpdate('modelItems');
-      return modelItems.value[index];
-    } else {
-      return addModelItem({
-        id,
-        ...(updates as any)
-      } as Model['items'][number]);
-    }
-  };
-  const addModelItem = (item: Model['items'][number]) => {
-    modelItems.value = [...modelItems.value, item];
-    triggerUpdate('modelItems');
-    return item;
-  };
-  const removeModelItem = (id: string) => {
-    modelItems.value = modelItems.value.filter((i) => i.id !== id);
-    triggerUpdate('modelItems');
-  };
+  // 顶层 model.items 已移除，全部通过当前视图 items 管理
 
   // items
   const getItems = () => items.value;
@@ -291,13 +254,31 @@ export const useProvider = () => {
     if (index !== -1) {
       items.value[index] = { ...items.value[index], ...item };
       triggerUpdate('items');
+      // 同步到当前视图
+      const _view = getCurrentView();
+      if (_view) {
+        const vIndex = _view.items.findIndex((i) => i.id === id);
+        if (vIndex !== -1) {
+          _view.items[vIndex] = { ..._view.items[vIndex], ...item } as any;
+        }
+      }
     }
   };
   const addItem = (item: Items[number]) => {
     items.value = [...items.value, item];
+    const _view = getCurrentView();
+    if (_view) {
+      if (!_view.items.find((i) => i.id === item.id)) {
+        _view.items.push(item);
+      }
+    }
   };
   const removeItem = (id: string) => {
     items.value = items.value.filter((item) => item.id !== id);
+    const _view = getCurrentView();
+    if (_view) {
+      _view.items = _view.items.filter((i) => i.id !== id);
+    }
   };
 
   // rectangles
@@ -353,19 +334,8 @@ export const useProvider = () => {
 
     updateColors(newModel.colors);
     updateIcons(newModel.icons);
-    // 同步 model.items -> modelItems
-    modelItems.value = newModel.items;
-
-    const items =
-      _view?.items
-        .map((item) => {
-          const _i = newModel.items.find((mi) => mi.id === item.id);
-          if (!_i) return false;
-          return { ...item, ..._i };
-        })
-        .filter((item) => item !== false) || [];
-
-    updateItems(items);
+    // 直接使用视图内 items 作为源数据
+    updateItems(_view?.items || []);
     updateRectangles(
       _view?.rectangles?.map((rectangle) => ({
         ...RECTANGLE_DEFAULTS,
@@ -380,27 +350,7 @@ export const useProvider = () => {
   const getExportModel = (): Model => {
     // 基于当前 model 创建一个浅拷贝
     const exportModel: Model = JSON.parse(JSON.stringify(model.value));
-
-    // 同步当前视图下 items 的模型字段到 model.items
-    items.value.forEach((it) => {
-      const mi = exportModel.items.findIndex((m) => m.id === it.id);
-      if (mi !== -1) {
-        exportModel.items[mi] = {
-          ...exportModel.items[mi],
-          name: it.name,
-          description: it.description,
-          icon: it.icon
-        } as any;
-      } else {
-        // 如果不存在则补齐（通常不会发生，但以防万一）
-        exportModel.items.push({
-          id: it.id,
-          name: it.name,
-          description: it.description,
-          icon: it.icon
-        } as any);
-      }
-    });
+    // 顶层 items 已移除，无需同步；视图内 items 已承载全部信息
 
     icons.value.forEach((icon) => {
       const ei = exportModel.icons.findIndex((ic) => ic.id === icon.id);
@@ -464,13 +414,7 @@ export const useProvider = () => {
     removeColor,
 
     // modelItems
-    modelItems,
-    getModelItems,
-    getModelItem,
-    updateModelItems,
-    updateModelItem,
-    addModelItem,
-    removeModelItem,
+    // 顶层 model.items 已移除
 
     // items
     items,

@@ -41,7 +41,9 @@ export const VIEW_DEFAULTS: Required<
   textBoxes: []
 };
 
-export const VIEW_ITEM_DEFAULTS: Required<Omit<ViewItem, 'id' | 'tile'>> = {
+export const VIEW_ITEM_DEFAULTS: Required<
+  Omit<ViewItem, 'id' | 'tile' | 'name' | 'description' | 'icon'>
+> = {
   labelHeight: 80
 };
 
@@ -82,7 +84,6 @@ export const INITIAL_DATA: InitialData = {
   version: '',
   icons: [],
   colors: [DEFAULT_COLOR],
-  items: [],
   views: [],
   fitToView: false,
   global: {

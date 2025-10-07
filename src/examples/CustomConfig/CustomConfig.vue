@@ -57,13 +57,12 @@ const onModelUpdated = (model: any) => {
   // 可以在这里添加自定义的模型处理逻辑
   // 例如：自动保存、数据验证、统计信息更新等
 
-  // 示例：统计节点数量
-  const nodeCount =
-    model.items?.filter((item: any) => item.type === 'node')?.length || 0;
-  const connectorCount =
-    model.items?.filter((item: any) => item.type === 'connector')?.length || 0;
+  // 示例：现在 items 按视图管理，可按当前视图统计
+  const currentView = model.views?.[0];
+  const nodeCount = currentView?.items?.length || 0;
+  const connectorCount = currentView?.connectors?.length || 0;
 
-  console.log(`当前图表包含 ${nodeCount} 个节点和 ${connectorCount} 个连接器`);
+  console.log(`当前图表包含 ${nodeCount} 个节点和 ${connectorCount} 条连接线`);
 };
 </script>
 
