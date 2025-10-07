@@ -1,4 +1,4 @@
-import { INITIAL_DATA, RECTANGLE_DEFAULTS } from 'src/config';
+import { INITIAL_DATA, RECTANGLE_DEFAULTS, DEFAULT_COLOR } from 'src/config';
 import {
   Connector,
   Model,
@@ -210,6 +210,36 @@ export const useProvider = () => {
   const getColors = () => colors.value;
   const updateColors = (newColors: Model['colors']) => {
     colors.value = newColors;
+    triggerUpdate('colors');
+  };
+  const addColor = (color: Model['colors'][number]) => {
+    // 防重复添加同 id
+    if (!colors.value.find((c) => c.id === color.id)) {
+      colors.value = [...colors.value, color];
+      triggerUpdate('colors');
+    }
+    return color;
+  };
+  const updateColor = (
+    id: string,
+    updates: Partial<Model['colors'][number]>
+  ) => {
+    const index = colors.value.findIndex((c) => c.id === id);
+    if (index !== -1) {
+      colors.value[index] = { ...colors.value[index], ...updates } as any;
+      triggerUpdate('colors');
+      return colors.value[index];
+    }
+    // 如果不存在则按新增处理
+    return addColor({
+      id,
+      value: (updates as any)?.value ?? DEFAULT_COLOR.value
+    });
+  };
+  const removeColor = (id: string) => {
+    const next = colors.value.filter((c) => c.id !== id);
+    colors.value = next.length > 0 ? next : [DEFAULT_COLOR];
+    triggerUpdate('colors');
   };
 
   // modelItems（管理 model.items）
@@ -372,6 +402,19 @@ export const useProvider = () => {
       }
     });
 
+    icons.value.forEach((icon) => {
+      const ei = exportModel.icons.findIndex((ic) => ic.id === icon.id);
+      if (ei !== -1) {
+        exportModel.icons[ei] = {
+          ...exportModel.icons[ei],
+          ...icon
+        };
+      } else {
+        // 如果不存在则补齐（通常不会发生，但以防万一）
+        exportModel.icons.push(icon);
+      }
+    });
+
     return exportModel;
   };
 
@@ -416,6 +459,9 @@ export const useProvider = () => {
     colors,
     getColors,
     updateColors,
+    addColor,
+    updateColor,
+    removeColor,
 
     // modelItems
     modelItems,

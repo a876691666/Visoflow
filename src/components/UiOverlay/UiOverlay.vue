@@ -169,7 +169,7 @@ const appPadding = {
 
 .item-controls {
   position: absolute;
-  width: 360px;
+  width: 560px;
   overflow-y: scroll;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */

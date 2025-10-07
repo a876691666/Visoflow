@@ -42,13 +42,6 @@
       :on-view-item-updated="handleViewItemUpdate"
       :on-deleted="handleDeleted"
     />
-
-    <Icons
-      v-if="mode === 'CHANGE_ICON'"
-      :key="props.id"
-      :icon-categories="iconCategories"
-      @click="handleIconSelect"
-    />
   </ControlsContainer>
 </template>
 
@@ -58,9 +51,7 @@ import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import ControlsContainer from '../components/ControlsContainer.vue';
 import Section from '../components/Section.vue';
 import NodeSettings from './NodeSettings/NodeSettings.vue';
-import Icons from '../IconSelectionControls/Icons.vue';
 import { useSceneStore } from 'src/stores/provider';
-import { useIconCategories } from 'src/hooks/useIconCategories';
 import { DEFAULT_ICON } from 'src/config';
 import type { ViewItem } from '@/types';
 
@@ -77,7 +68,6 @@ const uiStateStore = useIsoflowUiStateStore<any>();
 
 const mode = ref<Mode>('SETTINGS');
 const currentItem = ref<any>(null);
-const { iconCategories } = useIconCategories();
 
 // 提供给 NodeSettings 的视图数据（最少字段）
 const nodeView = computed<ViewItem>(() => ({
@@ -148,13 +138,6 @@ const handleViewItemUpdate = (updates: any) => {
 const handleDeleted = () => {
   uiStateStore.setItemControls(null);
   sceneStore.removeItem(props.id);
-};
-
-const handleIconSelect = (iconItem: any) => {
-  // 选择图标后更新 item 的 icon 字段并返回设置页
-  sceneStore.updateItem(props.id, { icon: iconItem.id });
-  updateCurrentItem();
-  switchToSettings();
 };
 
 // 监听ID变化

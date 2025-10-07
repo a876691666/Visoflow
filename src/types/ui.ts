@@ -3,7 +3,7 @@ import { Icon } from './model';
 import { ItemReference } from './scene';
 
 interface AddItemControls {
-  type: 'ADD_ITEM';
+  type: 'NODE_MANAGER' | 'OBJECT_MANAGER' | 'VIEW_MANAGER';
 }
 
 export type ItemControls = ItemReference | AddItemControls;

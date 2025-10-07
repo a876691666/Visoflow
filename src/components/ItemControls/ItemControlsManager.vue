@@ -18,7 +18,9 @@ import NodeControls from './NodeControls/NodeControls.vue';
 import RectangleControls from './RectangleControls/RectangleControls.vue';
 import ConnectorControls from './ConnectorControls/ConnectorControls.vue';
 import TextBoxControls from './TextBoxControls/TextBoxControls.vue';
-import IconSelectionControls from './IconSelectionControls/IconSelectionControls.vue';
+import NodeManager from './NodeManager/NodeManager.vue';
+import ObjectManager from './ObjectManager/ObjectManager.vue';
+import ViewManager from './ViewManager/ViewManager.vue';
 
 const uiStateStore = useIsoflowUiStateStore<any>();
 
@@ -31,7 +33,9 @@ const currentComponent = computed(() => {
   if (!value) return null;
 
   // Add-item 面板（图标选择）
-  if (value.type === 'ADD_ITEM') return IconSelectionControls;
+  if (value.type === 'NODE_MANAGER') return NodeManager;
+  if (value.type === 'OBJECT_MANAGER') return ObjectManager;
+  if (value.type === 'VIEW_MANAGER') return ViewManager;
 
   // 具体对象的控制面板
   switch (value.type) {
@@ -52,7 +56,9 @@ const currentComponent = computed(() => {
 const currentProps = computed(() => {
   const value = itemControls.value as any;
   if (!value) return {};
-  if (value.type === 'ADD_ITEM') return {};
+  if (value.type === 'NODE_MANAGER') return {};
+  if (value.type === 'OBJECT_MANAGER') return {};
+  if (value.type === 'VIEW_MANAGER') return {};
   if ('id' in value) return { id: value.id };
   return {};
 });
