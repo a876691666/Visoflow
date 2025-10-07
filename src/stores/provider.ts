@@ -10,6 +10,8 @@ import {
 } from 'src/types';
 import { inject, InjectionKey, provide } from 'vue';
 import { shallowRef, triggerRef } from 'vue';
+import { syncConnector } from './reducers/connector';
+import { syncTextBox } from './reducers/textBox';
 
 export type Connectors = (Connector & Scene['connectors'][string])[];
 export type TextBoxs = (TextBox & Scene['textBoxes'][string])[];
@@ -309,18 +311,68 @@ export const useProvider = () => {
   const updateViews = (newViews: View[]) => {
     views.value = newViews;
   };
+  const setCurrentView = (id: string) => {
+    view.value = id;
+
+    const _view = getView(id);
+    if (_view) {
+      // 使用视图内 items 作为源数据
+      updateItems(_view.items || []);
+      updateRectangles(
+        (_view.rectangles || []).map((rectangle) => ({
+          ...RECTANGLE_DEFAULTS,
+          ...rectangle
+        }))
+      );
+      // 简单同步文本与连线（无需默认值合并也可工作）
+      updateTextBoxs((_view.textBoxes as any) || []);
+      updateConnectors((_view.connectors as any) || []);
+      _view?.connectors?.forEach((connector) => {
+        syncConnector(connector.id, {
+          getCurrentView,
+          removeConnector,
+          model,
+          updateConnector
+        } as any);
+      });
+
+      _view?.textBoxes?.forEach((textBox) => {
+        syncTextBox(textBox.id, { getCurrentView, updateTextBox } as any);
+      });
+    } else {
+      // 清空当前工作集
+      updateItems([]);
+      updateRectangles([]);
+      updateTextBoxs([]);
+      updateConnectors([]);
+    }
+    triggerUpdate('views');
+  };
   const updateView = (id: string, viewData: View) => {
     const index = views.value.findIndex((v) => v.id === id);
     if (index !== -1) {
       views.value[index] = { ...views.value[index], ...viewData };
       triggerUpdate('views');
+      // 如果更新的是当前视图，保持工作集同步
+      if (view.value === id) {
+        setCurrentView(id);
+      }
     }
   };
   const addView = (viewData: View) => {
     views.value = [...views.value, viewData];
+    // 如尚未选择视图，则选中新建视图
+    if (!view.value) {
+      setCurrentView(viewData.id);
+    }
   };
   const removeView = (id: string) => {
+    const wasCurrent = view.value === id;
     views.value = views.value.filter((v) => v.id !== id);
+    if (wasCurrent) {
+      const next = views.value[0];
+      setCurrentView(next ? next.id : '');
+    }
   };
 
   // model
@@ -329,21 +381,8 @@ export const useProvider = () => {
     model.value = newModel;
 
     updateViews(newModel.views);
-
-    const _view = getView(view.value);
-
     updateColors(newModel.colors);
     updateIcons(newModel.icons);
-    // 直接使用视图内 items 作为源数据
-    updateItems(_view?.items || []);
-    updateRectangles(
-      _view?.rectangles?.map((rectangle) => ({
-        ...RECTANGLE_DEFAULTS,
-        ...rectangle
-      })) || []
-    );
-    // updateTextBoxs();
-    // updateConnectors();
   };
 
   // 将当前状态整理为可导出的 Model（确保 items 已与 model.items 同步）
@@ -442,6 +481,7 @@ export const useProvider = () => {
     getCurrentView,
     updateViews,
     updateView,
+    setCurrentView,
     addView,
     removeView,
 

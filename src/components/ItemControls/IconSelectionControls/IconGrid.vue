@@ -1,11 +1,6 @@
 <template>
-  <div class="icon-grid" :style="gridStyles">
-    <div
-      v-for="icon in icons"
-      :key="icon.id"
-      class="icon-item"
-      :style="itemStyles"
-    >
+  <div class="icon-grid">
+    <div v-for="icon in icons" :key="icon.id" class="icon-item">
       <Icon
         :icon="icon"
         @click="() => handleIconClick(icon)"
@@ -16,7 +11,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, type CSSProperties } from 'vue';
 import type { Icon as IconI } from '@/types';
 import Icon from './Icon.vue';
 
@@ -36,17 +30,7 @@ const emit = defineEmits<{
   'mouse-down': [icon: IconI];
 }>();
 
-const gridStyles = ref<CSSProperties>({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(4, 1fr)',
-  gap: '8px',
-  padding: '8px 0'
-});
-
-const itemStyles = ref<CSSProperties>({
-  width: '100%',
-  aspectRatio: '1'
-});
+// 样式已移至 <style scoped>
 
 const handleIconClick = (icon: IconI) => {
   if (props.onClick) {
@@ -65,10 +49,14 @@ const handleIconMouseDown = (icon: IconI) => {
 
 <style scoped>
 .icon-grid {
-  /* 图标网格样式 */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 0;
+  align-items: flex-start;
 }
 
 .icon-item {
-  /* 图标项样式 */
+  flex: 0 0 auto;
 }
 </style>

@@ -1,10 +1,11 @@
-import { ref, watch, h, type VNode } from 'vue';
+import { ref, watch, h, type VNode, Ref } from 'vue';
 import IsometricIcon from '@/components/SceneLayers/Nodes/Node/IconTypes/IsometricIcon.vue';
 import NonIsometricIcon from '@/components/SceneLayers/Nodes/Node/IconTypes/NonIsometricIcon.vue';
 import { DEFAULT_ICON } from '@/config';
 import { useSceneStore } from 'src/stores/provider';
+import { ViewItem } from 'src/types';
 
-export const useIcon = (id: string | undefined) => {
+export const useIcon = (itemRef: Ref<ViewItem | null>) => {
   const hasLoaded = ref(false);
   const icon = ref<any>(DEFAULT_ICON);
   const iconComponent = ref<VNode | null>(null);
@@ -13,10 +14,10 @@ export const useIcon = (id: string | undefined) => {
   const icons = sceneStore.icons;
 
   const updateIcon = () => {
-    if (!id) {
+    if (!itemRef.value?.icon) {
       icon.value = DEFAULT_ICON;
     } else {
-      const foundIcon = sceneStore.getIcon(id);
+      const foundIcon = sceneStore.getIcon(itemRef.value?.icon);
       icon.value = foundIcon || DEFAULT_ICON;
     }
   };
@@ -39,9 +40,9 @@ export const useIcon = (id: string | undefined) => {
     hasLoaded.value = false;
   };
 
-  // 监听ID变化更新图标
+  // 监听 itemRef.value.icon 变化更新图标
   watch(
-    () => id,
+    () => itemRef.value?.icon,
     () => {
       updateIcon();
       updateIconComponent();

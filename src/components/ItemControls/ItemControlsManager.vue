@@ -14,12 +14,12 @@ import { computed } from 'vue';
 import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 
 // 子控制面板
-import NodeControls from './NodeControls/NodeControls.vue';
 import RectangleControls from './RectangleControls/RectangleControls.vue';
 import ConnectorControls from './ConnectorControls/ConnectorControls.vue';
 import TextBoxControls from './TextBoxControls/TextBoxControls.vue';
 import NodeManager from './NodeManager/NodeManager.vue';
 import ObjectManager from './ObjectManager/ObjectManager.vue';
+import ObjectDetailsPanel from './ObjectManager/ObjectDetailsPanel.vue';
 import ViewManager from './ViewManager/ViewManager.vue';
 
 const uiStateStore = useIsoflowUiStateStore<any>();
@@ -40,7 +40,8 @@ const currentComponent = computed(() => {
   // 具体对象的控制面板
   switch (value.type) {
     case 'ITEM':
-      return NodeControls;
+      // 展示对象管理的详情配置面板
+      return ObjectDetailsPanel;
     case 'RECTANGLE':
       return RectangleControls;
     case 'CONNECTOR':

@@ -4,20 +4,36 @@
       <Section :styles="headerSectionStyles">
         <div class="header-stack" :style="stackStyles">
           <div class="header-actions">
-            <button
-              class="btn btn-primary"
-              :style="btnPrimaryStyles"
-              @click="startAddIcon"
-            >
-              新增图标
-            </button>
+            <template v-if="mode === 'LIST'">
+              <input
+                :style="inputStyles"
+                v-model="keyword"
+                placeholder="搜索图标名称/ID/分组"
+              />
+              <button
+                class="btn btn-primary"
+                :style="btnPrimaryStyles"
+                @click="startAddIcon"
+              >
+                新增图标
+              </button>
+            </template>
+            <template v-else>
+              <button class="btn" :style="btnStyles" @click="backToList">
+                返回列表
+              </button>
+            </template>
           </div>
         </div>
       </Section>
     </template>
 
     <Section>
-      <div class="manage-panel" :style="managePanelStyles">
+      <div
+        v-if="mode === 'EDIT'"
+        class="manage-panel"
+        :style="managePanelStyles"
+      >
         <div class="form-card" :style="formCardStyles">
           <div class="form-header">
             <h4 :style="formTitleStyles">{{ formModeTitle }}</h4>
@@ -112,43 +128,43 @@
             </div>
           </form>
         </div>
+      </div>
 
-        <div class="manage-list" :style="manageListStyles">
-          <div class="list-header" :style="listHeaderStyles">
-            图标列表（{{ adminIcons.length }}）
-          </div>
-          <div class="list" :style="listStyles">
-            <div
-              v-for="icon in adminIcons"
-              :key="icon.id"
-              class="list-item"
-              :style="listItemStyles"
-            >
-              <div class="list-item-info" :style="listItemInfoStyles">
-                <img :src="icon.url" alt="" :style="thumbStyles" />
-                <div :style="listItemTextStyles">
-                  <div :style="listItemTitleStyles">{{ icon.name }}</div>
-                  <div :style="listItemDescStyles">
-                    {{ icon.collection || '未分组' }}
-                  </div>
+      <div v-else class="manage-list" :style="manageListStyles">
+        <div class="list-header" :style="listHeaderStyles">
+          图标列表（{{ filteredIcons.length }}）
+        </div>
+        <div class="list" :style="listStyles">
+          <div
+            v-for="icon in filteredIcons"
+            :key="icon.id"
+            class="list-item"
+            :style="listItemStyles"
+          >
+            <div class="list-item-info" :style="listItemInfoStyles">
+              <img :src="icon.url" alt="" :style="thumbStyles" />
+              <div :style="listItemTextStyles">
+                <div :style="listItemTitleStyles">{{ icon.name }}</div>
+                <div :style="listItemDescStyles">
+                  {{ icon.collection || '未分组' }}
                 </div>
               </div>
-              <div class="list-item-actions" :style="listItemActionsStyles">
-                <button
-                  class="btn"
-                  :style="btnSmallStyles"
-                  @click="startEditIcon(icon)"
-                >
-                  编辑
-                </button>
-                <button
-                  class="btn btn-danger"
-                  :style="btnSmallDangerStyles"
-                  @click="confirmDelete(icon)"
-                >
-                  删除
-                </button>
-              </div>
+            </div>
+            <div class="list-item-actions" :style="listItemActionsStyles">
+              <button
+                class="btn"
+                :style="btnSmallStyles"
+                @click="startEditIcon(icon)"
+              >
+                编辑
+              </button>
+              <button
+                class="btn btn-danger"
+                :style="btnSmallDangerStyles"
+                @click="confirmDelete(icon)"
+              >
+                删除
+              </button>
             </div>
           </div>
         </div>
@@ -181,6 +197,18 @@ const formModeTitle = computed(() =>
   isEditing.value ? '编辑图标' : '新增图标'
 );
 const adminIcons = computed<Icon[]>(() => sceneStore.icons.value);
+const keyword = ref('');
+const filteredIcons = computed(() => {
+  const k = keyword.value.trim().toLowerCase();
+  const src = adminIcons.value;
+  if (!k) return src;
+  return src.filter((i) => {
+    const name = i.name.toLowerCase();
+    const id = i.id.toLowerCase();
+    const col = (i.collection || '').toLowerCase();
+    return name.includes(k) || id.includes(k) || col.includes(k);
+  });
+});
 
 // 样式
 const headerSectionStyles = ref<CSSProperties>({
@@ -369,7 +397,8 @@ const listItemActionsStyles = ref<CSSProperties>({
   gap: '6px'
 });
 
-// 无筛选/搜索逻辑，仅保留 CRUD
+type Mode = 'LIST' | 'EDIT';
+const mode = ref<Mode>('LIST');
 
 const startAddIcon = () => {
   isEditing.value = false;
@@ -380,11 +409,13 @@ const startAddIcon = () => {
     collection: undefined,
     isIsometric: false
   } as Icon;
+  mode.value = 'EDIT';
 };
 
 const startEditIcon = (icon: Icon) => {
   isEditing.value = true;
   iconForm.value = { ...icon } as Icon;
+  mode.value = 'EDIT';
 };
 
 const cancelEdit = () => {
@@ -396,6 +427,7 @@ const cancelEdit = () => {
     collection: undefined,
     isIsometric: false
   } as Icon;
+  mode.value = 'LIST';
 };
 
 const saveIcon = () => {
@@ -431,6 +463,10 @@ const confirmDelete = (icon: Icon) => {
   if (!ok) return;
   sceneStore.removeIcon(icon.id);
   if (isEditing.value && iconForm.value.id === icon.id) cancelEdit();
+};
+
+const backToList = () => {
+  mode.value = 'LIST';
 };
 
 // 上传并转 base64

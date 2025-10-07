@@ -83,11 +83,8 @@ const position = computed(() =>
   })
 );
 
-// Get model item using the hook
 const modelItem = useModelItem(props.node.id);
-
-// Get icon component
-const { iconComponent } = useIcon(modelItem.value?.icon);
+const { iconComponent } = useIcon(modelItem);
 
 // Computed description
 const description = computed(() => {
