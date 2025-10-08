@@ -12,13 +12,20 @@
 import { ref, onMounted, onUnmounted, computed, type CSSProperties } from 'vue';
 import { useResizeObserver } from '@/hooks/useResizeObserver';
 import { PROJECTED_TILE_SIZE } from '@/config';
+import { useSceneStore } from 'src/stores/provider';
 
 interface Props {
   url: string;
+  // 传入的最终缩放倍率
+  iconScale?: number;
+  // 图标底部偏移（像素），向下为正
+  iconBottom?: number;
   onImageLoaded?: () => void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  iconScale: 1,
+  iconSizeFactor: 0.8,
   onImageLoaded: undefined
 });
 
@@ -26,10 +33,15 @@ const iconRef = ref<HTMLImageElement>();
 
 const { size, observe, disconnect } = useResizeObserver();
 
+const store = useSceneStore();
+const iconScale = computed(
+  () => props.iconScale ?? store.getCurrentView()?.iconScale ?? 1
+);
+
 const iconStyles = computed<CSSProperties>(() => ({
   position: 'absolute',
-  width: `${PROJECTED_TILE_SIZE.width * 0.8}px`,
-  top: `${-size.value.height}px`,
+  width: `${PROJECTED_TILE_SIZE.width * 0.8 * iconScale.value}px`,
+  top: `${-size.value.height + (props.iconBottom ?? 0)}px`,
   left: `${-size.value.width / 2}px`,
   pointerEvents: 'none'
 }));

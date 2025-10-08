@@ -33,6 +33,40 @@
       </div>
     </Section>
 
+    <Section title="Icon scale (object)">
+      <div class="slider-container">
+        <input
+          type="range"
+          class="slider"
+          min="0.1"
+          max="5"
+          step="0.1"
+          :value="nodeData.iconScale ?? 1"
+          @input="handleIconScaleChange"
+        />
+        <div class="slider-marks" :style="marksStyles">
+          <span class="mark">{{ (nodeData.iconScale ?? 1).toFixed(2) }}x</span>
+        </div>
+      </div>
+    </Section>
+
+    <Section title="Icon bottom offset (px)">
+      <div class="slider-container">
+        <input
+          type="range"
+          class="slider"
+          min="-200"
+          max="200"
+          step="1"
+          :value="(nodeData as any).iconBottom ?? 0"
+          @input="handleIconBottomChange"
+        />
+        <div class="slider-marks" :style="marksStyles">
+          <span class="mark">{{ (nodeData as any).iconBottom ?? 0 }}px</span>
+        </div>
+      </div>
+    </Section>
+
     <Section>
       <div class="delete-section" :style="deleteSectionStyles">
         <DeleteButton @click="handleDelete" />
@@ -126,6 +160,25 @@ const handleLabelHeightChange = (event: Event) => {
   const labelHeight = parseInt(target.value);
   nodeData.value.labelHeight = labelHeight;
   props.onViewItemUpdated({ labelHeight });
+};
+
+const clampIconScale = (n: number) => Math.min(5, Math.max(0.1, n));
+const handleIconScaleChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const val = parseFloat(target.value);
+  const next = clampIconScale(val);
+  nodeData.value.iconScale = next as any;
+  props.onViewItemUpdated({ iconScale: next } as any);
+};
+
+const clampIconBottom = (n: number) =>
+  Math.round(Math.min(200, Math.max(-200, n)));
+const handleIconBottomChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const val = parseFloat(target.value);
+  const next = clampIconBottom(val);
+  (nodeData.value as any).iconBottom = next as any;
+  props.onViewItemUpdated({ iconBottom: next } as any);
 };
 
 const handleDelete = () => {

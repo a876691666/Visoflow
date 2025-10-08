@@ -41,6 +41,55 @@
                 placeholder="备注信息"
               />
             </label>
+            <label :style="labelStyles">
+              <span :style="labelTextStyles">图标缩放（0.1 - 5）</span>
+              <div style="display: flex; align-items: center; gap: 8px">
+                <input
+                  type="range"
+                  min="0.1"
+                  max="5"
+                  step="0.1"
+                  v-model.number="form.iconScale"
+                  style="flex: 1"
+                />
+                <input
+                  :style="inputStyles"
+                  type="number"
+                  min="0.1"
+                  max="5"
+                  step="0.1"
+                  v-model.number="form.iconScale"
+                  style="width: 80px"
+                />
+                <span :style="hintStyles"
+                  >{{ (form.iconScale ?? 1).toFixed(2) }}x</span
+                >
+              </div>
+            </label>
+
+            <label :style="labelStyles">
+              <span :style="labelTextStyles">图标底部偏移（px）</span>
+              <div style="display: flex; align-items: center; gap: 8px">
+                <input
+                  type="range"
+                  min="-200"
+                  max="200"
+                  step="1"
+                  v-model.number="(form as any).iconBottom"
+                  style="flex: 1"
+                />
+                <input
+                  :style="inputStyles"
+                  type="number"
+                  step="1"
+                  v-model.number="(form as any).iconBottom"
+                  style="width: 80px"
+                />
+                <span :style="hintStyles"
+                  >{{ (form as any).iconBottom ?? 0 }}px</span
+                >
+              </div>
+            </label>
 
             <div class="form-actions" :style="formActionsStyles">
               <button
@@ -160,7 +209,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, type CSSProperties } from 'vue';
+import { ref, computed, watch, type CSSProperties } from 'vue';
 import type { View } from '@/types';
 import { useSceneStore } from 'src/stores/provider';
 import { generateId } from 'src/utils';
@@ -174,8 +223,17 @@ const currentViewId = computed(() => store.view.value);
 const allViews = computed<View[]>(() => store.views.value);
 
 // 表单
-type ViewForm = Pick<View, 'id' | 'name' | 'description'>;
-const form = ref<ViewForm>({ id: '', name: '', description: '' });
+type ViewForm = Pick<
+  View,
+  'id' | 'name' | 'description' | 'iconScale' | 'iconBottom'
+>;
+const form = ref<ViewForm>({
+  id: '',
+  name: '',
+  description: '',
+  iconScale: 1,
+  iconBottom: 0
+} as any);
 const isEditing = ref(false);
 const formModeTitle = computed(() =>
   isEditing.value ? '编辑视图' : '新增视图'
@@ -183,7 +241,13 @@ const formModeTitle = computed(() =>
 
 const startCreate = () => {
   isEditing.value = false;
-  form.value = { id: generateId(), name: '', description: '' };
+  form.value = {
+    id: generateId(),
+    name: '',
+    description: '',
+    iconScale: 1,
+    iconBottom: 0
+  } as any;
 };
 
 const startEdit = (v: View) => {
@@ -191,13 +255,21 @@ const startEdit = (v: View) => {
   form.value = {
     id: v.id,
     name: v.name,
-    description: v.description
+    description: v.description,
+    iconScale: v.iconScale ?? 1,
+    iconBottom: (v as any).iconBottom ?? 0
   } as ViewForm;
 };
 
 const cancelEdit = () => {
   isEditing.value = false;
-  form.value = { id: '', name: '', description: '' };
+  form.value = {
+    id: '',
+    name: '',
+    description: '',
+    iconScale: 1,
+    iconBottom: 0
+  } as any;
 };
 
 const saveView = () => {
@@ -206,6 +278,8 @@ const saveView = () => {
     name: form.value.name?.trim() || '未命名视图',
     description: form.value.description?.trim() || undefined,
     lastUpdated: new Date().toISOString(),
+    iconScale: form.value.iconScale ?? 1,
+    iconBottom: (form.value as any).iconBottom ?? 0,
     items: [],
     connectors: [],
     rectangles: [],
@@ -220,6 +294,9 @@ const saveView = () => {
       ...old,
       name: payload.name,
       description: payload.description,
+      iconScale: form.value.iconScale ?? old.iconScale ?? 1,
+      iconBottom:
+        (form.value as any).iconBottom ?? (old as any).iconBottom ?? 0,
       lastUpdated: payload.lastUpdated
     } as View);
   } else {
@@ -231,7 +308,9 @@ const saveView = () => {
   form.value = {
     id: payload.id,
     name: payload.name,
-    description: payload.description
+    description: payload.description,
+    iconScale: payload.iconScale,
+    iconBottom: (payload as any).iconBottom
   } as ViewForm;
 };
 
@@ -253,6 +332,41 @@ const confirmDelete = (id: string) => {
 const selectView = (id: string) => {
   store.setCurrentView(id);
 };
+
+// 实时应用图标缩放：拖动滑块即刻生效（当前正在编辑的视图）
+const clampIconScale = (n: number) =>
+  Math.min(5, Math.max(0.1, Number.isFinite(n) ? n : 1));
+watch(
+  () => form.value.iconScale,
+  (val) => {
+    if (!isEditing.value || !form.value.id) return;
+    const v = store.getView(form.value.id);
+    if (!v) return;
+    const next = clampIconScale(val ?? 1);
+    if (v.iconScale !== next) {
+      store.updateView(v.id, { ...v, iconScale: next } as View);
+    }
+  }
+);
+
+// 实时应用图标底部偏移
+watch(
+  () => (form.value as any).iconBottom,
+  (val) => {
+    if (!isEditing.value || !form.value.id) return;
+    const v = store.getView(form.value.id);
+    if (!v) return;
+    const next = Math.round(
+      Math.min(
+        200,
+        Math.max(-200, Number.isFinite(val as any) ? (val as any) : 0)
+      )
+    );
+    if ((v as any).iconBottom !== next) {
+      store.updateView(v.id, { ...(v as any), iconBottom: next } as View);
+    }
+  }
+);
 
 // 统计当前视图要素：按图标的 collection 分组计数
 const categoryStats = computed(() => {

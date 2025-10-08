@@ -31,9 +31,7 @@ export const DEFAULT_COLOR: Colors[0] = {
 
 export const DEFAULT_FONT_FAMILY = 'Roboto, Arial, sans-serif';
 
-export const VIEW_DEFAULTS: Required<
-  Omit<View, 'id' | 'description' | 'lastUpdated'>
-> = {
+export const VIEW_DEFAULTS: Omit<View, 'id' | 'description' | 'lastUpdated'> = {
   name: 'Untitled view',
   items: [],
   connectors: [],
@@ -41,9 +39,7 @@ export const VIEW_DEFAULTS: Required<
   textBoxes: []
 };
 
-export const VIEW_ITEM_DEFAULTS: Required<
-  Omit<ViewItem, 'id' | 'tile' | 'name' | 'description' | 'icon'>
-> = {
+export const VIEW_ITEM_DEFAULTS: Pick<ViewItem, 'labelHeight'> = {
   labelHeight: 80
 };
 
@@ -117,6 +113,9 @@ export const DEFAULT_ICON: Icon = {
   id: 'default',
   name: 'block',
   isIsometric: true,
+  iconScale: 1,
+  // 默认不偏移
+  iconBottom: 0,
   url: ''
 };
 

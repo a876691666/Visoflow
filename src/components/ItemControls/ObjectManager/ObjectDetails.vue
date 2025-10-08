@@ -53,6 +53,48 @@
         />
       </label>
 
+      <label class="om-label">
+        <span class="om-label-text">图标缩放（对象级，0.1 - 5）</span>
+        <div class="om-range-row">
+          <input
+            class="om-range"
+            type="range"
+            step="0.1"
+            min="0.1"
+            max="5"
+            v-model.number="local.iconScale"
+            :disabled="local.inheritIconScale"
+          />
+          <span class="om-hint"
+            >{{ ((local.iconScale ?? 1) as number).toFixed(2) }}x</span
+          >
+        </div>
+        <label class="om-inline">
+          <input type="checkbox" v-model="local.inheritIconScale" />
+          <span class="om-inline-text">继承图标设置</span>
+        </label>
+      </label>
+
+      <label class="om-label">
+        <span class="om-label-text">图标底部偏移（对象级，px）</span>
+        <div class="om-range-row">
+          <input
+            class="om-range"
+            type="range"
+            step="1"
+            min="-200"
+            max="200"
+            v-model.number="local.iconBottom"
+            :disabled="local.inheritIconBottom"
+          />
+          <span class="om-hint">{{ (local.iconBottom ?? 0) as number }}px</span>
+        </div>
+        <label class="om-inline">
+          <input type="checkbox" v-model="local.inheritIconBottom" />
+          <span class="om-inline-text">继承图标设置</span>
+        </label>
+      </label>
+
       <div class="om-form-actions">
         <button type="submit" class="btn btn-primary" :disabled="!canSubmit">
           {{ isEditing ? '保存修改' : '创建对象' }}
@@ -62,7 +104,7 @@
           v-if="isEditing"
           type="button"
           class="btn btn-danger"
-          @click="$emit('delete')"
+          @click="onDelete"
         >
           删除
         </button>
@@ -74,49 +116,177 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch } from 'vue';
+import { reactive, watch, shallowRef } from 'vue';
 import type { ViewItem } from '@/types';
 import MarkdownEditor from '@/components/MarkdownEditor/MarkdownEditor.vue';
 import { VIEW_ITEM_DEFAULTS } from 'src/config';
 import IconPicker from './IconPicker.vue';
+import { useSceneStore } from 'src/stores/provider';
+import { generateId } from 'src/utils';
 
-const emit = defineEmits<{
-  (e: 'save', value: ViewItem): void;
-  (e: 'cancel'): void;
-  (e: 'delete'): void;
-}>();
+const emit = defineEmits<{ (e: 'cancel'): void }>();
 
-interface Props {
-  value: ViewItem;
-  isEditing?: boolean;
-}
+const props = defineProps<{ itemId?: string }>();
 
-const props = withDefaults(defineProps<Props>(), { isEditing: false });
+const store = useSceneStore();
 
-const local = reactive<ViewItem>({
-  id: props.value.id,
-  name: props.value.name,
-  description: props.value.description,
-  icon: props.value.icon,
-  tile: { x: props.value.tile.x, y: props.value.tile.y },
-  labelHeight: props.value.labelHeight ?? VIEW_ITEM_DEFAULTS.labelHeight
-});
+const isEditing = shallowRef<boolean>(!!props.itemId);
 
+// 小工具
+const clamp = (v: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, v));
+const toNumberOr = (v: unknown, d: number) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? (n as number) : d;
+};
+
+const buildLocalFrom = (it: ViewItem | null): ViewItem => {
+  if (!it) {
+    const id = generateId();
+    return {
+      id,
+      name: undefined,
+      description: undefined,
+      icon: undefined,
+      tile: { x: 0, y: 0 },
+      labelHeight: VIEW_ITEM_DEFAULTS.labelHeight,
+      // 显性继承开关（默认继承）
+      ...{ inheritIconScale: true, inheritIconBottom: true }
+    } as ViewItem;
+  }
+  return {
+    id: it.id,
+    name: it.name,
+    description: it.description,
+    icon: it.icon,
+    tile: { x: it.tile.x, y: it.tile.y },
+    labelHeight: it.labelHeight ?? VIEW_ITEM_DEFAULTS.labelHeight,
+    ...(it.iconScale !== undefined ? { iconScale: it.iconScale } : {}),
+    ...(it.iconBottom !== undefined ? { iconBottom: it.iconBottom } : {}),
+    // 同级显性属性；基于是否存在对象级设置推导初值
+    ...{
+      inheritIconScale: it.inheritIconScale ?? it.iconScale === undefined,
+      inheritIconBottom: it.inheritIconBottom ?? it.iconBottom === undefined
+    }
+  } as ViewItem;
+};
+
+const resolveTargetItem = () =>
+  props.itemId ? (store.getItem(props.itemId) ?? null) : null;
+
+const local = reactive<ViewItem>(buildLocalFrom(resolveTargetItem()));
+
+// 根据外部 props.itemId 变化，刷新编辑态与本地数据
 watch(
-  () => props.value,
-  (v) => {
-    local.id = v.id;
-    local.name = v.name;
-    local.description = v.description;
-    local.icon = v.icon;
-    local.tile = { x: v.tile.x, y: v.tile.y } as any;
-    local.labelHeight = v.labelHeight ?? VIEW_ITEM_DEFAULTS.labelHeight;
+  () => props.itemId,
+  () => {
+    isEditing.value = !!props.itemId;
+    const v = resolveTargetItem();
+    const next = buildLocalFrom(v);
+    // 覆盖 local 的各字段（保持引用不变）
+    local.id = next.id;
+    local.name = next.name;
+    local.description = next.description;
+    local.icon = next.icon;
+    local.tile = { ...next.tile };
+    local.labelHeight = next.labelHeight;
+    // 值部分
+    if (next.iconScale !== undefined) local.iconScale = next.iconScale;
+    else delete local.iconScale;
+    if (next.iconBottom !== undefined) local.iconBottom = next.iconBottom;
+    else delete local.iconBottom;
+    // 显性继承开关
+    local.inheritIconScale = next.inheritIconScale;
+    local.inheritIconBottom = next.inheritIconBottom;
   },
-  { deep: true }
+  { immediate: true }
 );
 
-const canSubmit = computed(() => !!local.id);
-const onSave = () => emit('save', { ...local });
+// 当关闭继承时，如无值则给予默认；当开启继承时，清理数值字段以回退到链路继承
+const syncInheritedNumber = <K extends 'iconScale' | 'iconBottom'>(
+  inheritFlag: boolean | undefined,
+  key: K,
+  fallback: number
+) => {
+  if (inheritFlag === false && local[key] === undefined) {
+    local[key] = fallback;
+  }
+  if (inheritFlag === true && local[key] !== undefined) {
+    delete local[key];
+  }
+};
+watch(
+  () => local.inheritIconScale,
+  (v) => syncInheritedNumber(v, 'iconScale', 1)
+);
+watch(
+  () => local.inheritIconBottom,
+  (v) => syncInheritedNumber(v, 'iconBottom', 0)
+);
+const canSubmit = shallowRef<boolean>(false);
+watch(
+  [
+    () => local.id,
+    () => store.view.value // 依赖当前视图 ID
+  ],
+  () => {
+    canSubmit.value = !!local.id && !!store.getCurrentView();
+  },
+  { immediate: true }
+);
+
+const onSave = () => {
+  // 组装 payload：当继承为 true 时不写入数值字段
+  const base: Partial<ViewItem> = {
+    id: local.id,
+    name: local.name?.toString().trim() || undefined,
+    description: local.description?.toString().trim() || undefined,
+    icon: local.icon || undefined,
+    tile: { x: toNumberOr(local.tile.x, 0), y: toNumberOr(local.tile.y, 0) },
+    labelHeight:
+      typeof local.labelHeight === 'number'
+        ? local.labelHeight
+        : VIEW_ITEM_DEFAULTS.labelHeight
+  };
+
+  const payload: any = { ...base };
+  // 图标缩放
+  if (local.inheritIconScale) {
+    payload.inheritIconScale = true;
+    delete payload.iconScale;
+  } else {
+    payload.inheritIconScale = false;
+    payload.iconScale = clamp(toNumberOr(local.iconScale, 1), 0.1, 5);
+  }
+  // 图标底部偏移
+  if (local.inheritIconBottom) {
+    payload.inheritIconBottom = true;
+    delete payload.iconBottom;
+  } else {
+    payload.inheritIconBottom = false;
+    payload.iconBottom = toNumberOr(local.iconBottom, 0);
+  }
+
+  if (isEditing.value) {
+    store.updateItem(payload.id, payload as ViewItem);
+  } else {
+    // 确保 id 唯一（简单重试）
+    let id = payload.id as string;
+    while (store.getItem(id)) id = generateId();
+    payload.id = id;
+    store.addItem(payload as ViewItem);
+    // 切换为编辑态并刷新本地 id
+    local.id = id;
+  }
+};
+
+const onDelete = () => {
+  if (!isEditing.value) return;
+  const ok = window.confirm('确定删除该对象吗？此操作不可撤销。');
+  if (!ok) return;
+  store.removeItem(local.id);
+  emit('cancel');
+};
 </script>
 
 <style scoped>
@@ -161,6 +331,16 @@ const onSave = () => emit('save', { ...local });
 .om-hint {
   font-size: 12px;
   color: #64748b;
+}
+.om-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+.om-inline-text {
+  font-size: 12px;
+  color: #475569;
 }
 .btn {
   border: 1px solid #d0d7de;

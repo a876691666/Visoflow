@@ -15,12 +15,27 @@
 import { computed, type CSSProperties } from 'vue';
 import type { Icon } from '@/types';
 import { PROJECTED_TILE_SIZE } from '@/config';
+import { useSceneStore } from 'src/stores/provider';
 
 interface Props {
   icon: Icon;
+  // 传入的最终缩放倍率
+  iconScale?: number;
+  // 基础尺寸系数
+  iconSizeFactor?: number;
+  // 图标底部偏移（像素）
+  iconBottom?: number;
 }
 
-defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  iconScale: 1,
+  iconSizeFactor: 0.7
+});
+
+const store = useSceneStore();
+const effectiveScale = computed(
+  () => props.iconScale ?? store.getCurrentView()?.iconScale ?? 1
+);
 
 const containerStyles = computed<CSSProperties>(() => ({
   pointerEvents: 'none'
@@ -28,14 +43,14 @@ const containerStyles = computed<CSSProperties>(() => ({
 
 const wrapperStyles = computed<CSSProperties>(() => ({
   position: 'absolute',
-  left: `${-PROJECTED_TILE_SIZE.width / 2}px`,
-  top: `${-PROJECTED_TILE_SIZE.height / 2}px`,
+  left: `${(-PROJECTED_TILE_SIZE.width / 2) * effectiveScale.value}px`,
+  top: `${(-PROJECTED_TILE_SIZE.height / 2) * effectiveScale.value + (props.iconBottom ?? 0)}px`,
   transformOrigin: 'top left',
-  transform: getIsoProjectionCss()
+  transform: `${getIsoProjectionCss()} scale(${effectiveScale.value})`
 }));
 
 const imageStyles = computed<CSSProperties>(() => ({
-  width: `${PROJECTED_TILE_SIZE.width * 0.7}px`
+  width: `${PROJECTED_TILE_SIZE.width * (props.iconSizeFactor ?? 0.7)}px`
 }));
 
 // 简化的等距投影CSS生成函数
