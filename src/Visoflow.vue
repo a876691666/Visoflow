@@ -105,7 +105,7 @@ watch(
   }
 );
 
-const useIsoflow = () => {
+const useVisoflow = () => {
   return {
     uiState: uiStateStore,
     useSceneStore: () => sceneStore,
@@ -115,7 +115,7 @@ const useIsoflow = () => {
 
 // Export for external use
 defineExpose({
-  useIsoflow
+  useVisoflow
 });
 </script>
 

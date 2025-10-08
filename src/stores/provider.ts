@@ -452,9 +452,6 @@ export const useProvider = () => {
     updateColor,
     removeColor,
 
-    // modelItems
-    // 顶层 model.items 已移除
-
     // items
     items,
     getItems,

@@ -1,12 +1,12 @@
 <template>
   <SceneProvider>
-    <Isoflow :initial-data="initialDataConfig" />
+    <Visoflow :initial-data="initialDataConfig" />
   </SceneProvider>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import Isoflow from '@/Isoflow.vue';
+import Visoflow from '@/Visoflow.vue';
 import { initialData } from './initialData';
 import SceneProvider from 'src/stores/SceneProvider.vue';
 
