@@ -12,7 +12,6 @@
 import { ref, onMounted, onUnmounted, computed, type CSSProperties } from 'vue';
 import { useResizeObserver } from '@/hooks/useResizeObserver';
 import { PROJECTED_TILE_SIZE } from '@/config';
-import { useSceneStore } from 'src/stores/provider';
 
 interface Props {
   url: string;
@@ -33,10 +32,7 @@ const iconRef = ref<HTMLImageElement>();
 
 const { size, observe, disconnect } = useResizeObserver();
 
-const store = useSceneStore();
-const iconScale = computed(
-  () => props.iconScale ?? store.getCurrentView()?.iconScale ?? 1
-);
+const iconScale = computed(() => props.iconScale ?? 1);
 
 const iconStyles = computed<CSSProperties>(() => ({
   position: 'absolute',

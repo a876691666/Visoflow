@@ -15,7 +15,6 @@
 import { computed, type CSSProperties } from 'vue';
 import type { Icon } from '@/types';
 import { PROJECTED_TILE_SIZE } from '@/config';
-import { useSceneStore } from 'src/stores/provider';
 
 interface Props {
   icon: Icon;
@@ -32,10 +31,7 @@ const props = withDefaults(defineProps<Props>(), {
   iconSizeFactor: 0.7
 });
 
-const store = useSceneStore();
-const effectiveScale = computed(
-  () => props.iconScale ?? store.getCurrentView()?.iconScale ?? 1
-);
+const effectiveScale = computed(() => props.iconScale ?? 1);
 
 const containerStyles = computed<CSSProperties>(() => ({
   pointerEvents: 'none'
