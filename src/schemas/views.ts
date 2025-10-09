@@ -3,6 +3,7 @@ import { id, constrainedStrings, coords } from './common';
 import { rectangleSchema } from './rectangle';
 import { connectorSchema } from './connector';
 import { textBoxSchema } from './textBox';
+import { sceneSchema } from './scene';
 
 // 视图内的对象（节点）
 export const viewItemSchema = z.object({
@@ -32,7 +33,8 @@ export const viewSchema = z.object({
   items: z.array(viewItemSchema),
   rectangles: z.array(rectangleSchema).optional(),
   connectors: z.array(connectorSchema).optional(),
-  textBoxes: z.array(textBoxSchema).optional()
+  textBoxes: z.array(textBoxSchema).optional(),
+  scene: sceneSchema.optional()
 });
 
 export const viewsSchema = z.array(viewSchema);

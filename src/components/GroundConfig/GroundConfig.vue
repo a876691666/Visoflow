@@ -5,6 +5,38 @@
     </div>
 
     <div class="ground-config-content">
+      <!-- 配置范围选择 -->
+      <div class="config-section">
+        <label class="config-label">配置范围</label>
+        <div class="scope-selector">
+          <label class="scope-option">
+            <input
+              type="radio"
+              value="current"
+              v-model="configScope"
+              @change="onScopeChange"
+            />
+            <span>当前场景</span>
+          </label>
+          <label class="scope-option">
+            <input
+              type="radio"
+              value="global"
+              v-model="configScope"
+              @change="onScopeChange"
+            />
+            <span>全局配置</span>
+          </label>
+        </div>
+        <div class="scope-hint">
+          {{
+            configScope === 'current'
+              ? '仅影响当前场景的地面显示'
+              : '影响所有场景的默认地面显示'
+          }}
+        </div>
+      </div>
+
       <!-- 背景图片上传 -->
       <div class="config-section">
         <label class="config-label">背景图片</label>
@@ -103,6 +135,14 @@
         </div>
       </div>
 
+      <!-- 应用全局配置按钮 -->
+      <div class="config-section" v-if="configScope === 'current'">
+        <button @click="applyGlobalConfig" class="apply-global-btn">
+          应用全局配置
+        </button>
+        <div class="apply-hint">将全局配置应用到当前场景</div>
+      </div>
+
       <!-- 重置按钮 -->
       <div class="config-section">
         <button @click="resetToDefault" class="reset-btn">重置为默认</button>
@@ -113,11 +153,12 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
-import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
+import { useSceneStore } from 'src/stores/provider';
 
-const uiStateStore = useIsoflowUiStateStore<any>();
+const sceneStore = useSceneStore();
 const fileInput = ref<HTMLInputElement>();
 const currentImage = ref<string>('');
+const configScope = ref<'current' | 'global'>('current');
 
 const gridStyle = reactive({
   fill: 'none',
@@ -167,14 +208,47 @@ const presets = [
 
 onMounted(() => {
   // 从store中获取当前配置
-  const currentConfig = uiStateStore.groundConfig;
-  if (currentConfig) {
-    Object.assign(gridStyle, currentConfig);
-    if (currentConfig.backgroundImage) {
-      currentImage.value = currentConfig.backgroundImage;
+  loadCurrentConfig();
+});
+
+const loadCurrentConfig = () => {
+  if (configScope.value === 'current') {
+    const currentConfig = sceneStore.getGroundConfig();
+    if (currentConfig) {
+      // 逐个属性更新以确保响应式更新
+      gridStyle.fill = currentConfig.fill || 'none';
+      gridStyle.stroke = currentConfig.stroke || '#000000';
+      gridStyle.strokeOpacity = currentConfig.strokeOpacity ?? 0.15;
+      gridStyle.strokeWidth = currentConfig.strokeWidth ?? 5;
+
+      if (currentConfig.backgroundImage) {
+        currentImage.value = currentConfig.backgroundImage;
+      } else {
+        currentImage.value = '';
+      }
+    }
+  } else {
+    const globalConfig = sceneStore.getGlobalGroundConfig();
+    if (globalConfig && Object.keys(globalConfig).length > 0) {
+      // 逐个属性更新以确保响应式更新
+      gridStyle.fill = globalConfig.fill || 'none';
+      gridStyle.stroke = globalConfig.stroke || '#000000';
+      gridStyle.strokeOpacity = globalConfig.strokeOpacity ?? 0.15;
+      gridStyle.strokeWidth = globalConfig.strokeWidth ?? 5;
+
+      if (globalConfig.backgroundImage) {
+        currentImage.value = globalConfig.backgroundImage;
+      } else {
+        currentImage.value = '';
+      }
     }
   }
-});
+};
+
+const onScopeChange = () => {
+  // 切换配置范围时重新加载配置
+  loadCurrentConfig();
+};
 
 const openFileDialog = () => {
   fileInput.value?.click();
@@ -216,27 +290,63 @@ const updateGridStyle = () => {
   updateGroundConfig();
 };
 
-const updateGroundConfig = () => {
+const updateGroundConfig = (reset?: boolean) => {
   const config = {
     ...gridStyle,
     backgroundImage: currentImage.value || undefined
   };
 
-  uiStateStore.setGroundConfig(config);
+  if (configScope.value === 'current') {
+    if (reset) {
+      sceneStore.setGroundConfig({});
+    } else {
+      sceneStore.setGroundConfig(config);
+    }
+  } else {
+    sceneStore.setGlobalGroundConfig(config);
+  }
 };
 
 const applyPreset = (preset: (typeof presets)[0]) => {
-  Object.assign(gridStyle, preset.style);
+  // 逐个属性更新以确保响应式更新
+  gridStyle.fill = preset.style.fill;
+  gridStyle.stroke = preset.style.stroke;
+  gridStyle.strokeOpacity = preset.style.strokeOpacity;
+  gridStyle.strokeWidth = preset.style.strokeWidth;
   updateGroundConfig();
 };
 
+const applyGlobalConfig = () => {
+  const globalConfig = sceneStore.getGlobalGroundConfig();
+  if (globalConfig) {
+    // 逐个属性更新以确保响应式更新
+    gridStyle.fill = globalConfig.fill || 'none';
+    gridStyle.stroke = globalConfig.stroke || '#000000';
+    gridStyle.strokeOpacity = globalConfig.strokeOpacity ?? 0.15;
+    gridStyle.strokeWidth = globalConfig.strokeWidth ?? 5;
+
+    // 如果全局配置有背景图片，也应用到当前场景
+    if (globalConfig.backgroundImage) {
+      currentImage.value = globalConfig.backgroundImage;
+    } else {
+      currentImage.value = '';
+      if (fileInput.value) {
+        fileInput.value.value = '';
+      }
+    }
+
+    // 将配置保存到当前场景
+    updateGroundConfig();
+  }
+};
+
 const resetToDefault = () => {
-  Object.assign(gridStyle, {
-    fill: 'none',
-    stroke: '#000000',
-    strokeOpacity: 0.15,
-    strokeWidth: 5
-  });
+  // 逐个属性重置为默认值以确保响应式更新
+  gridStyle.fill = 'none';
+  gridStyle.stroke = '#000000';
+  gridStyle.strokeOpacity = 0.15;
+  gridStyle.strokeWidth = 5;
+
   currentImage.value = '';
   if (fileInput.value) {
     fileInput.value.value = '';
@@ -280,6 +390,31 @@ const resetToDefault = () => {
   font-weight: 500;
   color: #333;
   margin-bottom: 8px;
+}
+
+.scope-selector {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.scope-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #555;
+}
+
+.scope-option input[type='radio'] {
+  margin: 0;
+}
+
+.scope-hint {
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
 }
 
 .image-upload-area {
@@ -406,6 +541,31 @@ const resetToDefault = () => {
 .preset-btn:hover {
   background: #f6f8fa;
   border-color: #1e5bd6;
+}
+
+.apply-global-btn {
+  width: 100%;
+  padding: 10px;
+  background: #0969da;
+  border: 1px solid #0969da;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: white;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
+}
+
+.apply-global-btn:hover {
+  background: #0860ca;
+  border-color: #0860ca;
+}
+
+.apply-hint {
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  font-style: italic;
 }
 
 .reset-btn {

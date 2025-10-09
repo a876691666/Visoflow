@@ -6,7 +6,8 @@ import {
   Scene,
   TextBox,
   View,
-  ViewItem
+  ViewItem,
+  GroundConfig
 } from 'src/types';
 import { inject, InjectionKey, provide } from 'vue';
 import { shallowRef, triggerRef } from 'vue';
@@ -31,6 +32,12 @@ export const useProvider = () => {
   const view = shallowRef<string>('');
   const views = shallowRef<View[]>([]);
   const model = shallowRef<Model>(INITIAL_DATA);
+  const groundConfig = shallowRef<GroundConfig>({
+    fill: 'none',
+    stroke: '#000000',
+    strokeOpacity: 0.15,
+    strokeWidth: 5
+  });
 
   const triggerMaps = {
     connectors,
@@ -41,7 +48,8 @@ export const useProvider = () => {
     model,
     items,
     views,
-    rectangles
+    rectangles,
+    groundConfig
   };
 
   // 通用触发更新函数
@@ -304,6 +312,55 @@ export const useProvider = () => {
     rectangles.value = rectangles.value.filter((rect) => rect.id !== id);
   };
 
+  // groundConfig
+  const getGroundConfig = () => groundConfig.value;
+  const updateGroundConfig = (config: Partial<GroundConfig>) => {
+    groundConfig.value = { ...groundConfig.value, ...config };
+    triggerUpdate('groundConfig');
+
+    // 同步到当前视图的 scene.groundConfig
+    const currentView = getCurrentView();
+    if (currentView) {
+      if (!(currentView as any).scene) {
+        (currentView as any).scene = {};
+      }
+      (currentView as any).scene.groundConfig = groundConfig.value;
+    }
+  };
+  const setGroundConfig = (config: GroundConfig) => {
+    groundConfig.value = config;
+    triggerUpdate('groundConfig');
+
+    // 同步到当前视图的 scene.groundConfig
+    const currentView = getCurrentView();
+    if (currentView) {
+      if (!(currentView as any).scene) {
+        (currentView as any).scene = {};
+      }
+      (currentView as any).scene.groundConfig = config;
+    }
+  };
+
+  // 全局 groundConfig 配置
+  const getGlobalGroundConfig = () => model.value?.global?.scene || {};
+  const updateGlobalGroundConfig = (config: Partial<GroundConfig>) => {
+    if (!model.value.global) {
+      model.value.global = { scene: {} };
+    }
+    if (!model.value.global.scene) {
+      model.value.global.scene = {};
+    }
+    model.value.global.scene = { ...model.value.global.scene, ...config };
+    triggerUpdate('model');
+  };
+  const setGlobalGroundConfig = (config: GroundConfig) => {
+    if (!model.value.global) {
+      model.value.global = { scene: {} };
+    }
+    model.value.global.scene = config;
+    triggerUpdate('model');
+  };
+
   // views
   const getViews = () => views.value;
   const getView = (id: string) => views.value.find((v) => v.id === id);
@@ -327,6 +384,20 @@ export const useProvider = () => {
       // 简单同步文本与连线（无需默认值合并也可工作）
       updateTextBoxs((_view.textBoxes as any) || []);
       updateConnectors((_view.connectors as any) || []);
+
+      // 同步 groundConfig
+      if (_view.scene?.groundConfig) {
+        groundConfig.value = _view.scene.groundConfig;
+      } else {
+        // 使用默认值
+        groundConfig.value = {
+          fill: 'none',
+          stroke: '#000000',
+          strokeOpacity: 0.15,
+          strokeWidth: 5
+        };
+      }
+
       _view?.connectors?.forEach((connector) => {
         syncConnector(connector.id, {
           getCurrentView,
@@ -345,6 +416,13 @@ export const useProvider = () => {
       updateRectangles([]);
       updateTextBoxs([]);
       updateConnectors([]);
+      // 重置 groundConfig
+      groundConfig.value = {
+        fill: 'none',
+        stroke: '#000000',
+        strokeOpacity: 0.15,
+        strokeWidth: 5
+      };
     }
     triggerUpdate('views');
   };
@@ -383,14 +461,32 @@ export const useProvider = () => {
     updateViews(newModel.views);
     updateColors(newModel.colors);
     updateIcons(newModel.icons);
+
+    // 如果有当前视图，加载其 groundConfig
+    const currentView = getCurrentView();
+    if (currentView?.scene?.groundConfig) {
+      groundConfig.value = currentView.scene.groundConfig;
+    } else {
+      // 使用默认值
+      groundConfig.value = {
+        fill: 'none',
+        stroke: '#000000',
+        strokeOpacity: 0.15,
+        strokeWidth: 5
+      };
+    }
+    triggerUpdate('groundConfig');
   };
 
-  // 将当前状态整理为可导出的 Model（确保 items 已与 model.items 同步）
+  // 将当前状态整理为可导出的 Model（确保所有数据已同步）
   const getExportModel = (): Model => {
     // 基于当前 model 创建一个浅拷贝
     const exportModel: Model = JSON.parse(JSON.stringify(model.value));
-    // 顶层 items 已移除，无需同步；视图内 items 已承载全部信息
 
+    // 同步当前的 views 状态到导出模型
+    exportModel.views = JSON.parse(JSON.stringify(views.value));
+
+    // 同步 icons 状态
     icons.value.forEach((icon) => {
       const ei = exportModel.icons.findIndex((ic) => ic.id === icon.id);
       if (ei !== -1) {
@@ -403,6 +499,9 @@ export const useProvider = () => {
         exportModel.icons.push(icon);
       }
     });
+
+    // 同步 colors 状态
+    exportModel.colors = JSON.parse(JSON.stringify(colors.value));
 
     return exportModel;
   };
@@ -489,7 +588,16 @@ export const useProvider = () => {
 
     // export helpers
     getExportModel,
-    exportModelAsJSON
+    exportModelAsJSON,
+
+    // groundConfig
+    groundConfig,
+    getGroundConfig,
+    updateGroundConfig,
+    setGroundConfig,
+    getGlobalGroundConfig,
+    updateGlobalGroundConfig,
+    setGlobalGroundConfig
   };
 };
 

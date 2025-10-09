@@ -83,9 +83,7 @@ export const INITIAL_DATA: InitialData = {
   views: [],
   fitToView: false,
   global: {
-    grid: {
-      style: {}
-    }
+    scene: {}
   }
 };
 export const INITIAL_UI_STATE = {

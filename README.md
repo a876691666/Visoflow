@@ -118,7 +118,7 @@ const initialData = ref<InitialData>({
     }
   ],
   fitToView: true,
-  global: { grid: { style: {} } }
+  global: { scene: {} }
 });
 
 function handleUpdated(model: any) {
@@ -228,7 +228,7 @@ Vite 库模式下提供 UMD 构建，浏览器可直接通过 CDN 引用（需�
         colors: [{ id: '__DEFAULT__', value: '#8db3ff' }],
         views: [],
         fitToView: true,
-        global: { grid: { style: {} } }
+        global: { scene: {} }
       };
 
       const App = {

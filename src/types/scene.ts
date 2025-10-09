@@ -38,6 +38,14 @@ export interface SceneTextBox {
   size: Size;
 }
 
+export interface GroundConfig {
+  fill?: string;
+  stroke?: string;
+  strokeOpacity?: number;
+  strokeWidth?: number;
+  backgroundImage?: string;
+}
+
 export interface Scene {
   connectors: {
     [key: string]: SceneConnector;
@@ -45,4 +53,5 @@ export interface Scene {
   textBoxes: {
     [key: string]: SceneTextBox;
   };
+  groundConfig?: GroundConfig;
 }

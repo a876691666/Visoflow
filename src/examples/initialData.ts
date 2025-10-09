@@ -43,10 +43,8 @@ export const initialData: InitialData = {
   icons,
   colors,
   global: {
-    grid: {
-      style: {
-        fill: '#eee'
-      }
+    scene: {
+      fill: '#eee'
     }
   },
   views: [

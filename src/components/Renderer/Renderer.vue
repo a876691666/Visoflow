@@ -78,6 +78,7 @@ import TransformControlsManager from 'src/components/TransformControlsManager/Tr
 import { useSceneStore } from 'src/stores/provider';
 
 const { model } = useSceneStore();
+const sceneStore = useSceneStore();
 
 interface Props {
   showGrid?: RendererProps['showGrid'];
@@ -99,15 +100,15 @@ const { setInteractionsElement } = useInteractionManager();
 // Show grid reactive value
 const isShowGrid = ref(true);
 
-// Computed grid style that merges model config with UI state ground config
+// Computed grid style that merges model config with scene store ground config
 const gridStyle = computed(() => {
-  const modelGridStyle = model.value?.global?.grid?.style || {};
-  const uiGroundConfig = uiStateStore.groundConfig || {};
+  const modelGridStyle = model.value?.global?.scene || {};
+  const sceneGroundConfig = sceneStore.getGroundConfig() || {};
 
-  // UI ground config takes precedence over model config
+  // Scene ground config takes precedence over model config
   return {
     ...modelGridStyle,
-    ...uiGroundConfig
+    ...sceneGroundConfig
   };
 });
 
