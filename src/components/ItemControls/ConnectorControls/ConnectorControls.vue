@@ -30,6 +30,18 @@
       />
     </Section>
 
+    <!-- 显示边框（背景线条） -->
+    <Section title="显示边框">
+      <label>
+        <input
+          type="checkbox"
+          :checked="connectorData.showBorder !== false"
+          @input="handleShowBorderChange"
+        />
+        开启
+      </label>
+    </Section>
+
     <Section title="宽度">
       <div class="slider-container">
         <input
@@ -93,6 +105,78 @@
       </div>
     </Section>
 
+    <!-- 显示流光开关 -->
+    <Section title="显示流光">
+      <label>
+        <input
+          type="checkbox"
+          :checked="connectorData.showFlow !== false"
+          @input="handleShowFlowChange"
+        />
+        开启
+      </label>
+    </Section>
+
+    <!-- 流光渐变颜色 -->
+    <Section title="流光渐变颜色">
+      <div
+        class="input-group"
+        style="display: flex; gap: 12px; align-items: center"
+      >
+        <div>
+          <div class="input-label" :style="labelStyles">头部颜色</div>
+          <input
+            type="color"
+            :value="
+              connectorData.flowHeadColor || connectorData.color || '#000000'
+            "
+            @input="handleFlowHeadColorChange"
+            class="color-input"
+          />
+        </div>
+        <div>
+          <div class="input-label" :style="labelStyles">尾部颜色</div>
+          <input
+            type="color"
+            :value="
+              connectorData.flowTailColor || connectorData.color || '#000000'
+            "
+            @input="handleFlowTailColorChange"
+            class="color-input"
+          />
+        </div>
+      </div>
+    </Section>
+
+    <!-- 流光长度 -->
+    <Section title="流光长度">
+      <div class="slider-container">
+        <input
+          type="range"
+          min="0"
+          max="500"
+          step="1"
+          :value="connectorData.flowLength ?? 100"
+          @input="handleFlowLengthChange"
+          class="slider"
+          :style="sliderStyles"
+        />
+        <span class="slider-value">{{ connectorData.flowLength ?? 100 }}</span>
+      </div>
+    </Section>
+
+    <!-- 指引箭头显示开关 -->
+    <Section title="显示指引箭头">
+      <label>
+        <input
+          type="checkbox"
+          :checked="connectorData.showDirectionArrow !== false"
+          @input="handleShowDirectionArrowChange"
+        />
+        开启
+      </label>
+    </Section>
+
     <Section>
       <DeleteButton @click="handleDelete" />
     </Section>
@@ -123,7 +207,14 @@ const connectorData = ref<any>({
   width: 20,
   style: 'SOLID',
   dashLength: undefined,
-  dashGap: undefined
+  dashGap: undefined,
+  // 新增默认值
+  showBorder: false,
+  showFlow: false,
+  flowHeadColor: '',
+  flowTailColor: '',
+  flowLength: 100,
+  showDirectionArrow: true
 });
 
 const styleOptions = ref(['SOLID', 'DASHED', 'DOTTED']);
@@ -214,6 +305,38 @@ const handleDashGapChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const dashGap = parseInt(target.value);
   updateConnector({ dashGap: isNaN(dashGap) ? undefined : dashGap });
+};
+
+// 新增 handlers
+const handleShowBorderChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  updateConnector({ showBorder: !!target.checked });
+};
+
+const handleShowFlowChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  updateConnector({ showFlow: !!target.checked });
+};
+
+const handleFlowHeadColorChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  updateConnector({ flowHeadColor: target.value });
+};
+
+const handleFlowTailColorChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  updateConnector({ flowTailColor: target.value });
+};
+
+const handleFlowLengthChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const flowLength = parseInt(target.value);
+  updateConnector({ flowLength: isNaN(flowLength) ? 100 : flowLength });
+};
+
+const handleShowDirectionArrowChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  updateConnector({ showDirectionArrow: !!target.checked });
 };
 
 const updateConnector = (updates: any) => {

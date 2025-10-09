@@ -15,6 +15,8 @@ export const viewItemSchema = z.object({
   // 视图内的位置信息
   tile: coords,
   labelHeight: z.number().optional(),
+  // 新增：是否显示名称
+  showName: z.boolean().optional(),
   // 对象级图标缩放倍率（优先级最高），允许 0.1 - 5
   iconScale: z.number().min(0.1).max(5).optional(),
   // 对象级图标底部偏移（像素），优先级高于图标默认值

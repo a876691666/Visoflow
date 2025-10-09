@@ -29,6 +29,32 @@
       </div>
     </Section>
 
+    <!-- 新增：文字粗细配置（拖拽条） -->
+    <Section title="文字粗细">
+      <div class="slider-container">
+        <input
+          type="range"
+          min="300"
+          max="900"
+          step="100"
+          :value="fontWeightNumber"
+          @input="handleFontWeightChange"
+          class="slider"
+        />
+        <span class="slider-value">{{ fontWeightValue }}</span>
+      </div>
+    </Section>
+
+    <!-- 新增：文字颜色配置 -->
+    <Section title="文字颜色">
+      <input
+        type="color"
+        :value="textColorHex"
+        @input="handleTextColorChange"
+        class="color-input"
+      />
+    </Section>
+
     <Section title="框高度">
       <div class="slider-container">
         <input
@@ -136,6 +162,7 @@ import Section from '../components/Section.vue';
 import DeleteButton from '../components/DeleteButton.vue';
 import { useSceneStore } from 'src/stores/provider';
 import { syncTextBox } from 'src/stores/reducers/textBox';
+import { TEXTBOX_FONT_WEIGHT } from 'src/config';
 
 interface Props {
   id: string;
@@ -147,6 +174,36 @@ const sceneStore = useSceneStore();
 const textBoxRef = useTextBox(props.id);
 
 const textBox = computed(() => textBoxRef.value);
+
+// 简化：仅支持 #RGB / #RRGGBB，其他情况回退为 #000000
+const normalizeHex = (color?: string): string => {
+  if (!color) return '#000000';
+  const m = color.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
+  if (!m) return '#000000';
+  const v = m[1];
+  if (v.length === 3) {
+    return `#${v[0]}${v[0]}${v[1]}${v[1]}${v[2]}${v[2]}`.toLowerCase();
+  }
+  return `#${v.toLowerCase()}`;
+};
+
+const textColorHex = computed(() =>
+  normalizeHex(textBox.value?.textStyle?.color as string | undefined)
+);
+
+// 计算当前字体粗细显示值（字符串形式 300-900），兼容 normal/bold
+const fontWeightValue = computed(() => {
+  const fw =
+    (textBox.value?.textStyle as any)?.fontWeight ?? TEXTBOX_FONT_WEIGHT;
+  if (typeof fw === 'number') return String(fw);
+  if (fw === 'bold') return '700';
+  if (fw === 'normal') return '400';
+  const n = parseInt(String(fw), 10);
+  return Number.isFinite(n) ? String(n) : '400';
+});
+
+// 数字形式，供 range 绑定
+const fontWeightNumber = computed(() => parseInt(fontWeightValue.value, 10));
 
 const xOrientationStyles = computed<CSSProperties>(() => ({
   transform: getIsoProjectionCss(ProjectionOrientationEnum.X),
@@ -194,6 +251,32 @@ const handleFontSizeChange = (event: Event) => {
   const fontSize = parseFloat(target.value);
   sceneStore.updateTextBox(textBox.value.id, { fontSize });
   syncTextBox(textBox.value.id, sceneStore);
+};
+
+// 新增：处理文字颜色变化
+const handleTextColorChange = (event: Event) => {
+  if (!textBox.value) return;
+  const target = event.target as HTMLInputElement;
+  const color = target.value;
+  sceneStore.updateTextBox(textBox.value.id, {
+    textStyle: {
+      ...(textBox.value.textStyle ?? {}),
+      color
+    }
+  });
+};
+
+// 更新：拖拽条改变字体粗细
+const handleFontWeightChange = (event: Event) => {
+  if (!textBox.value) return;
+  const target = event.target as HTMLInputElement;
+  const weight = parseInt(target.value, 10);
+  sceneStore.updateTextBox(textBox.value.id, {
+    textStyle: {
+      ...(textBox.value.textStyle ?? {}),
+      fontWeight: Number.isFinite(weight) ? weight : 400
+    }
+  });
 };
 
 const handleContainerHeightChange = (event: Event) => {
@@ -270,6 +353,23 @@ const handleDelete = () => {
   font-size: 14px;
   color: #666;
   min-width: 40px;
+}
+
+/* 新增：颜色选择器样式 */
+.color-input {
+  width: 48px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+/* 新增：下拉选择样式 */
+.select {
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
 }
 
 .toggle-group {

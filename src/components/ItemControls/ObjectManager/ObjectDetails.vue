@@ -11,6 +11,12 @@
         />
       </label>
 
+      <!-- 新增：是否显示名称开关 -->
+      <label class="om-inline">
+        <input type="checkbox" v-model="local.showName" />
+        <span class="om-inline-text">显示名称</span>
+      </label>
+
       <label class="om-label">
         <span class="om-label-text">描述（可选，支持 Markdown）</span>
         <MarkdownEditor
@@ -100,6 +106,10 @@
           {{ isEditing ? '保存修改' : '创建对象' }}
         </button>
         <button type="button" class="btn" @click="$emit('cancel')">取消</button>
+        <!-- 新增：复制按钮（仅编辑态显示） -->
+        <button v-if="isEditing" type="button" class="btn" @click="onCopy">
+          复制
+        </button>
         <button
           v-if="isEditing"
           type="button"
@@ -150,6 +160,8 @@ const buildLocalFrom = (it: ViewItem | null): ViewItem => {
       icon: undefined,
       tile: { x: 0, y: 0 },
       labelHeight: VIEW_ITEM_DEFAULTS.labelHeight,
+      // 新增：名称显示默认开启
+      showName: true,
       // 显性继承开关（默认继承）
       ...{ inheritIconScale: true, inheritIconBottom: true }
     } as ViewItem;
@@ -161,6 +173,8 @@ const buildLocalFrom = (it: ViewItem | null): ViewItem => {
     icon: it.icon,
     tile: { x: it.tile.x, y: it.tile.y },
     labelHeight: it.labelHeight ?? VIEW_ITEM_DEFAULTS.labelHeight,
+    // 新增：沿用对象设置，缺省则默认显示
+    showName: it.showName ?? true,
     ...(it.iconScale !== undefined ? { iconScale: it.iconScale } : {}),
     ...(it.iconBottom !== undefined ? { iconBottom: it.iconBottom } : {}),
     // 同级显性属性；基于是否存在对象级设置推导初值
@@ -190,6 +204,8 @@ watch(
     local.icon = next.icon;
     local.tile = { ...next.tile };
     local.labelHeight = next.labelHeight;
+    // 新增：同步 showName
+    local.showName = next.showName;
     // 值部分
     if (next.iconScale !== undefined) local.iconScale = next.iconScale;
     else delete local.iconScale;
@@ -235,8 +251,8 @@ watch(
   { immediate: true }
 );
 
-const onSave = () => {
-  // 组装 payload：当继承为 true 时不写入数值字段
+// 提取：从本地表单构建用于保存/复制的 payload（处理继承与数值裁剪）
+const buildPayloadFromLocal = (): Partial<ViewItem> => {
   const base: Partial<ViewItem> = {
     id: local.id,
     name: local.name?.toString().trim() || undefined,
@@ -246,7 +262,8 @@ const onSave = () => {
     labelHeight:
       typeof local.labelHeight === 'number'
         ? local.labelHeight
-        : VIEW_ITEM_DEFAULTS.labelHeight
+        : VIEW_ITEM_DEFAULTS.labelHeight,
+    showName: !!local.showName
   };
 
   const payload: any = { ...base };
@@ -266,18 +283,42 @@ const onSave = () => {
     payload.inheritIconBottom = false;
     payload.iconBottom = toNumberOr(local.iconBottom, 0);
   }
+  return payload as Partial<ViewItem>;
+};
+
+const onSave = () => {
+  const payload = buildPayloadFromLocal();
 
   if (isEditing.value) {
-    store.updateItem(payload.id, payload as ViewItem);
+    store.updateItem(payload.id as string, payload as ViewItem);
   } else {
     // 确保 id 唯一（简单重试）
-    let id = payload.id as string;
+    let id = (payload.id as string) || generateId();
     while (store.getItem(id)) id = generateId();
     payload.id = id;
     store.addItem(payload as ViewItem);
     // 切换为编辑态并刷新本地 id
     local.id = id;
   }
+};
+
+// 新增：复制当前对象（编辑态）
+const onCopy = () => {
+  if (!isEditing.value) return;
+  const payload = buildPayloadFromLocal();
+  // 生成新 ID，避免冲突
+  let id = generateId();
+  while (store.getItem(id)) id = generateId();
+  payload.id = id;
+  // 名称附加“副本”标识（若有名称）
+  if (payload.name) payload.name = `${payload.name} 副本`;
+  // 可选：略微平移，避免完全重叠
+  payload.tile = {
+    x: toNumberOr(local.tile.x, 0),
+    y: toNumberOr(local.tile.y, 0)
+  };
+  store.addItem(payload as ViewItem);
+  // 复制后仍保持当前编辑对象，不切换到新对象
 };
 
 const onDelete = () => {

@@ -29,7 +29,10 @@
           :label-height="node.labelHeight || DEFAULT_LABEL_HEIGHT"
         >
           <div class="label-content">
-            <div v-if="modelItem?.name" class="node-name">
+            <div
+              v-if="modelItem?.name && modelItem?.showName !== false"
+              class="node-name"
+            >
               {{ modelItem.name }}
             </div>
             <div v-if="description" class="node-description">
@@ -97,8 +100,17 @@ const description = computed(() => {
   return modelItem.value.description;
 });
 
+// 名称是否可见（未设置时默认可见）
+const isNameVisible = computed(() => modelItem.value?.showName !== false);
+
 // Computed has label
-const hasLabel = computed(() => !!(modelItem.value?.name || description.value));
+const hasLabel = computed(
+  () =>
+    !!(
+      ((modelItem.value?.name && isNameVisible.value) as any) ||
+      description.value
+    )
+);
 </script>
 
 <style scoped>

@@ -303,13 +303,41 @@ export const useProvider = () => {
     if (index !== -1) {
       rectangles.value[index] = { ...rectangles.value[index], ...rectangle };
       triggerUpdate('rectangles');
+
+      // 同步到当前视图
+      const _view = getCurrentView();
+      if (_view) {
+        if (!_view.rectangles) _view.rectangles = [];
+        const vIndex = _view.rectangles.findIndex((r) => r.id === id);
+        if (vIndex !== -1) {
+          _view.rectangles[vIndex] = {
+            ..._view.rectangles[vIndex],
+            ...rectangle
+          };
+        }
+      }
     }
   };
   const addRectangle = (rectangle: Rectangle) => {
     rectangles.value = [...rectangles.value, rectangle];
+
+    // 同步到当前视图
+    const _view = getCurrentView();
+    if (_view) {
+      if (!_view.rectangles) _view.rectangles = [];
+      if (!_view.rectangles.find((r) => r.id === rectangle.id)) {
+        _view.rectangles.push(rectangle);
+      }
+    }
   };
   const removeRectangle = (id: string) => {
     rectangles.value = rectangles.value.filter((rect) => rect.id !== id);
+
+    // 同步从当前视图移除
+    const _view = getCurrentView();
+    if (_view && _view.rectangles) {
+      _view.rectangles = _view.rectangles.filter((r) => r.id !== id);
+    }
   };
 
   // groundConfig

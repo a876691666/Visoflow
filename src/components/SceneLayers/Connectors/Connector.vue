@@ -3,7 +3,7 @@
     <Svg :viewbox-size="pxSize" :style="svgStyles">
       <!-- 背景线条 -->
       <polyline
-        v-if="pathString"
+        v-if="pathString && showBorder"
         :points="pathString"
         :stroke="backgroundStroke"
         :stroke-width="backgroundStrokeWidth"
@@ -26,6 +26,17 @@
         fill="none"
       />
 
+      <FlowTrail
+        v-if="pathString && showFlow"
+        :d="`M ${pathString}`"
+        :ball-radius="flowLength"
+        :base-stroke="mainStrokeWidth"
+        :base-color="mainStroke"
+        :head-color="flowHeadColor"
+        :tail-color="flowTailColor"
+        use-ball-gradient
+      />
+
       <!-- 锚点 (仅在选中时显示) -->
       <g
         v-if="props.isSelected"
@@ -44,7 +55,7 @@
 
       <!-- 方向指示器 -->
       <g
-        v-if="directionIcon"
+        v-if="directionIcon && showDirectionArrow"
         :transform="`translate(${directionIcon.x}, ${directionIcon.y})`"
       >
         <g :transform="`rotate(${directionIcon.rotation})`">
@@ -61,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, type CSSProperties } from 'vue';
+import { ref, watch, type CSSProperties } from 'vue';
 import type { Coords } from '@/types';
 import { useIsoProjection } from '@/hooks/useIsoProjection';
 import { getConnectorDirectionIcon, getAnchorTile } from '@/utils';
@@ -69,6 +80,7 @@ import { UNPROJECTED_TILE_SIZE } from '@/config';
 import Circle from '@/components/Circle/Circle.vue';
 import Svg from '@/components/Svg/Svg.vue';
 import { useSceneStore } from 'src/stores/provider';
+import FlowTrail from './FlowTrail.vue';
 
 interface ConnectorWithPath {
   id: string;
@@ -90,6 +102,17 @@ interface ConnectorWithPath {
   dashLength?: number;
   // 自定义虚线段间隔（与 width 一样采用基于 UNPROJECTED_TILE_SIZE 的相对像素转换）
   dashGap?: number;
+  // 新增：显示边框（背景线条）
+  showBorder?: boolean;
+  // 新增：显示流光
+  showFlow?: boolean;
+  // 新增：流光渐变颜色（头/尾）
+  flowHeadColor?: string;
+  flowTailColor?: string;
+  // 新增：流光长度
+  flowLength?: number;
+  // 新增：是否显示指引箭头
+  showDirectionArrow?: boolean;
   path?: {
     tiles: Coords[];
     rectangle: {
@@ -121,20 +144,20 @@ const directionIcon = ref<{ x: number; y: number; rotation: number } | null>(
   null
 );
 
+// 原 computed 改为 ref，并在 updateConnector 中赋值
+const showBorder = ref(false);
+const showFlow = ref(false);
+const showDirectionArrow = ref(true);
+const flowHeadColor = ref<string>('');
+const flowTailColor = ref<string>('');
+const flowLength = ref<number>(100);
+const isVisible = ref(false);
+
 // 常量
 const DRAW_OFFSET = {
   x: UNPROJECTED_TILE_SIZE / 2,
   y: UNPROJECTED_TILE_SIZE / 2
 };
-
-// 计算属性
-const isVisible = computed(() => {
-  return !!(
-    props.connector &&
-    props.connector.path &&
-    props.connector.path.tiles?.length > 0
-  );
-});
 
 const sceneStore = useSceneStore();
 // 更新等距投影
@@ -142,7 +165,10 @@ const { css, pxSize, update } = useIsoProjection();
 // 更新连接器数据
 const updateConnector = () => {
   const connector = props.connector;
-  if (!connector?.path) return;
+  if (!connector?.path) {
+    isVisible.value = false;
+    return;
+  }
 
   const connectorPath = connector.path;
   update({
@@ -161,6 +187,9 @@ const updateConnector = () => {
       },
       ''
     );
+    isVisible.value = true;
+  } else {
+    isVisible.value = false;
   }
 
   // 更新样式
@@ -172,6 +201,15 @@ const updateConnector = () => {
   mainStroke.value = props.connector.color || '#333';
   // 背景描边颜色（可配置）
   backgroundStroke.value = props.connector.backgroundColor || 'white';
+
+  // 控制项派生（替代 computed）
+  showBorder.value = connector.showBorder !== false;
+  showFlow.value = connector.showFlow !== false;
+  showDirectionArrow.value = connector.showDirectionArrow !== false;
+  flowHeadColor.value = connector.flowHeadColor || mainStroke.value;
+  flowTailColor.value = connector.flowTailColor || mainStroke.value;
+  flowLength.value =
+    typeof connector.flowLength === 'number' ? connector.flowLength : 100;
 
   // 更新虚线样式
   // 自定义虚线：分为段长与间隔
