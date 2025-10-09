@@ -18,6 +18,11 @@ const dragItems = (
   scene: ReturnType<typeof useSceneStore>
 ) => {
   items.forEach((item) => {
+    // 线条模式下仅允许拖拽连接线锚点
+    if (scene.getLineMode() && item.type !== 'CONNECTOR_ANCHOR') {
+      return;
+    }
+
     if (item.type === 'ITEM') {
       const node = getItemByIdOrThrow(scene.items.value, item.id).value;
 

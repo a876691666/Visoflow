@@ -485,6 +485,27 @@ export const getItemAtTile = ({
   tile,
   scene
 }: GetItemAtTile): ItemReference | null => {
+  if (scene.getLineMode()) {
+    const connector = scene.connectors.value.find((con) => {
+      return con.path.tiles.find((pathTile) => {
+        const globalPathTile = connectorPathTileToGlobal(
+          pathTile,
+          con.path.rectangle.from
+        );
+
+        return CoordsUtils.isEqual(globalPathTile, tile);
+      });
+    });
+
+    if (connector) {
+      return {
+        type: 'CONNECTOR',
+        id: connector.id
+      };
+    }
+    return null;
+  }
+
   const viewItem = scene.items.value.find((item) => {
     return CoordsUtils.isEqual(item.tile, tile);
   });

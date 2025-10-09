@@ -8,6 +8,7 @@
     :style="{
       backgroundColor: backgroundColor || '#f5f5f5'
     }"
+    :class="{ 'only-line': lineMode }"
     @mousedown="onContainerMouseDown"
     @mouseup="onContainerMouseUp"
   >
@@ -27,7 +28,7 @@
     <div ref="interactionsRef" class="interactions-layer" />
 
     <!-- Background rectangles -->
-    <SceneLayer :order="5">
+    <SceneLayer :order="5" :style="lineModeLayerStyle">
       <Rectangles />
     </SceneLayer>
 
@@ -37,7 +38,7 @@
     </SceneLayer>
 
     <!-- Text Boxes -->
-    <SceneLayer :order="5">
+    <SceneLayer :order="5" :style="lineModeLayerStyle">
       <TextBoxes />
     </SceneLayer>
 
@@ -52,7 +53,7 @@
     </SceneLayer>
 
     <!-- Nodes/Items -->
-    <SceneLayer :order="5">
+    <SceneLayer :order="5" :style="lineModeLayerStyle">
       <Nodes />
     </SceneLayer>
 
@@ -104,6 +105,13 @@ const { setInteractionsElement } = useInteractionManager();
 
 // Show grid reactive value
 const isShowGrid = ref(true);
+
+// 线条模式下用于禁用选择与半透明的层样式
+const lineModeLayerStyle = computed(() =>
+  sceneStore.getLineMode() ? { opacity: 0.4, pointerEvents: 'none' } : {}
+);
+
+const lineMode = computed(() => sceneStore.getLineMode());
 
 // 按住空格切换到移动（PAN）模式
 const isSpacePanActive = ref(false);
@@ -168,6 +176,14 @@ const onContainerMouseDown = (e: MouseEvent) => {
 
   if (!id || !type) return;
 
+  // 线条模式下不允许选择 ITEM/RECTANGLE/TEXTBOX
+  if (
+    sceneStore.getLineMode() &&
+    (type === 'ITEM' || type === 'RECTANGLE' || type === 'TEXTBOX')
+  ) {
+    return;
+  }
+
   // 命中 DOM 标记，记录一次 DOM 选择开始
   domSelectActive.value = true;
 
@@ -228,5 +244,13 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   z-index: 4;
+}
+</style>
+<style>
+.renderer-container .node {
+  pointer-events: auto;
+}
+.renderer-container.only-line .node {
+  pointer-events: none;
 }
 </style>

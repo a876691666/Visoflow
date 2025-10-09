@@ -115,10 +115,6 @@ const hasLabel = computed(
 </script>
 
 <style scoped>
-.node {
-  pointer-events: auto;
-}
-
 .node-content {
   transform-origin: center bottom;
 }

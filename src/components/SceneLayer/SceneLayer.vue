@@ -108,6 +108,6 @@ onMounted(() => {
 }
 
 .scene-layer > * {
-  pointer-events: auto;
+  /* pointer-events: auto; */
 }
 </style>

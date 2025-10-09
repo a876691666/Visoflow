@@ -38,6 +38,8 @@ export const useProvider = () => {
     strokeOpacity: 0.15,
     strokeWidth: 5
   });
+  // 额外线条模式（独立于 uiStateStore），为 true 时仅线条交互，其它元素不可选且半透明
+  const lineMode = shallowRef<boolean>(false);
 
   const triggerMaps = {
     connectors,
@@ -49,8 +51,9 @@ export const useProvider = () => {
     items,
     views,
     rectangles,
-    groundConfig
-  };
+    groundConfig,
+    lineMode
+  } as const;
 
   // 通用触发更新函数
   const triggerUpdate = (refName: keyof typeof triggerMaps) => {
@@ -105,7 +108,6 @@ export const useProvider = () => {
     return connector;
   };
   const removeConnector = (id: string) => {
-    debugger;
     connectors.value = connectors.value.filter((c) => c.id !== id);
 
     const view = getCurrentView();
@@ -389,6 +391,13 @@ export const useProvider = () => {
     triggerUpdate('model');
   };
 
+  // 线条模式开关
+  const getLineMode = () => lineMode.value;
+  const setLineMode = (val: boolean) => {
+    lineMode.value = !!val;
+    triggerUpdate('lineMode');
+  };
+
   // views
   const getViews = () => views.value;
   const getView = (id: string) => views.value.find((v) => v.id === id);
@@ -625,7 +634,12 @@ export const useProvider = () => {
     setGroundConfig,
     getGlobalGroundConfig,
     updateGlobalGroundConfig,
-    setGlobalGroundConfig
+    setGlobalGroundConfig,
+
+    // line mode
+    lineMode,
+    getLineMode,
+    setLineMode
   };
 };
 

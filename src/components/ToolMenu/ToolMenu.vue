@@ -2,6 +2,20 @@
   <div ref="toolMenuRef" class="tool-menu">
     <div class="tool-menu-content">
       <IconButton
+        :name="lineMode ? '线条模式(0) 开' : '线条模式(0) 关'"
+        :is-active="lineMode"
+        data-tool-id="lineMode"
+        @click="toggleLineMode"
+      >
+        <template #icon>
+          <div class="tool-text">
+            <span class="tool-label">线条模式</span>
+            <span class="shortcut-badge">0</span>
+          </div>
+        </template>
+      </IconButton>
+      <!-- 其余工具按钮 -->
+      <IconButton
         v-for="(tool, idx) in tools"
         :key="tool.id"
         :name="tool.name"
@@ -77,6 +91,14 @@ const tools = computed<Tool[]>(() => {
 const { staggerIn, pulse } = useGSAPAnimations();
 const toolMenuRef = ref<HTMLElement>();
 
+const sceneStore = useSceneStore();
+
+const lineMode = computed(() => sceneStore.getLineMode());
+
+const toggleLineMode = () => {
+  sceneStore.setLineMode(!sceneStore.getLineMode());
+};
+
 onMounted(() => {
   // Animate tool menu entrance
   if (toolMenuRef.value) {
@@ -98,8 +120,13 @@ onMounted(() => {
     if (isEditable) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
 
-    // 1-9 映射到工具顺序
+    // 0-9 映射到工具顺序，0 为线条模式开关
     const key = e.key;
+    if (key === '0') {
+      toggleLineMode();
+      e.preventDefault();
+      return;
+    }
     if (/^[1-9]$/.test(key)) {
       const idx = parseInt(key, 10) - 1;
       const tool = rawTools.value[idx];
@@ -117,8 +144,6 @@ onMounted(() => {
     window.removeEventListener('keydown', onKeydown);
   });
 });
-
-const sceneStore = useSceneStore();
 
 const createTextBoxProxy = () => {
   const textBoxId = generateId();
