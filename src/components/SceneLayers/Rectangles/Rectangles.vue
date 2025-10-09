@@ -6,6 +6,8 @@
       :from="rectangle.from"
       :to="rectangle.to"
       :style="rectangle.style"
+      :data-item-id="rectangle.id"
+      data-item-type="RECTANGLE"
     />
   </div>
 </template>

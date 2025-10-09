@@ -100,7 +100,7 @@ onMounted(() => {
   width: 0;
   height: 0;
   user-select: none;
-  pointer-events: none;
+  /* pointer-events: none; */
 }
 
 .scene-layer.disable-animation {

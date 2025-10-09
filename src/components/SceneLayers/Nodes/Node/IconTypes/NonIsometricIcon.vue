@@ -33,9 +33,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const effectiveScale = computed(() => props.iconScale ?? 1);
 
-const containerStyles = computed<CSSProperties>(() => ({
-  pointerEvents: 'none'
-}));
+const containerStyles = computed<CSSProperties>(() => ({}));
 
 const wrapperStyles = computed<CSSProperties>(() => ({
   position: 'absolute',

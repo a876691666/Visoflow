@@ -5,6 +5,8 @@
       position: 'absolute',
       zIndex: order
     }"
+    :data-item-id="node.id"
+    data-item-type="ITEM"
   >
     <div
       class="node-content"
@@ -47,8 +49,7 @@
         v-if="iconComponent"
         class="node-icon"
         :style="{
-          position: 'absolute',
-          pointerEvents: 'none'
+          position: 'absolute'
         }"
       >
         <component :is="iconComponent" />

@@ -119,7 +119,7 @@ defineExpose({
 });
 </script>
 
-<style scoped>
+<style>
 .isoflow-theme {
   width: 100%;
   height: 100%;
@@ -130,5 +130,10 @@ defineExpose({
   height: 100%;
   position: relative;
   overflow: hidden;
+}
+.isoflow-theme img {
+  user-select: none !important;
+  /* pointer-events: none !important; */
+  -webkit-user-drag: none !important;
 }
 </style>

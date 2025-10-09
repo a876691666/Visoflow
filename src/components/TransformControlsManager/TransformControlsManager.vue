@@ -83,6 +83,5 @@ const currentTextBox = computed(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  /* 注意：不能禁用 pointer-events，否则锚点无法响应 */
 }
 </style>

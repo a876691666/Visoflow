@@ -1,5 +1,5 @@
 <template>
-  <IsoTileArea :from="from" :to="to" :="style" />
+  <IsoTileArea :from="from" :to="to" v-bind="{ ...(style || {}), ...$attrs }" />
 </template>
 
 <script setup lang="ts">
@@ -13,6 +13,10 @@ interface Props {
 }
 
 defineProps<Props>();
+
+defineOptions({
+  inheritAttrs: false
+});
 </script>
 
 <style scoped>

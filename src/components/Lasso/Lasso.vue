@@ -86,7 +86,6 @@ const updateLassoSelection = () => {
     position: 'absolute',
     left: `${boundingBox.lowX * UNPROJECTED_TILE_SIZE}px`,
     top: `${boundingBox.lowY * UNPROJECTED_TILE_SIZE}px`,
-    pointerEvents: 'none',
     zIndex: '100'
   };
 

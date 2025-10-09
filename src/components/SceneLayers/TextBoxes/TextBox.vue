@@ -1,5 +1,10 @@
 <template>
-  <div class="text-box" :style="containerStyle">
+  <div
+    class="text-box"
+    :style="containerStyle"
+    :data-item-id="textBox.id"
+    data-item-type="TEXTBOX"
+  >
     <div class="text-box-content" :style="contentStyle">
       <div class="text-box-text" :style="textStyle">
         {{ textBox.content }}
@@ -51,7 +56,6 @@ const updateContainerStyle = () => {
   updateProjection();
   containerStyle.value = {
     ...css.value,
-    pointerEvents: 'none',
     userSelect: 'none',
     ...(props.textBox.containerStyle
       ? {

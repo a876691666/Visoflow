@@ -38,8 +38,7 @@ const iconStyles = computed<CSSProperties>(() => ({
   position: 'absolute',
   width: `${PROJECTED_TILE_SIZE.width * 0.8 * iconScale.value}px`,
   top: `${-size.value.height + (props.iconBottom ?? 0)}px`,
-  left: `${-size.value.width / 2}px`,
-  pointerEvents: 'none'
+  left: `${-size.value.width / 2}px`
 }));
 
 const handleImageLoad = () => {
