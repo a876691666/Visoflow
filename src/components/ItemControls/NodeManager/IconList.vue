@@ -71,7 +71,7 @@ const keyword = ref('');
 const fileInput = ref<HTMLInputElement>();
 const sceneStore = useSceneStore();
 
-const emit = defineEmits<{
+defineEmits<{
   (e: 'add'): void;
   (e: 'edit', icon: Icon): void;
   (e: 'delete', icon: Icon): void;
