@@ -16,14 +16,14 @@
         transform: transform,
         transformOrigin: 'center',
         background: `repeat url('${gridTileSvg}')`,
-        backgroundSize: '100px 100px'
+        backgroundSize: backgroundSize
       }"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
 import { gsap } from 'gsap';
 import { ProjectionOrientationEnum } from 'src/types';
 import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
@@ -61,11 +61,13 @@ const props = withDefaults(
       strokeOpacity?: number;
       strokeWidth?: number;
       backgroundImage?: string;
+      backgroundScale?: number; // 作为 style 子集配置
     };
   }>(),
   {}
 );
 
+const floorScaleLevel = ref<number>(1);
 watch(
   () => props.style,
   (newStyle) => {
@@ -78,6 +80,14 @@ watch(
     };
 
     gridTileSvg.value = generateBackground(backgroundStyle);
+
+    // 同步缩放档位自 style.backgroundScale
+    if (typeof newStyle?.backgroundScale === 'number') {
+      const lvl = Math.floor(newStyle.backgroundScale);
+      floorScaleLevel.value = Math.max(1, Math.min(4, lvl));
+    } else {
+      floorScaleLevel.value = 1; // 默认
+    }
   },
   { immediate: true }
 );
@@ -106,6 +116,12 @@ watch(
     zoom.value = newZoom;
   },
   { immediate: true }
+);
+
+// 地板缩放（1/2/3/4），用于控制背景网格尺寸 = level * 100px（从 GroundConfig 传入）
+
+const backgroundSize = computed(
+  () => `${floorScaleLevel.value * 100}px ${floorScaleLevel.value * 100}px`
 );
 
 watch(

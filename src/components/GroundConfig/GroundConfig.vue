@@ -135,6 +135,20 @@
         </div>
       </div>
 
+      <!-- 地板缩放配置 -->
+      <div class="config-section">
+        <label class="config-label">地板缩放</label>
+        <input
+          type="range"
+          min="1"
+          max="4"
+          step="1"
+          v-model.number="gridStyle.backgroundScale"
+          @input="updateGroundConfig()"
+        />
+        <div class="value-display">{{ gridStyle.backgroundScale }}x</div>
+      </div>
+
       <!-- 应用全局配置按钮 -->
       <div class="config-section" v-if="configScope === 'current'">
         <button @click="applyGlobalConfig" class="apply-global-btn">
@@ -164,7 +178,8 @@ const gridStyle = reactive({
   fill: 'none',
   stroke: '#000000',
   strokeOpacity: 0.15,
-  strokeWidth: 5
+  strokeWidth: 5,
+  backgroundScale: 1
 });
 
 const presets = [
@@ -220,6 +235,7 @@ const loadCurrentConfig = () => {
       gridStyle.stroke = currentConfig.stroke || '#000000';
       gridStyle.strokeOpacity = currentConfig.strokeOpacity ?? 0.15;
       gridStyle.strokeWidth = currentConfig.strokeWidth ?? 5;
+      gridStyle.backgroundScale = currentConfig.backgroundScale ?? 1;
 
       if (currentConfig.backgroundImage) {
         currentImage.value = currentConfig.backgroundImage;
@@ -235,6 +251,7 @@ const loadCurrentConfig = () => {
       gridStyle.stroke = globalConfig.stroke || '#000000';
       gridStyle.strokeOpacity = globalConfig.strokeOpacity ?? 0.15;
       gridStyle.strokeWidth = globalConfig.strokeWidth ?? 5;
+      gridStyle.backgroundScale = globalConfig.backgroundScale ?? 1;
 
       if (globalConfig.backgroundImage) {
         currentImage.value = globalConfig.backgroundImage;
@@ -324,6 +341,7 @@ const applyGlobalConfig = () => {
     gridStyle.stroke = globalConfig.stroke || '#000000';
     gridStyle.strokeOpacity = globalConfig.strokeOpacity ?? 0.15;
     gridStyle.strokeWidth = globalConfig.strokeWidth ?? 5;
+    gridStyle.backgroundScale = globalConfig.backgroundScale ?? 1;
 
     // 如果全局配置有背景图片，也应用到当前场景
     if (globalConfig.backgroundImage) {
@@ -346,6 +364,7 @@ const resetToDefault = () => {
   gridStyle.stroke = '#000000';
   gridStyle.strokeOpacity = 0.15;
   gridStyle.strokeWidth = 5;
+  gridStyle.backgroundScale = 1;
 
   currentImage.value = '';
   if (fileInput.value) {
@@ -582,5 +601,12 @@ const resetToDefault = () => {
 
 .reset-btn:hover {
   background: #e9ecef;
+}
+
+/***** 地板缩放样式 *****/
+.value-display {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #666;
 }
 </style>

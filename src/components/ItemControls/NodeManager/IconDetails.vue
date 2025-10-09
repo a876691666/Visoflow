@@ -50,19 +50,17 @@
         <span class="checkbox-text">Isometric</span>
       </label>
       <label class="label">
-        <span class="label-text">图标默认缩放（0.1 - 5）</span>
+        <span class="label-text">图标默认缩放（0.5 - 10）</span>
         <div class="range-row">
           <input
             class="range"
             type="range"
             step="0.1"
-            min="0.1"
-            max="5"
-            v-model.number="(local as any).iconScale"
+            min="0.5"
+            max="10"
+            v-model.number="local.iconScale"
           />
-          <span class="hint"
-            >{{ ((local as any).iconScale ?? 1).toFixed(2) }}x</span
-          >
+          <span class="hint">{{ (local.iconScale ?? 1).toFixed(2) }}x</span>
         </div>
       </label>
 
@@ -75,9 +73,9 @@
             step="1"
             min="-200"
             max="200"
-            v-model.number="(local as any).iconBottom"
+            v-model.number="local.iconBottom"
           />
-          <span class="hint">{{ (local as any).iconBottom ?? 0 }}px</span>
+          <span class="hint">{{ local.iconBottom ?? 0 }}px</span>
         </div>
       </label>
 
@@ -118,9 +116,8 @@ const emit = defineEmits<{
 
 const local = reactive<Icon>({ ...(props.value as Icon) });
 // 默认缩放为 1
-if ((local as any).iconScale === undefined) (local as any).iconScale = 1 as any;
-if ((local as any).iconBottom === undefined)
-  (local as any).iconBottom = 0 as any;
+if (local.iconScale === undefined) local.iconScale = 1;
+if (local.iconBottom === undefined) local.iconBottom = 0;
 const isEditing = ref(!!props.isEditing);
 
 watch(
@@ -128,35 +125,29 @@ watch(
   (v) => {
     Object.assign(local, v || {});
     // 保持默认值为 1
-    if ((local as any).iconScale === undefined)
-      (local as any).iconScale = 1 as any;
+    if (local.iconScale === undefined) local.iconScale = 1;
   },
   { deep: true }
 );
 
 const onSubmit = () => {
   const payload: Icon = {
-    ...(local as any),
+    ...local,
     id: local.id,
     name: (local.name || '').trim(),
     url: (local.url || '').trim(),
     collection: local.collection?.trim() || undefined,
     isIsometric: !!local.isIsometric,
     iconScale:
-      (local as any).iconScale !== undefined
-        ? Number((local as any).iconScale)
-        : undefined
+      local.iconScale !== undefined ? Number(local.iconScale) : undefined
   } as Icon;
   // 简单范围约束
-  if ((payload as any).iconScale !== undefined) {
-    (payload as any).iconScale = Math.min(
-      5,
-      Math.max(0.1, (payload as any).iconScale)
-    );
+  if (payload.iconScale !== undefined) {
+    payload.iconScale = Math.min(10, Math.max(0.5, payload.iconScale));
   }
-  if ((payload as any).iconBottom !== undefined) {
-    (payload as any).iconBottom = Math.round(
-      Math.min(200, Math.max(-200, (payload as any).iconBottom))
+  if (payload.iconBottom !== undefined) {
+    payload.iconBottom = Math.round(
+      Math.min(200, Math.max(-200, payload.iconBottom))
     );
   }
   emit('save', payload);

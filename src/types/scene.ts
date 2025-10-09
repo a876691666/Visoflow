@@ -44,6 +44,7 @@ export interface GroundConfig {
   strokeOpacity?: number;
   strokeWidth?: number;
   backgroundImage?: string;
+  backgroundScale?: number;
 }
 
 export interface Scene {

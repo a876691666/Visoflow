@@ -73,14 +73,14 @@
       </label>
 
       <label class="om-label">
-        <span class="om-label-text">图标缩放（对象级，0.1 - 5）</span>
+        <span class="om-label-text">图标缩放（对象级，0.5 - 10）</span>
         <div class="om-range-row">
           <input
             class="om-range"
             type="range"
             step="0.1"
-            min="0.1"
-            max="5"
+            min="0.5"
+            max="10"
             v-model.number="local.iconScale"
             :disabled="local.inheritIconScale"
           />
@@ -287,7 +287,7 @@ const buildPayloadFromLocal = (): Partial<ViewItem> => {
     delete payload.iconScale;
   } else {
     payload.inheritIconScale = false;
-    payload.iconScale = clamp(toNumberOr(local.iconScale, 1), 0.1, 5);
+    payload.iconScale = clamp(toNumberOr(local.iconScale, 1), 0.5, 10);
   }
   // 图标底部偏移
   if (local.inheritIconBottom) {
