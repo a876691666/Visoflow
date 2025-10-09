@@ -18,7 +18,7 @@ export const viewItemSchema = z.object({
   // 新增：是否显示名称
   showName: z.boolean().optional(),
   // 对象级图标缩放倍率（优先级最高），允许 0.1 - 5
-  iconScale: z.number().min(0.1).max(5).optional(),
+  iconScale: z.number().optional(),
   // 对象级图标底部偏移（像素），优先级高于图标默认值
   iconBottom: z.number().optional(),
   // 显性继承控制（为 true 时不写入对应数值字段，走图标/视图/全局继承）

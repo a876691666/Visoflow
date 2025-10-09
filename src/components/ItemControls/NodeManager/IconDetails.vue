@@ -72,7 +72,7 @@
             type="range"
             step="1"
             min="-200"
-            max="200"
+            max="500"
             v-model.number="local.iconBottom"
           />
           <span class="hint">{{ local.iconBottom ?? 0 }}px</span>
@@ -146,9 +146,7 @@ const onSubmit = () => {
     payload.iconScale = Math.min(10, Math.max(0.5, payload.iconScale));
   }
   if (payload.iconBottom !== undefined) {
-    payload.iconBottom = Math.round(
-      Math.min(200, Math.max(-200, payload.iconBottom))
-    );
+    payload.iconBottom = Math.round(payload.iconBottom);
   }
   emit('save', payload);
 };

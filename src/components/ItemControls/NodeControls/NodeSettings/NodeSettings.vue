@@ -64,13 +64,13 @@
           type="range"
           class="slider"
           min="-200"
-          max="200"
+          max="500"
           step="1"
-          :value="(nodeData as any).iconBottom ?? 0"
+          :value="nodeData.iconBottom ?? 0"
           @input="handleIconBottomChange"
         />
         <div class="slider-marks" :style="marksStyles">
-          <span class="mark">{{ (nodeData as any).iconBottom ?? 0 }}px</span>
+          <span class="mark">{{ nodeData.iconBottom ?? 0 }}px</span>
         </div>
       </div>
     </Section>
@@ -123,8 +123,8 @@ const getConfig = () => ({
   name: modelItemData.value.name,
   description: modelItemData.value.description,
   labelHeight: nodeData.value.labelHeight,
-  iconScale: (nodeData.value as any).iconScale ?? 1,
-  iconBottom: (nodeData.value as any).iconBottom ?? 0
+  iconScale: nodeData.value.iconScale ?? 1,
+  iconBottom: nodeData.value.iconBottom ?? 0
 });
 
 const applyConfig = (cfg: any) => {
@@ -192,23 +192,18 @@ const handleLabelHeightChange = (event: Event) => {
   props.onViewItemUpdated({ labelHeight });
 };
 
-const clampIconScale = (n: number) => Math.min(5, Math.max(0.1, n));
 const handleIconScaleChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const val = parseFloat(target.value);
-  const next = clampIconScale(val);
-  nodeData.value.iconScale = next as any;
-  props.onViewItemUpdated({ iconScale: next } as any);
+  nodeData.value.iconScale = val;
+  props.onViewItemUpdated({ iconScale: val });
 };
 
-const clampIconBottom = (n: number) =>
-  Math.round(Math.min(200, Math.max(-200, n)));
 const handleIconBottomChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const val = parseFloat(target.value);
-  const next = clampIconBottom(val);
-  (nodeData.value as any).iconBottom = next as any;
-  props.onViewItemUpdated({ iconBottom: next } as any);
+  nodeData.value.iconBottom = val;
+  props.onViewItemUpdated({ iconBottom: val });
 };
 
 const handleDelete = () => {

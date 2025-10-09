@@ -84,9 +84,7 @@
             v-model.number="local.iconScale"
             :disabled="local.inheritIconScale"
           />
-          <span class="om-hint"
-            >{{ ((local.iconScale ?? 1) as number).toFixed(2) }}x</span
-          >
+          <span class="om-hint">{{ (local.iconScale ?? 1).toFixed(2) }}x</span>
         </div>
         <label class="om-inline">
           <input type="checkbox" v-model="local.inheritIconScale" />
@@ -102,11 +100,11 @@
             type="range"
             step="1"
             min="-200"
-            max="200"
+            max="500"
             v-model.number="local.iconBottom"
             :disabled="local.inheritIconBottom"
           />
-          <span class="om-hint">{{ (local.iconBottom ?? 0) as number }}px</span>
+          <span class="om-hint">{{ local.iconBottom ?? 0 }}px</span>
         </div>
         <label class="om-inline">
           <input type="checkbox" v-model="local.inheritIconBottom" />
@@ -327,7 +325,7 @@ const applyClipboardConfig = (cfg: any) => {
     local.inheritIconScale = !!cfg.inheritIconScale;
   if ('iconScale' in cfg || 'inheritIconScale' in cfg) {
     if (local.inheritIconScale) delete (local as any).iconScale;
-    else local.iconScale = clamp(toNumberOr(cfg.iconScale, 1), 0.1, 5) as any;
+    else local.iconScale = clamp(toNumberOr(cfg.iconScale, 1), 0.5, 10) as any;
   }
 
   if ('inheritIconBottom' in cfg)
