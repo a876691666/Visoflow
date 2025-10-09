@@ -1,6 +1,19 @@
 <template>
   <div class="om-form-wrap">
     <h4 class="om-form-title">{{ isEditing ? '编辑对象' : '新增对象' }}</h4>
+
+    <!-- 新增：配置复制/粘贴工具 -->
+    <div
+      class="om-form-actions"
+      style="justify-content: flex-end; margin-bottom: 6px"
+    >
+      <ConfigClipboard
+        storageKey="visoflow.object.config"
+        :get-config="getClipboardConfig"
+        :apply-config="applyClipboardConfig"
+      />
+    </div>
+
     <form class="om-form" @submit.prevent="onSave">
       <label class="om-label">
         <span class="om-label-text">名称（可选）</span>
@@ -126,13 +139,14 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, watch, shallowRef } from 'vue';
+import { reactive, watch, shallowRef, nextTick } from 'vue';
 import type { ViewItem } from '@/types';
 import MarkdownEditor from '@/components/MarkdownEditor/MarkdownEditor.vue';
 import { VIEW_ITEM_DEFAULTS } from 'src/config';
 import IconPicker from './IconPicker.vue';
 import { useSceneStore } from 'src/stores/provider';
 import { generateId } from 'src/utils';
+import ConfigClipboard from '../components/ConfigClipboard.vue';
 
 const emit = defineEmits<{ (e: 'cancel'): void }>();
 
@@ -286,6 +300,49 @@ const buildPayloadFromLocal = (): Partial<ViewItem> => {
   return payload as Partial<ViewItem>;
 };
 
+// 新增：导出到剪贴板组件的配置（localStorage）
+const getClipboardConfig = () => {
+  const p = buildPayloadFromLocal() as any;
+  return {
+    showName: p.showName,
+    labelHeight: p.labelHeight,
+    inheritIconScale: p.inheritIconScale,
+    ...(p.inheritIconScale ? {} : { iconScale: p.iconScale }),
+    inheritIconBottom: p.inheritIconBottom,
+    ...(p.inheritIconBottom ? {} : { iconBottom: p.iconBottom })
+  };
+};
+
+const applyClipboardConfig = (cfg: any) => {
+  if (!cfg || typeof cfg !== 'object') return;
+  // 仅应用：显示名称、标签高度、图标缩放/偏移以及继承开关
+  if ('showName' in cfg) local.showName = !!cfg.showName;
+  if ('labelHeight' in cfg)
+    local.labelHeight = toNumberOr(
+      cfg.labelHeight,
+      local.labelHeight as number
+    );
+
+  if ('inheritIconScale' in cfg)
+    local.inheritIconScale = !!cfg.inheritIconScale;
+  if ('iconScale' in cfg || 'inheritIconScale' in cfg) {
+    if (local.inheritIconScale) delete (local as any).iconScale;
+    else local.iconScale = clamp(toNumberOr(cfg.iconScale, 1), 0.1, 5) as any;
+  }
+
+  if ('inheritIconBottom' in cfg)
+    local.inheritIconBottom = !!cfg.inheritIconBottom;
+  if ('iconBottom' in cfg || 'inheritIconBottom' in cfg) {
+    if (local.inheritIconBottom) delete (local as any).iconBottom;
+    else local.iconBottom = toNumberOr(cfg.iconBottom, 0) as any;
+  }
+
+  // 粘贴后自动保存：等待响应式更新完成再保存
+  nextTick(() => {
+    if (canSubmit.value) onSave();
+  });
+};
+
 const onSave = () => {
   const payload = buildPayloadFromLocal();
 
@@ -314,8 +371,8 @@ const onCopy = () => {
   if (payload.name) payload.name = `${payload.name} 副本`;
   // 可选：略微平移，避免完全重叠
   payload.tile = {
-    x: toNumberOr(local.tile.x, 0),
-    y: toNumberOr(local.tile.y, 0)
+    x: toNumberOr(local.tile.x, 0) + 1,
+    y: toNumberOr(local.tile.y, 0) + 1
   };
   store.addItem(payload as ViewItem);
   // 复制后仍保持当前编辑对象，不切换到新对象
@@ -401,5 +458,8 @@ const onDelete = () => {
   background: #d32f2f;
   color: #fff;
   border: 1px solid #d32f2f;
+}
+.om-range {
+  width: 100%;
 }
 </style>

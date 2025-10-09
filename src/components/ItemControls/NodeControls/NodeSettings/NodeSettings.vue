@@ -1,5 +1,13 @@
 <template>
   <div class="node-settings">
+    <Section title="配置复制/粘贴">
+      <ConfigClipboard
+        storageKey="visoflow.node.config"
+        :get-config="getConfig"
+        :apply-config="applyConfig"
+      />
+    </Section>
+
     <Section title="Name">
       <input
         type="text"
@@ -82,6 +90,7 @@ import type { ViewItem } from '@/types';
 import MarkdownEditor from '@/components/MarkdownEditor/MarkdownEditor.vue';
 import DeleteButton from '../../components/DeleteButton.vue';
 import Section from '../../components/Section.vue';
+import ConfigClipboard from '../../components/ConfigClipboard.vue';
 
 export type NodeUpdates = {
   model: Partial<ViewItem>;
@@ -108,6 +117,27 @@ const nodeData = ref<ViewItem>({
   id: '',
   labelHeight: 120
 } as any);
+
+// 简化复制/粘贴：支持 name/description（模型），labelHeight/iconScale/iconBottom（视图）
+const getConfig = () => ({
+  name: modelItemData.value.name,
+  description: modelItemData.value.description,
+  labelHeight: nodeData.value.labelHeight,
+  iconScale: (nodeData.value as any).iconScale ?? 1,
+  iconBottom: (nodeData.value as any).iconBottom ?? 0
+});
+
+const applyConfig = (cfg: any) => {
+  if (!cfg || typeof cfg !== 'object') return;
+  if ('name' in cfg) props.onModelItemUpdated({ name: cfg.name });
+  if ('description' in cfg)
+    props.onModelItemUpdated({ description: cfg.description });
+  const viewUpdates: any = {};
+  if ('labelHeight' in cfg) viewUpdates.labelHeight = cfg.labelHeight;
+  if ('iconScale' in cfg) viewUpdates.iconScale = cfg.iconScale;
+  if ('iconBottom' in cfg) viewUpdates.iconBottom = cfg.iconBottom;
+  if (Object.keys(viewUpdates).length) props.onViewItemUpdated(viewUpdates);
+};
 
 const marks = ref([60, 100, 140, 180, 220, 260, 280]);
 

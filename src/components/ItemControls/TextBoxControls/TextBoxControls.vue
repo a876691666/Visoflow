@@ -1,6 +1,15 @@
 <template>
   <ControlsContainer>
     <Section>
+      <!-- 新增：配置复制粘贴 -->
+      <ConfigClipboard
+        storageKey="visoflow.textbox.config"
+        :get-config="getConfig"
+        :apply-config="applyConfig"
+      />
+    </Section>
+
+    <Section>
       <div class="input-group">
         <label class="input-label">Text Content</label>
         <textarea
@@ -163,6 +172,7 @@ import DeleteButton from '../components/DeleteButton.vue';
 import { useSceneStore } from 'src/stores/provider';
 import { syncTextBox } from 'src/stores/reducers/textBox';
 import { TEXTBOX_FONT_WEIGHT } from 'src/config';
+import ConfigClipboard from '../components/ConfigClipboard.vue';
 
 interface Props {
   id: string;
@@ -174,6 +184,40 @@ const sceneStore = useSceneStore();
 const textBoxRef = useTextBox(props.id);
 
 const textBox = computed(() => textBoxRef.value);
+
+// 复制粘贴仅针对样式与尺寸/布局字段
+const getConfig = () => {
+  const tb = textBox.value;
+  if (!tb) return {};
+  const cfg = {
+    fontSize: tb.fontSize,
+    textStyle: { ...(tb.textStyle ?? {}) },
+    containerStyle: { ...(tb.containerStyle ?? {}) },
+    orientation: tb.orientation
+  };
+  return cfg;
+};
+
+const applyConfig = (cfg: any) => {
+  const tb = textBox.value;
+  if (!tb || !cfg || typeof cfg !== 'object') return;
+  if ('fontSize' in cfg)
+    sceneStore.updateTextBox(tb.id, { fontSize: cfg.fontSize });
+  if ('textStyle' in cfg)
+    sceneStore.updateTextBox(tb.id, {
+      textStyle: { ...(tb.textStyle ?? {}), ...(cfg.textStyle ?? {}) }
+    });
+  if ('containerStyle' in cfg)
+    sceneStore.updateTextBox(tb.id, {
+      containerStyle: {
+        ...(tb.containerStyle ?? {}),
+        ...(cfg.containerStyle ?? {})
+      }
+    });
+  if ('orientation' in cfg)
+    sceneStore.updateTextBox(tb.id, { orientation: cfg.orientation });
+  syncTextBox(tb.id, sceneStore);
+};
 
 // 简化：仅支持 #RGB / #RRGGBB，其他情况回退为 #000000
 const normalizeHex = (color?: string): string => {

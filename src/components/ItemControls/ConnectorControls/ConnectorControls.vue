@@ -1,6 +1,15 @@
 <template>
   <ControlsContainer>
     <Section>
+      <!-- 新增：配置复制粘贴 -->
+      <ConfigClipboard
+        storageKey="visoflow.connector.config"
+        :get-config="getConfig"
+        :apply-config="applyConfig"
+      />
+    </Section>
+
+    <Section>
       <div class="input-group">
         <label class="input-label" :style="labelStyles">描述</label>
         <input
@@ -190,6 +199,7 @@ import ControlsContainer from '../components/ControlsContainer.vue';
 import Section from '../components/Section.vue';
 import DeleteButton from '../components/DeleteButton.vue';
 import { useSceneStore } from 'src/stores/provider';
+import ConfigClipboard from '../components/ConfigClipboard.vue';
 
 interface Props {
   id: string;
@@ -216,6 +226,60 @@ const connectorData = ref<any>({
   flowLength: 100,
   showDirectionArrow: true
 });
+
+// 简化的复制/粘贴 API
+const getConfig = () => {
+  const {
+    description,
+    color,
+    backgroundColor,
+    width,
+    style,
+    dashLength,
+    dashGap,
+    showBorder,
+    showFlow,
+    flowHeadColor,
+    flowTailColor,
+    flowLength,
+    showDirectionArrow
+  } = connectorData.value || {};
+  return {
+    description,
+    color,
+    backgroundColor,
+    width,
+    style,
+    dashLength,
+    dashGap,
+    showBorder,
+    showFlow,
+    flowHeadColor,
+    flowTailColor,
+    flowLength,
+    showDirectionArrow
+  };
+};
+
+const applyConfig = (cfg: any) => {
+  if (!cfg || typeof cfg !== 'object') return;
+  updateConnector({
+    description: cfg.description ?? connectorData.value.description,
+    color: cfg.color ?? connectorData.value.color,
+    backgroundColor: cfg.backgroundColor ?? connectorData.value.backgroundColor,
+    width: cfg.width ?? connectorData.value.width,
+    style: cfg.style ?? connectorData.value.style,
+    dashLength: cfg.dashLength ?? connectorData.value.dashLength,
+    dashGap: cfg.dashGap ?? connectorData.value.dashGap,
+    showBorder: cfg.showBorder ?? connectorData.value.showBorder,
+    showFlow: cfg.showFlow ?? connectorData.value.showFlow,
+    flowHeadColor: cfg.flowHeadColor ?? connectorData.value.flowHeadColor,
+    flowTailColor: cfg.flowTailColor ?? connectorData.value.flowTailColor,
+    flowLength: cfg.flowLength ?? connectorData.value.flowLength,
+    showDirectionArrow:
+      cfg.showDirectionArrow ?? connectorData.value.showDirectionArrow
+  });
+};
 
 const styleOptions = ref(['SOLID', 'DASHED', 'DOTTED']);
 

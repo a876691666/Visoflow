@@ -1,5 +1,14 @@
 <template>
   <ControlsContainer>
+    <Section>
+      <!-- 新增：配置复制粘贴 -->
+      <ConfigClipboard
+        storageKey="visoflow.rectangle.config"
+        :get-config="getConfig"
+        :apply-config="applyConfig"
+      />
+    </Section>
+
     <!-- 单项样式配置（使用浏览器默认控件） -->
     <Section title="Fill">
       <input
@@ -108,6 +117,7 @@ import ControlsContainer from '../components/ControlsContainer.vue';
 import Section from '../components/Section.vue';
 import DeleteButton from '../components/DeleteButton.vue';
 import { useSceneStore } from 'src/stores/provider';
+import ConfigClipboard from '../components/ConfigClipboard.vue';
 
 interface Props {
   id: string;
@@ -122,6 +132,16 @@ const rectangleData = ref<any>({
   id: '',
   style: {}
 });
+
+// 简化复制粘贴：仅对 style 全量复制
+const getConfig = () => ({ ...(rectangleData.value.style ?? {}) });
+const applyConfig = (cfg: any) => {
+  if (!cfg || typeof cfg !== 'object') return;
+  rectangleData.value.style = { ...cfg };
+  sceneStore.updateRectangle(rectangleData.value.id, { style: { ...cfg } });
+  styleText.value = JSON.stringify(rectangleData.value.style ?? {}, null, 2);
+  styleError.value = '';
+};
 
 const styleText = ref('');
 const styleError = ref('');
