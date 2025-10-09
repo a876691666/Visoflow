@@ -3,7 +3,7 @@ import { Icon } from './model';
 import { ItemReference } from './scene';
 
 interface AddItemControls {
-  type: 'NODE_MANAGER' | 'OBJECT_MANAGER' | 'VIEW_MANAGER';
+  type: 'NODE_MANAGER' | 'OBJECT_MANAGER' | 'VIEW_MANAGER' | 'GROUND_CONFIG';
 }
 
 export type ItemControls = ItemReference | AddItemControls;
@@ -146,6 +146,13 @@ export interface UiState {
   mouse: Mouse;
   rendererEl: HTMLDivElement | null;
   enableDebugTools: boolean;
+  groundConfig?: {
+    fill?: string;
+    stroke?: string;
+    strokeOpacity?: number;
+    strokeWidth?: number;
+    backgroundImage?: string;
+  };
 }
 
 export interface UiStateActions {
@@ -166,6 +173,7 @@ export interface UiStateActions {
   setMouse: (mouse: Mouse) => void;
   setRendererEl: (el: HTMLDivElement) => void;
   setEnableDebugTools: (enabled: boolean) => void;
+  setGroundConfig: (config: UiState['groundConfig']) => void;
 }
 
 export type UiStateStore = UiState & UiStateActions;

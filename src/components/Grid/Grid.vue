@@ -15,7 +15,8 @@
       :style="{
         transform: transform,
         transformOrigin: 'center',
-        background: `repeat url('${gridTileSvg}')`
+        background: `repeat url('${gridTileSvg}')`,
+        backgroundSize: '100px 100px'
       }"
     />
   </div>
@@ -31,6 +32,12 @@ import { useResizeObserver } from 'src/hooks/useResizeObserver';
 import { getIsoMatrix } from 'src/utils';
 
 const generateBackground = (style: any) => {
+  // 如果传入了背景图片，使用背景图片
+  if (style.backgroundImage) {
+    return style.backgroundImage;
+  }
+
+  // 否则生成SVG网格
   const svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" >
   <g stroke="${style.stroke}" stroke-opacity="${style.strokeOpacity}" stroke-width="${style.strokeWidth}" stroke-alignment="center">
     <polyline points="0,0 100,0 100,100 0,100 0,0" fill="${style.fill}" />
@@ -53,6 +60,7 @@ const props = withDefaults(
       stroke?: string;
       strokeOpacity?: number;
       strokeWidth?: number;
+      backgroundImage?: string;
     };
   }>(),
   {}
@@ -61,12 +69,15 @@ const props = withDefaults(
 watch(
   () => props.style,
   (newStyle) => {
-    gridTileSvg.value = generateBackground({
+    const backgroundStyle = {
       fill: newStyle?.fill || 'none',
       stroke: newStyle?.stroke || '#000000',
       strokeOpacity: newStyle?.strokeOpacity ?? 0.15,
-      strokeWidth: newStyle?.strokeWidth ?? 5
-    });
+      strokeWidth: newStyle?.strokeWidth ?? 5,
+      backgroundImage: newStyle?.backgroundImage
+    };
+
+    gridTileSvg.value = generateBackground(backgroundStyle);
   },
   { immediate: true }
 );

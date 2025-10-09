@@ -24,6 +24,15 @@ const dragItems = (
       scene.updateItem(item.id, {
         tile: CoordsUtils.add(node.tile, delta)
       });
+
+      scene.connectors.value.forEach((connector) => {
+        const affectedAnchors = connector.anchors.filter((anchor) => {
+          return anchor.ref.item === node.id;
+        });
+        if (affectedAnchors.length > 0) {
+          syncConnector(connector.id, scene);
+        }
+      });
     } else if (item.type === 'RECTANGLE') {
       const rectangle = getItemByIdOrThrow(
         scene.rectangles.value,

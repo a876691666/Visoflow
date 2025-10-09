@@ -36,7 +36,13 @@ export const useUiStateStore = defineStore('uiState', {
     itemControls: null,
     enableDebugTools: false,
     zoom: INITIAL_UI_STATE.zoom,
-    scroll: INITIAL_UI_STATE.scroll
+    scroll: INITIAL_UI_STATE.scroll,
+    groundConfig: {
+      fill: 'none',
+      stroke: '#000000',
+      strokeOpacity: 0.15,
+      strokeWidth: 5
+    }
   }),
 
   actions: {
@@ -114,6 +120,10 @@ export const useUiStateStore = defineStore('uiState', {
 
     setRendererEl(el: HTMLDivElement | null) {
       this.rendererEl = el;
+    },
+
+    setGroundConfig(config: UiState['groundConfig']) {
+      this.groundConfig = config;
     }
   }
 });

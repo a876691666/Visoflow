@@ -12,7 +12,7 @@
         <template #icon>
           <div class="tool-text">
             <span class="tool-label">{{ tool.label }}</span>
-            <span v-if="idx < 8" class="shortcut-badge">{{ idx + 1 }}</span>
+            <span v-if="idx < 9" class="shortcut-badge">{{ idx + 1 }}</span>
           </div>
         </template>
       </IconButton>
@@ -39,7 +39,7 @@ interface Tool {
 
 const uiStateStore = useIsoflowUiStateStore<any>();
 
-// 1-8 顺序：拖拽、移动、连线、区域、文字、图标管理、对象管理、视图管理
+// 1-9 顺序：拖拽、移动、连线、区域、文字、图标管理、对象管理、视图管理、地面配置
 const rawTools = ref<Omit<Tool, 'isActive'>[]>([
   { id: 'cursor', name: '拖拽', label: '拖拽' },
   { id: 'pan', name: '移动', label: '移动' },
@@ -48,7 +48,8 @@ const rawTools = ref<Omit<Tool, 'isActive'>[]>([
   { id: 'textbox', name: '文字', label: '文字' },
   { id: 'icon', name: '图标管理', label: '图标管理' },
   { id: 'objectManager', name: '对象管理', label: '对象管理' },
-  { id: 'viewManager', name: '视图管理', label: '视图管理' }
+  { id: 'viewManager', name: '视图管理', label: '视图管理' },
+  { id: 'groundConfig', name: '地面配置', label: '地面配置' }
 ]);
 
 const tools = computed<Tool[]>(() => {
@@ -67,7 +68,9 @@ const tools = computed<Tool[]>(() => {
       (t.id === 'objectManager' &&
         uiStateStore.itemControls?.type === 'OBJECT_MANAGER') ||
       (t.id === 'viewManager' &&
-        uiStateStore.itemControls?.type === 'VIEW_MANAGER')
+        uiStateStore.itemControls?.type === 'VIEW_MANAGER') ||
+      (t.id === 'groundConfig' &&
+        uiStateStore.itemControls?.type === 'GROUND_CONFIG')
   }));
 });
 
@@ -95,9 +98,9 @@ onMounted(() => {
     if (isEditable) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
 
-    // 1-8 映射到工具顺序
+    // 1-9 映射到工具顺序
     const key = e.key;
-    if (/^[1-8]$/.test(key)) {
+    if (/^[1-9]$/.test(key)) {
       const idx = parseInt(key, 10) - 1;
       const tool = rawTools.value[idx];
       if (tool) {
@@ -204,6 +207,16 @@ const handleToolClick = (tool: Tool) => {
         });
       }
       uiStateStore.setItemControls({ type: 'VIEW_MANAGER' } as any);
+      break;
+    case 'groundConfig':
+      if (uiStateStore.mode?.type !== 'CURSOR') {
+        uiStateStore.setMode({
+          type: 'CURSOR',
+          showCursor: true,
+          mousedownItem: null
+        });
+      }
+      uiStateStore.setItemControls({ type: 'GROUND_CONFIG' } as any);
       break;
   }
 };

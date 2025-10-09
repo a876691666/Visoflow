@@ -21,6 +21,7 @@ import NodeManager from './NodeManager/NodeManager.vue';
 import ObjectManager from './ObjectManager/ObjectManager.vue';
 import ObjectDetailsPanel from './ObjectManager/ObjectDetailsPanel.vue';
 import ViewManager from './ViewManager/ViewManager.vue';
+import GroundConfig from '../GroundConfig/GroundConfig.vue';
 
 const uiStateStore = useIsoflowUiStateStore<any>();
 
@@ -36,6 +37,7 @@ const currentComponent = computed(() => {
   if (value.type === 'NODE_MANAGER') return NodeManager;
   if (value.type === 'OBJECT_MANAGER') return ObjectManager;
   if (value.type === 'VIEW_MANAGER') return ViewManager;
+  if (value.type === 'GROUND_CONFIG') return GroundConfig;
 
   // 具体对象的控制面板
   switch (value.type) {
@@ -60,6 +62,7 @@ const currentProps = computed(() => {
   if (value.type === 'NODE_MANAGER') return {};
   if (value.type === 'OBJECT_MANAGER') return {};
   if (value.type === 'VIEW_MANAGER') return {};
+  if (value.type === 'GROUND_CONFIG') return {};
   if ('id' in value) return { id: value.id };
   return {};
 });

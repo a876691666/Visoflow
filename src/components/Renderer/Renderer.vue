@@ -9,7 +9,7 @@
     <!-- Grid -->
     <div v-if="isShowGrid" class="grid-container">
       <SceneLayer>
-        <Grid :style="model?.global?.grid?.style" />
+        <Grid :style="gridStyle" />
       </SceneLayer>
     </div>
 
@@ -59,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import { useInteractionManager } from 'src/interaction/useInteractionManager';
 import type { RendererProps } from 'src/types/rendererProps';
@@ -98,6 +98,18 @@ const { setInteractionsElement } = useInteractionManager();
 
 // Show grid reactive value
 const isShowGrid = ref(true);
+
+// Computed grid style that merges model config with UI state ground config
+const gridStyle = computed(() => {
+  const modelGridStyle = model.value?.global?.grid?.style || {};
+  const uiGroundConfig = uiStateStore.groundConfig || {};
+
+  // UI ground config takes precedence over model config
+  return {
+    ...modelGridStyle,
+    ...uiGroundConfig
+  };
+});
 
 const updateShowGrid = () => {
   isShowGrid.value = props.showGrid === undefined || props.showGrid;
