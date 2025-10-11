@@ -15,7 +15,7 @@ export const getRandom = (min: number, max: number) => {
 };
 
 export const roundToOneDecimalPlace = (num: number) => {
-  return Math.round(num * 10) / 10;
+  return Math.round(num * 100) / 100;
 };
 
 interface GetColorVariantOpts {

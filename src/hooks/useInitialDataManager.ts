@@ -63,21 +63,19 @@ export const useInitialDataManager = (
 
     uiStateStore.setView(view.value.id);
 
-    if (initialData.fitToView) {
-      const rendererSize = uiStateStore.rendererEl?.getBoundingClientRect();
+    const rendererSize = uiStateStore.rendererEl?.getBoundingClientRect();
 
-      const { zoom, scroll } = getFitToViewParams(view.value, {
-        width: rendererSize?.width ?? 0,
-        height: rendererSize?.height ?? 0
-      });
+    const { zoom, scroll } = getFitToViewParams(view.value, {
+      width: rendererSize?.width ?? 0,
+      height: rendererSize?.height ?? 0
+    });
 
-      uiStateStore.setScroll({
-        position: scroll,
-        offset: CoordsUtils.zero()
-      });
+    uiStateStore.setScroll({
+      position: scroll,
+      offset: CoordsUtils.zero()
+    });
 
-      uiStateStore.setZoom(zoom);
-    }
+    uiStateStore.setZoom(zoom);
 
     const categoriesState: IconCollectionState[] = categoriseIcons(
       initialData.icons

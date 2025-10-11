@@ -2,11 +2,11 @@
   <div
     class="grid-component"
     :style="{
-      width: '50000px',
-      height: '50000px',
+      width: '500000px',
+      height: '500000px',
       position: 'absolute',
-      left: '-25072px',
-      top: '-25000px'
+      left: '-250072px',
+      top: '-250000px'
     }"
   >
     <div
