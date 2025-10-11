@@ -51,6 +51,18 @@
       </label>
     </Section>
 
+    <!-- 新增：是否直线 -->
+    <Section title="直线连接">
+      <label>
+        <input
+          type="checkbox"
+          :checked="!!connectorData.isStraight"
+          @input="handleIsStraightChange"
+        />
+        开启
+      </label>
+    </Section>
+
     <Section title="宽度">
       <div class="slider-container">
         <input
@@ -174,6 +186,25 @@
       </div>
     </Section>
 
+    <!-- 新增：流光速度（周期时长） -->
+    <Section title="流光速度">
+      <div class="slider-container">
+        <input
+          type="range"
+          min="0.5"
+          max="10"
+          step="0.1"
+          :value="connectorData.flowDuration ?? 2"
+          @input="handleFlowDurationChange"
+          class="slider"
+          :style="sliderStyles"
+        />
+        <span class="slider-value"
+          >{{ (connectorData.flowDuration ?? 2).toFixed(1) }}s</span
+        >
+      </div>
+    </Section>
+
     <!-- 指引箭头显示开关 -->
     <Section title="显示指引箭头">
       <label>
@@ -200,6 +231,7 @@ import Section from '../components/Section.vue';
 import DeleteButton from '../components/DeleteButton.vue';
 import { useSceneStore } from 'src/stores/provider';
 import ConfigClipboard from '../components/ConfigClipboard.vue';
+import { syncConnector } from 'src/stores/reducers/connector';
 
 interface Props {
   id: string;
@@ -220,10 +252,14 @@ const connectorData = ref<any>({
   dashGap: undefined,
   // 新增默认值
   showBorder: false,
+  // 新增：直线
+  isStraight: false,
   showFlow: false,
   flowHeadColor: '',
   flowTailColor: '',
   flowLength: 100,
+  // 新增：流光速度（秒）
+  flowDuration: 2,
   showDirectionArrow: true
 });
 
@@ -238,10 +274,14 @@ const getConfig = () => {
     dashLength,
     dashGap,
     showBorder,
+    // include isStraight
+    isStraight,
     showFlow,
     flowHeadColor,
     flowTailColor,
     flowLength,
+    // include flowDuration
+    flowDuration,
     showDirectionArrow
   } = connectorData.value || {};
   return {
@@ -253,10 +293,12 @@ const getConfig = () => {
     dashLength,
     dashGap,
     showBorder,
+    isStraight,
     showFlow,
     flowHeadColor,
     flowTailColor,
     flowLength,
+    flowDuration,
     showDirectionArrow
   };
 };
@@ -272,10 +314,14 @@ const applyConfig = (cfg: any) => {
     dashLength: cfg.dashLength ?? connectorData.value.dashLength,
     dashGap: cfg.dashGap ?? connectorData.value.dashGap,
     showBorder: cfg.showBorder ?? connectorData.value.showBorder,
+    // apply isStraight
+    isStraight: cfg.isStraight ?? connectorData.value.isStraight,
     showFlow: cfg.showFlow ?? connectorData.value.showFlow,
     flowHeadColor: cfg.flowHeadColor ?? connectorData.value.flowHeadColor,
     flowTailColor: cfg.flowTailColor ?? connectorData.value.flowTailColor,
     flowLength: cfg.flowLength ?? connectorData.value.flowLength,
+    // apply flowDuration
+    flowDuration: cfg.flowDuration ?? connectorData.value.flowDuration,
     showDirectionArrow:
       cfg.showDirectionArrow ?? connectorData.value.showDirectionArrow
   });
@@ -377,6 +423,12 @@ const handleShowBorderChange = (event: Event) => {
   updateConnector({ showBorder: !!target.checked });
 };
 
+const handleIsStraightChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  // 更新配置并重算路径
+  updateConnector({ isStraight: !!target.checked }, { resyncPath: true });
+};
+
 const handleShowFlowChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   updateConnector({ showFlow: !!target.checked });
@@ -398,12 +450,22 @@ const handleFlowLengthChange = (event: Event) => {
   updateConnector({ flowLength: isNaN(flowLength) ? 100 : flowLength });
 };
 
+// 新增：流光速度（周期时长）
+const handleFlowDurationChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  let sec = parseFloat(target.value);
+  if (isNaN(sec)) sec = 2;
+  // 范围限制 0.5s - 10s
+  sec = Math.min(10, Math.max(0.5, sec));
+  updateConnector({ flowDuration: sec });
+};
+
 const handleShowDirectionArrowChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   updateConnector({ showDirectionArrow: !!target.checked });
 };
 
-const updateConnector = (updates: any) => {
+const updateConnector = (updates: any, options?: { resyncPath?: boolean }) => {
   connectorData.value = {
     ...connectorData.value,
     ...updates,
@@ -411,6 +473,18 @@ const updateConnector = (updates: any) => {
   };
 
   sceneStore.updateConnector(props.id, connectorData.value);
+
+  // 如果需要，触发路径重算
+  if (
+    options?.resyncPath ||
+    Object.prototype.hasOwnProperty.call(updates, 'isStraight')
+  ) {
+    try {
+      syncConnector(props.id, sceneStore as any);
+    } catch (e) {
+      // noop
+    }
+  }
 };
 
 const handleDelete = () => {

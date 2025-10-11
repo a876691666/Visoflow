@@ -34,24 +34,28 @@
         :base-color="mainStroke"
         :head-color="flowHeadColor"
         :tail-color="flowTailColor"
+        :duration="`${flowDuration}s`"
         use-ball-gradient
       />
 
-      <!-- 锚点 (仅在选中时显示) -->
-      <g
-        v-if="props.isSelected"
-        v-for="anchor in anchorPositions"
-        :key="anchor.id"
-      >
-        <Circle :tile="anchor" :radius="18" fill="white" :fill-opacity="0.7" />
-        <Circle
-          :tile="anchor"
-          :radius="12"
-          stroke="black"
-          fill="white"
-          :stroke-width="6"
-        />
-      </g>
+      <template v-if="props.isSelected">
+        <!-- 锚点 (仅在选中时显示) -->
+        <g v-for="anchor in anchorPositions" :key="anchor.id">
+          <Circle
+            :tile="anchor"
+            :radius="18"
+            fill="white"
+            :fill-opacity="0.7"
+          />
+          <Circle
+            :tile="anchor"
+            :radius="12"
+            stroke="black"
+            fill="white"
+            :stroke-width="6"
+          />
+        </g>
+      </template>
 
       <!-- 方向指示器 -->
       <g
@@ -113,6 +117,10 @@ interface ConnectorWithPath {
   flowLength?: number;
   // 新增：是否显示指引箭头
   showDirectionArrow?: boolean;
+  // 新增：是否直线（仅渲染层使用）
+  isStraight?: boolean;
+  // 新增：流光速度（周期秒）
+  flowDuration?: number;
   path?: {
     tiles: Coords[];
     rectangle: {
@@ -151,6 +159,7 @@ const showDirectionArrow = ref(true);
 const flowHeadColor = ref<string>('');
 const flowTailColor = ref<string>('');
 const flowLength = ref<number>(100);
+const flowDuration = ref<number>(2);
 const isVisible = ref(false);
 
 // 常量
@@ -176,9 +185,37 @@ const updateConnector = () => {
     to: connectorPath.rectangle.to
   });
 
+  // 预备当前视图用于锚点解析
+  const currentView = sceneStore.getCurrentView();
+
+  // 生成渲染用 tiles：
+  // - 普通模式：使用 path.tiles（由 getConnectorPath 计算）
+  // - 直线模式：忽略中间拐点，仅用首尾锚点映射为局部 tile 坐标
+  let tilesForRender: Coords[] = connectorPath.tiles || [];
+  if (
+    connector.isStraight &&
+    connector.anchors &&
+    connector.anchors.length > 1 &&
+    currentView
+  ) {
+    const origin = connectorPath.rectangle.from;
+    const firstAnchor = connector.anchors[0];
+    const lastAnchor = connector.anchors[connector.anchors.length - 1];
+    const firstPos = getAnchorTile(firstAnchor, currentView);
+    const lastPos = getAnchorTile(lastAnchor, currentView);
+
+    // 将全局 tile 转换为以 rectangle.from 为原点的局部 tile 坐标
+    const toLocalTile = (pos: Coords): Coords => ({
+      x: origin.x - pos.x,
+      y: origin.y - pos.y
+    });
+
+    tilesForRender = [toLocalTile(firstPos), toLocalTile(lastPos)];
+  }
+
   // 更新路径字符串
-  if (connectorPath.tiles && connectorPath.tiles.length > 0) {
-    pathString.value = connectorPath.tiles.reduce(
+  if (tilesForRender && tilesForRender.length > 0) {
+    pathString.value = tilesForRender.reduce(
       (acc: string, tile: Coords, index: number) => {
         const point = `${tile.x * UNPROJECTED_TILE_SIZE + DRAW_OFFSET.x},${
           tile.y * UNPROJECTED_TILE_SIZE + DRAW_OFFSET.y
@@ -210,6 +247,8 @@ const updateConnector = () => {
   flowTailColor.value = connector.flowTailColor || mainStroke.value;
   flowLength.value =
     typeof connector.flowLength === 'number' ? connector.flowLength : 100;
+  flowDuration.value =
+    typeof connector.flowDuration === 'number' ? connector.flowDuration : 2;
 
   // 更新虚线样式
   // 自定义虚线：分为段长与间隔
@@ -257,13 +296,19 @@ const updateConnector = () => {
       dashArray.value = 'none';
   }
 
-  const currentView = sceneStore.getCurrentView();
   // 更新锚点位置（如果选中）
   if (props.isSelected && connector.anchors) {
-    // 参照 React 版本：根据 anchor 引用解析到全局 tile，再转换为局部像素坐标
     if (connector.path?.rectangle && currentView) {
       const origin = connector.path.rectangle.from;
-      anchorPositions.value = connector.anchors.map((anchor) => {
+      const anchorsToShow =
+        connector.isStraight && connector.anchors.length > 1
+          ? [
+              connector.anchors[0],
+              connector.anchors[connector.anchors.length - 1]
+            ]
+          : connector.anchors;
+
+      anchorPositions.value = anchorsToShow.map((anchor) => {
         const position = getAnchorTile(anchor as any, currentView);
 
         return {
@@ -279,9 +324,9 @@ const updateConnector = () => {
     anchorPositions.value = [];
   }
 
-  // 更新方向指示器
-  if (connectorPath.tiles && connectorPath.tiles.length > 1) {
-    const directionData = getConnectorDirectionIcon(connectorPath.tiles);
+  // 更新方向指示器（直线模式下基于直线 tiles 计算）
+  if (tilesForRender && tilesForRender.length > 1) {
+    const directionData = getConnectorDirectionIcon(tilesForRender);
 
     if (directionData) {
       directionIcon.value = {
