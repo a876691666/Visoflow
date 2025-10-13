@@ -13,6 +13,7 @@ import { inject, InjectionKey, provide } from 'vue';
 import { shallowRef, triggerRef } from 'vue';
 import { syncConnector } from './reducers/connector';
 import { syncTextBox } from './reducers/textBox';
+import mitt from 'mitt';
 
 export type Connectors = (Connector & Scene['connectors'][string])[];
 export type TextBoxs = (TextBox & Scene['textBoxes'][string])[];
@@ -40,6 +41,8 @@ export const useProvider = () => {
   });
   // 额外线条模式（独立于 uiStateStore），为 true 时仅线条交互，其它元素不可选且半透明
   const lineMode = shallowRef<boolean>(false);
+
+  const eventBus = mitt();
 
   const triggerMaps = {
     connectors,
@@ -639,7 +642,9 @@ export const useProvider = () => {
     // line mode
     lineMode,
     getLineMode,
-    setLineMode
+    setLineMode,
+
+    eventBus
   };
 };
 

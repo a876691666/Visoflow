@@ -48,6 +48,10 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   modelUpdated: [model: any];
+  hoverItem: [item: any | null];
+  unhoverItem: [item: any | null];
+  clickItem: [item: any | null];
+  clickCanvas: [event: MouseEvent];
 }>();
 
 const sceneStore = useSceneStore();
@@ -104,6 +108,18 @@ watch(
     }
   }
 );
+
+sceneStore.eventBus.on('*', (eventName, payload) => {
+  if (eventName === 'hoverItem') {
+    emit('hoverItem', payload);
+  } else if (eventName === 'unhoverItem') {
+    emit('unhoverItem', payload);
+  } else if (eventName === 'clickItem') {
+    emit('clickItem', payload);
+  } else if (eventName === 'clickCanvas') {
+    emit('clickCanvas', payload as MouseEvent);
+  }
+});
 
 const useVisoflow = () => {
   return {

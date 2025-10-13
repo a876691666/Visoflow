@@ -26,6 +26,21 @@
         fill="none"
       />
 
+      <!-- 主线条 -->
+      <polyline
+        v-if="pathString"
+        :points="pathString"
+        stroke="transparent"
+        class="polyline-hover"
+        :stroke-width="30"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        :data-item-id="connector.id"
+        data-item-type="CONNECTOR"
+        :stroke-dasharray="dashArray"
+        fill="none"
+      />
+
       <FlowTrail
         v-if="pathString && showFlow"
         :d="`M ${pathString}`"
@@ -355,5 +370,8 @@ watch([() => props.connector, () => props.isSelected], updateConnector, {
 .connector-container {
   /* 连接器容器样式 */
   pointer-events: none;
+}
+.polyline-hover {
+  pointer-events: all !important;
 }
 </style>

@@ -11,6 +11,9 @@
     :class="{ 'only-line': lineMode }"
     @mousedown="onContainerMouseDown"
     @mouseup="onContainerMouseUp"
+    @mousemove="onContainerMouseMove"
+    @mouseleave="onContainerMouseLeave"
+    @click="onContainerClick"
   >
     <!-- Grid -->
     <div v-if="isShowGrid" class="grid-container">
@@ -37,11 +40,6 @@
       <Connectors />
     </SceneLayer>
 
-    <!-- Text Boxes -->
-    <SceneLayer :order="5" :style="lineModeLayerStyle">
-      <TextBoxes />
-    </SceneLayer>
-
     <!-- Connector Labels -->
     <SceneLayer :order="5">
       <ConnectorLabels />
@@ -55,6 +53,11 @@
     <!-- Nodes/Items -->
     <SceneLayer :order="5" :style="lineModeLayerStyle">
       <Nodes />
+    </SceneLayer>
+
+    <!-- Text Boxes -->
+    <SceneLayer :order="5" :style="lineModeLayerStyle">
+      <TextBoxes />
     </SceneLayer>
 
     <!-- Transform Controls -->
@@ -122,7 +125,7 @@ const onSpaceDown = () => {
   isSpacePanActive.value = true;
   prevModeRef.value = uiStateStore.mode;
   if (uiStateStore.mode.type !== 'PAN') {
-    uiStateStore.setMode({ type: 'PAN', showCursor: false } as any);
+    uiStateStore.setMode({ type: 'PAN', showCursor: false });
     uiStateStore.setItemControls(null);
   }
 };
@@ -154,7 +157,7 @@ const updateShowGrid = () => {
 
 const domSelectActive = ref(false);
 
-// 仅在 CURSOR 模式下，使用 e.target.closest 通过 DOM 标记选择 ITEM / RECTANGLE / TEXTBOX
+// 仅在 CURSOR 模式下，使用 e.target.closest 通过 DOM 标记选择 ITEM / RECTANGLE / TEXTBOX / CONNECTOR
 const onContainerMouseDown = (e: MouseEvent) => {
   // 点击时主动聚焦，确保容器能接收键盘事件（空格切换移动）
   containerRef.value?.focus();
@@ -172,11 +175,12 @@ const onContainerMouseDown = (e: MouseEvent) => {
     | 'ITEM'
     | 'RECTANGLE'
     | 'TEXTBOX'
+    | 'CONNECTOR'
     | null;
 
   if (!id || !type) return;
 
-  // 线条模式下不允许选择 ITEM/RECTANGLE/TEXTBOX
+  // 线条模式下不允许选择 ITEM/RECTANGLE/TEXTBOX（保留对 CONNECTOR 的可选中）
   if (
     sceneStore.getLineMode() &&
     (type === 'ITEM' || type === 'RECTANGLE' || type === 'TEXTBOX')
@@ -188,12 +192,12 @@ const onContainerMouseDown = (e: MouseEvent) => {
   domSelectActive.value = true;
 
   // 同步选中与拖拽初始状态（不打断全局交互流）
-  uiStateStore.setItemControls({ type, id } as any);
+  uiStateStore.setItemControls({ type, id });
   uiStateStore.setMode({
     type: 'CURSOR',
     showCursor: true,
-    mousedownItem: { type, id } as any
-  } as any);
+    mousedownItem: { type, id }
+  });
 };
 
 // 鼠标抬起时恢复为 CURSOR，并清空 mousedownItem（仅对 DOM 选择路径生效）
@@ -204,11 +208,131 @@ const onContainerMouseUp = () => {
     type: 'CURSOR',
     showCursor: true,
     mousedownItem: null
-  } as any);
+  });
+};
+
+// ========== Hover / Click 交互（基于 containerRef）==========
+
+type HoverableType = 'ITEM' | 'RECTANGLE' | 'TEXTBOX' | 'CONNECTOR';
+interface ItemEventPayload {
+  id: string;
+  type: HoverableType;
+  data: any; // 具体对象：ViewItem/Rectangle/TextBox/Connector(含 scene 数据)
+}
+
+const hoveredTarget = ref<ItemEventPayload | null>(null);
+
+const isTypeAllowed = (type: HoverableType) => {
+  // 线条模式下仅允许 CONNECTOR 交互
+  if (sceneStore.getLineMode()) return type === 'CONNECTOR';
+  return true;
+};
+
+const getPayloadByType = (id: string, type: HoverableType): ItemEventPayload => {
+  let data: any = null;
+  switch (type) {
+    case 'ITEM':
+      data = sceneStore.getItem(id) || null;
+      break;
+    case 'RECTANGLE':
+      data = sceneStore.getRectangle(id) || null;
+      break;
+    case 'TEXTBOX':
+      data = sceneStore.getTextBox(id) || null;
+      break;
+    case 'CONNECTOR':
+      data = sceneStore.getConnector(id) || null;
+      break;
+  }
+  return { id, type, data };
+};
+
+const pickTargetFromEvent = (e: MouseEvent): ItemEventPayload | null => {
+  const el = (e.target as HTMLElement | null)?.closest('[data-item-id]') as
+    | HTMLElement
+    | null;
+  if (!el) return null;
+  const id = el.getAttribute('data-item-id') || '';
+  const type = (el.getAttribute('data-item-type') || '') as HoverableType;
+  if (!id || !type) return null;
+  if (!isTypeAllowed(type)) return null;
+  return getPayloadByType(id, type);
+};
+
+// 允许触发 DOM 悬浮/点击事件的模式（CURSOR 或 INTERACTIONS_DISABLED）
+const allowPassiveDomEvents = () =>
+  uiStateStore.mode?.type === 'CURSOR' ||
+  uiStateStore.mode?.type === 'INTERACTIONS_DISABLED';
+
+const onContainerMouseMove = (e: MouseEvent) => {
+  // 仅在允许的模式下触发悬浮事件
+  if (!allowPassiveDomEvents()) return;
+
+  const next = pickTargetFromEvent(e);
+
+  // 未命中任何对象
+  if (!next) {
+    if (hoveredTarget.value) {
+      sceneStore.eventBus.emit('unhoverItem', hoveredTarget.value);
+      hoveredTarget.value = null;
+    }
+    return;
+  }
+
+  // 命中对象且与当前不同（或不同类型）
+  if (
+    !hoveredTarget.value ||
+    hoveredTarget.value.id !== next.id ||
+    hoveredTarget.value.type !== next.type
+  ) {
+    if (hoveredTarget.value) {
+      sceneStore.eventBus.emit('unhoverItem', hoveredTarget.value);
+    }
+    hoveredTarget.value = next;
+    sceneStore.eventBus.emit('hoverItem', next);
+  }
+};
+
+const onContainerMouseLeave = () => {
+  if (hoveredTarget.value) {
+    sceneStore.eventBus.emit('unhoverItem', hoveredTarget.value);
+    hoveredTarget.value = null;
+  }
+};
+
+const onContainerClick = (e: MouseEvent) => {
+  if (!allowPassiveDomEvents()) return;
+  const target = pickTargetFromEvent(e);
+  if (target) {
+    sceneStore.eventBus.emit('clickItem', target);
+  } else {
+    sceneStore.eventBus.emit('clickCanvas', e);
+  }
 };
 
 // Watch for showGrid prop changes
 watch(() => props.showGrid, updateShowGrid, { immediate: true });
+
+watch(lineMode, (val) => {
+  if (val && hoveredTarget.value && hoveredTarget.value.type !== 'CONNECTOR') {
+    sceneStore.eventBus.emit('unhoverItem', hoveredTarget.value);
+    hoveredTarget.value = null;
+  }
+});
+
+watch(
+  () => uiStateStore.mode?.type,
+  (t) => {
+    if (
+      t !== 'CURSOR' &&
+      t !== 'INTERACTIONS_DISABLED' &&
+      hoveredTarget.value
+    ) {
+      sceneStore.eventBus.emit('unhoverItem', hoveredTarget.value);
+      hoveredTarget.value = null;
+    }
+  }
+);
 
 onMounted(() => {
   if (!containerRef.value || !interactionsRef.value) return;
