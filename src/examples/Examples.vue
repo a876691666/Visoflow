@@ -6,8 +6,15 @@
       @unhover-item="onUnhoverItem"
       @click-item="onClickItem"
       @click-canvas="onCanvasClick"
-      editor-mode="NON_INTERACTIVE"
     />
+    <!-- <Visoflow
+      :initial-data="initialDataConfig"
+      @hover-item="onHoverItem"
+      @unhover-item="onUnhoverItem"
+      @click-item="onClickItem"
+      @click-canvas="onCanvasClick"
+      editor-mode="NON_INTERACTIVE"
+    /> -->
   </SceneProvider>
 </template>
 
