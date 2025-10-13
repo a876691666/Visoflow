@@ -26,9 +26,9 @@
         fill="none"
       />
 
-      <!-- 主线条 -->
+      <!-- 辅助点击 -->
       <polyline
-        v-if="pathString"
+        v-if="pathString && sceneStore.lineMode.value"
         :points="pathString"
         stroke="transparent"
         class="polyline-hover"
@@ -184,6 +184,7 @@ const DRAW_OFFSET = {
 };
 
 const sceneStore = useSceneStore();
+
 // 更新等距投影
 const { css, pxSize, update } = useIsoProjection();
 // 更新连接器数据

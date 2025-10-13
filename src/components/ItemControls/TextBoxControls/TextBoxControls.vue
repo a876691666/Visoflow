@@ -181,7 +181,7 @@ interface Props {
 const props = defineProps<Props>();
 const uiStateStore = useIsoflowUiStateStore<any>();
 const sceneStore = useSceneStore();
-const textBoxRef = useTextBox(props.id);
+const textBoxRef = useTextBox(() => props.id);
 
 const textBox = computed(() => textBoxRef.value);
 

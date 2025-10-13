@@ -16,7 +16,7 @@ interface Props {
 const props = defineProps<Props>();
 
 // 从 store/composable 获取文本框实时数据
-const textBox = useTextBox(props.id);
+const textBox = useTextBox(() => props.id);
 
 // 依据真实工具函数计算文本框终点瓦片坐标
 const to = computed(() => {

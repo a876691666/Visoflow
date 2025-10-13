@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { ref, watch } from 'vue';
 import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 
 // 子控制面板
@@ -25,47 +25,68 @@ import GroundConfig from '../GroundConfig/GroundConfig.vue';
 
 const uiStateStore = useIsoflowUiStateStore<any>();
 
-// 当前 itemControls（来自交互模式/选择）
-const itemControls = computed(() => uiStateStore.itemControls);
+// 使用 ref + watch 替代 computed
+const itemControls = ref<any>(uiStateStore.itemControls);
+const currentComponent = ref<any>(null);
+const currentProps = ref<Record<string, any>>({});
 
-// 选择要渲染的组件
-const currentComponent = computed(() => {
+const recompute = () => {
   const value = itemControls.value;
-  if (!value) return null;
 
-  // Add-item 面板（图标选择）
-  if (value.type === 'NODE_MANAGER') return NodeManager;
-  if (value.type === 'OBJECT_MANAGER') return ObjectManager;
-  if (value.type === 'VIEW_MANAGER') return ViewManager;
-  if (value.type === 'GROUND_CONFIG') return GroundConfig;
-
-  // 具体对象的控制面板
-  switch (value.type) {
-    case 'ITEM':
-      // 展示对象管理的详情配置面板
-      return ObjectDetailsPanel;
-    case 'RECTANGLE':
-      return RectangleControls;
-    case 'CONNECTOR':
-      return ConnectorControls;
-    case 'TEXTBOX':
-      return TextBoxControls;
-    default:
-      return null;
+  // 计算组件
+  let comp: any = null;
+  if (value) {
+    if (value.type === 'NODE_MANAGER') comp = NodeManager;
+    else if (value.type === 'OBJECT_MANAGER') comp = ObjectManager;
+    else if (value.type === 'VIEW_MANAGER') comp = ViewManager;
+    else if (value.type === 'GROUND_CONFIG') comp = GroundConfig;
+    else {
+      switch (value.type) {
+        case 'ITEM':
+          comp = ObjectDetailsPanel;
+          break;
+        case 'RECTANGLE':
+          comp = RectangleControls;
+          break;
+        case 'CONNECTOR':
+          comp = ConnectorControls;
+          break;
+        case 'TEXTBOX':
+          comp = TextBoxControls;
+          break;
+        default:
+          comp = null;
+      }
+    }
   }
-});
+  currentComponent.value = comp;
 
-// 传递到子组件的 props（部分面板需要 id）
-const currentProps = computed(() => {
-  const value = itemControls.value as any;
-  if (!value) return {};
-  if (value.type === 'NODE_MANAGER') return {};
-  if (value.type === 'OBJECT_MANAGER') return {};
-  if (value.type === 'VIEW_MANAGER') return {};
-  if (value.type === 'GROUND_CONFIG') return {};
-  if ('id' in value) return { id: value.id };
-  return {};
-});
+  // 计算 props
+  let props: Record<string, any> = {};
+  if (value) {
+    if (
+      value.type === 'NODE_MANAGER' ||
+      value.type === 'OBJECT_MANAGER' ||
+      value.type === 'VIEW_MANAGER' ||
+      value.type === 'GROUND_CONFIG'
+    ) {
+      props = {};
+    } else if ('id' in value) {
+      props = { id: value.id };
+    }
+  }
+  currentProps.value = props;
+};
+
+// 监听 store 中的 itemControls 变化
+watch(
+  () => uiStateStore.itemControls,
+  (val) => {
+    itemControls.value = val;
+    recompute();
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>

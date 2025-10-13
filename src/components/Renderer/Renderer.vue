@@ -190,13 +190,13 @@ const onContainerMouseDown = (e: MouseEvent) => {
 
   // 命中 DOM 标记，记录一次 DOM 选择开始
   domSelectActive.value = true;
-
+  const item = { type, id };
   // 同步选中与拖拽初始状态（不打断全局交互流）
-  uiStateStore.setItemControls({ type, id });
+  uiStateStore.setItemControls(item);
   uiStateStore.setMode({
     type: 'CURSOR',
     showCursor: true,
-    mousedownItem: { type, id }
+    mousedownItem: item
   });
 };
 
@@ -228,7 +228,10 @@ const isTypeAllowed = (type: HoverableType) => {
   return true;
 };
 
-const getPayloadByType = (id: string, type: HoverableType): ItemEventPayload => {
+const getPayloadByType = (
+  id: string,
+  type: HoverableType
+): ItemEventPayload => {
   let data: any = null;
   switch (type) {
     case 'ITEM':
@@ -248,9 +251,9 @@ const getPayloadByType = (id: string, type: HoverableType): ItemEventPayload => 
 };
 
 const pickTargetFromEvent = (e: MouseEvent): ItemEventPayload | null => {
-  const el = (e.target as HTMLElement | null)?.closest('[data-item-id]') as
-    | HTMLElement
-    | null;
+  const el = (e.target as HTMLElement | null)?.closest(
+    '[data-item-id]'
+  ) as HTMLElement | null;
   if (!el) return null;
   const id = el.getAttribute('data-item-id') || '';
   const type = (el.getAttribute('data-item-type') || '') as HoverableType;
