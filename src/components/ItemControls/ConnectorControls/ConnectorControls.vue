@@ -425,8 +425,23 @@ const handleShowBorderChange = (event: Event) => {
 
 const handleIsStraightChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
-  // 更新配置并重算路径
-  updateConnector({ isStraight: !!target.checked }, { resyncPath: true });
+  const nextIsStraight = !!target.checked;
+
+  // 当开启直线时，清空中间锚点，仅保留起点与终点
+  if (nextIsStraight && Array.isArray(connectorData.value?.anchors)) {
+    const anchors = connectorData.value.anchors;
+    if (anchors.length > 2) {
+      const trimmed = [anchors[0], anchors[anchors.length - 1]];
+      updateConnector(
+        { isStraight: true, anchors: trimmed },
+        { resyncPath: true }
+      );
+      return;
+    }
+  }
+
+  // 其它情况正常更新
+  updateConnector({ isStraight: nextIsStraight }, { resyncPath: true });
 };
 
 const handleShowFlowChange = (event: Event) => {
@@ -466,10 +481,28 @@ const handleShowDirectionArrowChange = (event: Event) => {
 };
 
 const updateConnector = (updates: any, options?: { resyncPath?: boolean }) => {
+  // 允许外部显式传入 anchors；否则基于当前值。
+  let nextAnchors = connectorData.value?.anchors;
+
+  if (updates && Object.prototype.hasOwnProperty.call(updates, 'anchors')) {
+    nextAnchors = updates.anchors;
+  } else if (
+    Object.prototype.hasOwnProperty.call(updates || {}, 'isStraight') &&
+    updates.isStraight === true &&
+    Array.isArray(connectorData.value?.anchors) &&
+    connectorData.value.anchors.length > 1
+  ) {
+    // 当开启直线且未显式传入 anchors 时，自动裁剪为首尾锚点
+    const first = connectorData.value.anchors[0];
+    const last =
+      connectorData.value.anchors[connectorData.value.anchors.length - 1];
+    nextAnchors = first && last ? [first, last] : connectorData.value.anchors;
+  }
+
   connectorData.value = {
     ...connectorData.value,
     ...updates,
-    anchors: connectorData.value.anchors
+    anchors: nextAnchors
   };
 
   sceneStore.updateConnector(props.id, connectorData.value);
