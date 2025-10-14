@@ -1,7 +1,9 @@
 <template>
   <SceneProvider>
     <Visoflow
+      ref="visoflow"
       :initial-data="initialDataConfig"
+      @loaded="onModelUpdated"
       @hover-item="onHoverItem"
       @unhover-item="onUnhoverItem"
       @click-item="onClickItem"
@@ -24,10 +26,19 @@ import Visoflow from '@/Visoflow.vue';
 import { initialData } from './initialData';
 import SceneProvider from 'src/stores/SceneProvider.vue';
 
+const visoflow = ref<InstanceType<typeof Visoflow>>();
+
 const initialDataConfig = ref({
   ...initialData,
   fitToView: true
 });
+
+// 模型更新
+const onModelUpdated = ({ fitView }: any) => {
+  setTimeout(() => {
+    fitView({ left: 20, right: 20, top: 50, bottom: 50 });
+  }, 100);
+};
 
 // 事件打印
 const onHoverItem = (item: any | null) => {

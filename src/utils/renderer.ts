@@ -793,24 +793,55 @@ export const getUnprojectedBounds = (view: View) => {
   };
 };
 
-export const getFitToViewParams = (view: View, viewportSize: Size) => {
+// 新增：用于控制 fitToView 的四边内边距（像素）
+type ViewPadding = { top: number; right: number; bottom: number; left: number };
+
+export const getFitToViewParams = (
+  view: View,
+  viewportSize: Size,
+  padding: ViewPadding = { top: 0, right: 0, bottom: 0, left: 0 }
+) => {
   const projectBounds = getProjectBounds(view);
   const sortedCornerPositions = sortByPosition(projectBounds);
   const boundingBoxSize = getBoundingBoxSize(projectBounds);
   const unprojectedBounds = getUnprojectedBounds(view);
+
+  // 可用视口尺寸（扣除 padding）
+  const availableViewport: Size = {
+    width: Math.max(1, viewportSize.width - (padding.left + padding.right)),
+    height: Math.max(1, viewportSize.height - (padding.top + padding.bottom))
+  };
+
   const zoom = clamp(
     Math.min(
-      viewportSize.width / unprojectedBounds.width,
-      viewportSize.height / unprojectedBounds.height
+      availableViewport.width / unprojectedBounds.width,
+      availableViewport.height / unprojectedBounds.height
     ),
     0,
     MAX_ZOOM
   );
+
+  // 基础的内容中心（以 tile 为单位，并按现有逻辑乘以 zoom）
   const scrollTarget: Coords = {
     x: (sortedCornerPositions.lowX + boundingBoxSize.width / 2) * zoom,
     y: (sortedCornerPositions.lowY + boundingBoxSize.height / 2) * zoom
   };
-  const scroll = getTileScrollPosition(scrollTarget);
+
+  const baseScroll = getTileScrollPosition(scrollTarget);
+
+  // 期望内容中心（像素）：位于 padding 包围下的可用区域中心
+  const viewportCenter: Coords = {
+    x: viewportSize.width / 2,
+    y: viewportSize.height / 2
+  };
+  const desiredCenter: Coords = {
+    x: padding.left + availableViewport.width / 2,
+    y: padding.top + availableViewport.height / 2
+  };
+
+  // 将基准滚动按屏幕像素偏移，令内容中心对齐期望中心
+  const deltaPx = CoordsUtils.subtract(desiredCenter, viewportCenter);
+  const scroll = CoordsUtils.add(baseScroll, deltaPx);
 
   return {
     zoom,

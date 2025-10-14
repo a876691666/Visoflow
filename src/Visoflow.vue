@@ -27,6 +27,7 @@ import UiOverlay from './components/UiOverlay/UiOverlay.vue';
 import type { IsoflowProps } from './types';
 import { provideIsoflow } from './context/isoflowContext';
 import { useSceneStore } from './stores/provider';
+import { useDiagramUtils } from './hooks/useDiagramUtils';
 
 interface Props {
   initialData?: IsoflowProps['initialData'];
@@ -47,7 +48,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  modelUpdated: [model: any];
+  loaded: [model: any];
   hoverItem: [item: any | null];
   unhoverItem: [item: any | null];
   clickItem: [item: any | null];
@@ -68,6 +69,8 @@ onMounted(() => {
   uiStateStore.setEditorMode(props.editorMode);
   uiStateStore.setMainMenuOptions(props.mainMenuOptions);
   uiStateStore.setEnableDebugTools(props.enableDebugTools);
+
+  emit('loaded', useVisoflow());
 
   return () => {
     setWindowCursor('default');
@@ -100,15 +103,6 @@ watch(
   }
 );
 
-watch(
-  () => sceneStore.model,
-  (newModel) => {
-    if (initialDataManager.isReady) {
-      emit('modelUpdated', newModel);
-    }
-  }
-);
-
 sceneStore.eventBus.on('*', (eventName, payload) => {
   if (eventName === 'hoverItem') {
     emit('hoverItem', payload);
@@ -121,8 +115,20 @@ sceneStore.eventBus.on('*', (eventName, payload) => {
   }
 });
 
+const { fitToView } = useDiagramUtils();
+
+const fitView = (padding?: {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}) => {
+  fitToView(padding);
+};
+
 const useVisoflow = () => {
   return {
+    fitView,
     uiState: uiStateStore,
     useSceneStore: () => sceneStore,
     rendererEl: () => uiStateStore.rendererEl

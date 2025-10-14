@@ -45,7 +45,7 @@
       </template>
     </IconButton>
 
-    <IconButton name="Fit to View" @click="fitToView">
+    <IconButton name="Fit to View" @click="() => fitToView()">
       <template #icon>
         <svg
           class="zoom-icon-svg"
