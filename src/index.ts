@@ -4,6 +4,7 @@ import { useUiStateStore } from './stores/uiStateStore';
 
 // 导出主要组件
 export { default as Visoflow } from './Visoflow.vue';
+export { default as SceneProvider } from './stores/SceneProvider.vue';
 
 // 导出 stores
 export { useUiStateStore };
