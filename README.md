@@ -13,7 +13,7 @@
 
 </div>
 
-[![visoflow](/Visoflow/blob/main/public/preview.png)](https://a876691666.github.io/Visoflow/)
+[![visoflow](public/preview.png)](https://a876691666.github.io/Visoflow/)
 
 ## 简介
 
