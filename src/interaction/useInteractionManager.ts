@@ -185,7 +185,9 @@ export const useInteractionManager = () => {
     el.addEventListener('touchmove', onTouchMove);
     el.addEventListener('touchend', onTouchEnd);
     // 仅在容器上监听滚轮
-    uiStateStore.rendererEl?.addEventListener('wheel', onScroll, { passive: true });
+    uiStateStore.rendererEl?.addEventListener('wheel', onScroll, {
+      passive: true
+    });
 
     return () => {
       el.removeEventListener('mousemove', onMouseEvent as any);

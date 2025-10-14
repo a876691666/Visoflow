@@ -264,7 +264,9 @@ export const getTranslateCSS = (translate: Coords = { x: 0, y: 0 }) => {
 
 // 以屏幕视点中心为锚点的缩放（按钮加减）
 export const incrementZoom = (zoom: number, scroll: Scroll) => {
-  const newZoom = roundToOneDecimalPlace(clamp(zoom + ZOOM_INCREMENT, MIN_ZOOM, MAX_ZOOM));
+  const newZoom = roundToOneDecimalPlace(
+    clamp(zoom + ZOOM_INCREMENT, MIN_ZOOM, MAX_ZOOM)
+  );
   const ratio = newZoom / (zoom || 1);
   const newScroll: Scroll = {
     position: {
@@ -277,7 +279,9 @@ export const incrementZoom = (zoom: number, scroll: Scroll) => {
 };
 
 export const decrementZoom = (zoom: number, scroll: Scroll) => {
-  const newZoom = roundToOneDecimalPlace(clamp(zoom - ZOOM_INCREMENT, MIN_ZOOM, MAX_ZOOM));
+  const newZoom = roundToOneDecimalPlace(
+    clamp(zoom - ZOOM_INCREMENT, MIN_ZOOM, MAX_ZOOM)
+  );
   const ratio = newZoom / (zoom || 1);
   const newScroll: Scroll = {
     position: {
@@ -890,7 +894,10 @@ export const getZoomByMouseWheel = ({
   const ratio = newZoom / (zoom || 1);
 
   // 鼠标相对容器中心的向量 m
-  const mouse = { x: clientX - containerRect.left, y: clientY - containerRect.top };
+  const mouse = {
+    x: clientX - containerRect.left,
+    y: clientY - containerRect.top
+  };
   const center = { x: containerRect.width / 2, y: containerRect.height / 2 };
   const m = { x: mouse.x - center.x, y: mouse.y - center.y };
 
