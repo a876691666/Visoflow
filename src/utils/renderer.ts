@@ -262,14 +262,31 @@ export const getTranslateCSS = (translate: Coords = { x: 0, y: 0 }) => {
   return `translate(${translate.x}px, ${translate.y}px)`;
 };
 
-export const incrementZoom = (zoom: number) => {
-  const newZoom = clamp(zoom + ZOOM_INCREMENT, MIN_ZOOM, MAX_ZOOM);
-  return roundToOneDecimalPlace(newZoom);
+// 以屏幕视点中心为锚点的缩放（按钮加减）
+export const incrementZoom = (zoom: number, scroll: Scroll) => {
+  const newZoom = roundToOneDecimalPlace(clamp(zoom + ZOOM_INCREMENT, MIN_ZOOM, MAX_ZOOM));
+  const ratio = newZoom / (zoom || 1);
+  const newScroll: Scroll = {
+    position: {
+      x: scroll.position.x * ratio,
+      y: scroll.position.y * ratio
+    },
+    offset: scroll.offset
+  };
+  return { zoom: newZoom, scroll: newScroll };
 };
 
-export const decrementZoom = (zoom: number) => {
-  const newZoom = clamp(zoom - ZOOM_INCREMENT, MIN_ZOOM, MAX_ZOOM);
-  return roundToOneDecimalPlace(newZoom);
+export const decrementZoom = (zoom: number, scroll: Scroll) => {
+  const newZoom = roundToOneDecimalPlace(clamp(zoom - ZOOM_INCREMENT, MIN_ZOOM, MAX_ZOOM));
+  const ratio = newZoom / (zoom || 1);
+  const newScroll: Scroll = {
+    position: {
+      x: scroll.position.x * ratio,
+      y: scroll.position.y * ratio
+    },
+    offset: scroll.offset
+  };
+  return { zoom: newZoom, scroll: newScroll };
 };
 
 interface GetMouse {
@@ -847,4 +864,43 @@ export const getFitToViewParams = (
     zoom,
     scroll
   };
+};
+
+export type MouseWheelZoomInput = {
+  zoom: number;
+  scroll: Scroll;
+  deltaY: number;
+  clientX: number;
+  clientY: number;
+  containerRect: { left: number; top: number; width: number; height: number };
+};
+
+export const getZoomByMouseWheel = ({
+  zoom,
+  scroll,
+  deltaY,
+  clientX,
+  clientY,
+  containerRect
+}: MouseWheelZoomInput) => {
+  // 步进缩放，向上滚放大，向下缩小
+  const step = deltaY < 0 ? ZOOM_INCREMENT : -ZOOM_INCREMENT;
+  const target = clamp(zoom + step, MIN_ZOOM, MAX_ZOOM);
+  const newZoom = roundToOneDecimalPlace(target);
+  const ratio = newZoom / (zoom || 1);
+
+  // 鼠标相对容器中心的向量 m
+  const mouse = { x: clientX - containerRect.left, y: clientY - containerRect.top };
+  const center = { x: containerRect.width / 2, y: containerRect.height / 2 };
+  const m = { x: mouse.x - center.x, y: mouse.y - center.y };
+
+  const newScroll: Scroll = {
+    position: {
+      x: ratio * scroll.position.x + (1 - ratio) * m.x,
+      y: ratio * scroll.position.y + (1 - ratio) * m.y
+    },
+    offset: scroll.offset
+  };
+
+  return { zoom: newZoom, scroll: newScroll };
 };

@@ -1,7 +1,7 @@
 import { ref, onUnmounted, watch } from 'vue';
 import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import { ModeActions, State, SlimMouseEvent } from 'src/types';
-import { getMouse, getItemAtTile } from 'src/utils';
+import { getMouse, getItemAtTile, getZoomByMouseWheel } from 'src/utils';
 import { useResizeObserver } from 'src/hooks/useResizeObserver';
 import { Cursor } from './modes/Cursor';
 import { DragItems } from './modes/DragItems';
@@ -154,11 +154,27 @@ export const useInteractionManager = () => {
     };
 
     const onScroll = (e: WheelEvent) => {
-      if (e.deltaY > 0) {
-        uiStateStore.decrementZoom();
-      } else {
-        uiStateStore.incrementZoom();
-      }
+      if (!uiStateStore.rendererEl) return;
+      // 仅当事件发生在容器上时处理
+      if (!uiStateStore.rendererEl.contains(e.target as Node)) return;
+
+      const rect = uiStateStore.rendererEl.getBoundingClientRect();
+      const { zoom, scroll } = getZoomByMouseWheel({
+        zoom: uiStateStore.zoom,
+        scroll: uiStateStore.scroll,
+        deltaY: e.deltaY,
+        clientX: e.clientX,
+        clientY: e.clientY,
+        containerRect: {
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+          height: rect.height
+        }
+      });
+
+      uiStateStore.setZoom(zoom);
+      uiStateStore.setScroll(scroll);
     };
 
     el.addEventListener('mousemove', onMouseEvent as any);
@@ -168,7 +184,8 @@ export const useInteractionManager = () => {
     el.addEventListener('touchstart', onTouchStart);
     el.addEventListener('touchmove', onTouchMove);
     el.addEventListener('touchend', onTouchEnd);
-    uiStateStore.rendererEl?.addEventListener('wheel', onScroll);
+    // 仅在容器上监听滚轮
+    uiStateStore.rendererEl?.addEventListener('wheel', onScroll, { passive: true });
 
     return () => {
       el.removeEventListener('mousemove', onMouseEvent as any);

@@ -13,9 +13,26 @@
 
 </div>
 
+## 简介
+
+本项目 99% 的代码来自 Copilot 生成, 开发人员在项目中担任了架构师和测试员的角色, 主要负责代码的组织和功能的验证。
+
+相比 `isoflow` 原版，`visoflow` 主要有以下改动：
+
+- 🤖🤖🤖🤖👨 Vue3重写：TypeScript + Setup Api2
+- 🤖🤖👨👨👨 更高效的状态管理: Ref + Watch 替代 Redux
+- 🤖🤖🤖🤖👨 经过修复的拖拽与缩放交互: 随鼠标交互与中心视点
+- 🤖🤖🤖🤖👨 调整的数据结构：将items下沉到views中, 去掉外键关联
+- 🤖🤖🤖🤖👨 合理的鼠标点击交互：基于dom事件冒泡，而不是tile坐标计算
+- 🤖🤖🤖🤖👨 更多的编辑模式便携式交互: 复制粘贴属性，复制节点等
+- 🤖🤖🤖🤖👨 更灵活的图标支持: 支持自定义图标
+- 🤖🤖🤖🤖👨 更多的配置属性: 全局配置，渲染元素配置等
+- 🤖🤖🤖🤖👨 更无脑的代码: AI生成的Vue代码
+- 🤖🤖🤖🤖👨 线条编辑模式
+
 ## Visoflow lib 包的使用方式
 
-下面是以 NPM 包方式在 Vue 3 项目中使用 Visoflow 的快速指南。如果你只想看在线效果，请移步上面的“在线演示”。
+下面是以 NPM 包方式在 Vue 3 项目中使用 Visoflow 的快速指南。
 
 ### 安装
 
@@ -153,45 +170,6 @@ function handleUpdated(model: any) {
 <Visoflow :initialData="initialData" @modelUpdated="onUpdated" />
 ```
 
-### 组件实例 API（通过模板 ref）
-
-Visoflow 对外暴露 `useVisoflow()`，可访问内部 store 等能力。
-
-```vue
-<template>
-  <Visoflow ref="vf" :initialData="initialData" />
-</template>
-
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
-
-const vf = ref<any>();
-
-onMounted(() => {
-  const api = vf.value?.useVisoflow?.();
-  // 例如访问 UI 状态或场景 store
-  console.log(api?.uiState.zoom);
-});
-</script>
-```
-
-### 类型与工具导出
-
-包额外导出了一些常用工具与类型（可在 Node/SSR 环境单独使用，不需要浏览器 window）：
-
-```ts
-import {
-  INITIAL_DATA,
-  INITIAL_SCENE_STATE,
-  reducers,
-  // Zod schemas & 各种类型
-  connectorStyleOptions,
-  type InitialData,
-  type IsoflowProps,
-  type Model
-} from 'visoflow';
-```
-
 如果你需要配套图标集，建议使用 `@isoflow/isopacks`：
 
 ```ts
@@ -200,59 +178,3 @@ import isoflowIsopack from '@isoflow/isopacks/dist/isoflow';
 
 const icons = flattenCollections([isoflowIsopack]);
 ```
-
-### CDN / UMD 使用
-
-Vite 库模式下提供 UMD 构建，浏览器可直接通过 CDN 引用（需先引入 Vue 3）。
-
-```html
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- 可选样式：若发布产物包含 dist/style.css -->
-    <!-- <link rel="stylesheet" href="https://unpkg.com/visoflow/dist/style.css" /> -->
-  </head>
-  <body>
-    <div id="app"></div>
-
-    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-    <script src="https://unpkg.com/visoflow/dist/index.umd.js"></script>
-    <script>
-      const { createApp, ref } = Vue;
-      const initialData = {
-        title: 'CDN Demo',
-        version: '',
-        icons: [],
-        colors: [{ id: '__DEFAULT__', value: '#8db3ff' }],
-        views: [],
-        fitToView: true,
-        global: { scene: {} }
-      };
-
-      const App = {
-        template:
-          '<div style="height:600px"><Visoflow :initialData="initialData" /></div>',
-        setup() {
-          return { initialData };
-        }
-      };
-
-      createApp(App).use(Visoflow).mount('#app');
-    </script>
-  </body>
-</html>
-```
-
-说明：UMD 全局名为 `Visoflow`（Vue 的全局名为 `Vue`）。
-
-### SSR / 按需加载提示
-
-- 组件运行依赖浏览器环境，服务端渲染时请只在客户端加载（如 Nuxt 的 `<client-only>`、或根据 `onMounted` 动态挂载）。
-- 若仅在 Node/SSR 中使用类型、reducers 或 schema，可直接从包根导入（这些导出不依赖 window）。
-
-### 常见问题
-
-- 看不到样式？请确认是否引入了包的样式文件（如存在）：`import 'visoflow/dist/style.css';`。
-- 找不到类型声明？确保使用的包版本包含 `dist/index.d.ts`（本包已通过 `vite-plugin-dts` 生成）。

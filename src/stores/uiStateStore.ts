@@ -81,11 +81,15 @@ export const useUiStateStore = defineStore('uiState', {
     },
 
     incrementZoom() {
-      this.zoom = incrementZoom(this.zoom);
+      const { zoom, scroll } = incrementZoom(this.zoom, this.scroll);
+      this.zoom = zoom;
+      this.scroll = scroll;
     },
 
     decrementZoom() {
-      this.zoom = decrementZoom(this.zoom);
+      const { zoom, scroll } = decrementZoom(this.zoom, this.scroll);
+      this.zoom = zoom;
+      this.scroll = scroll;
     },
 
     setZoom(zoom: number) {

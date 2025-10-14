@@ -313,6 +313,13 @@ const onContainerClick = (e: MouseEvent) => {
   }
 };
 
+onMounted(() => {
+  if (!containerRef.value || !interactionsRef.value) return;
+
+  setInteractionsElement(interactionsRef.value);
+  uiStateStore.setRendererEl(containerRef.value);
+});
+
 // Watch for showGrid prop changes
 watch(() => props.showGrid, updateShowGrid, { immediate: true });
 
@@ -336,13 +343,6 @@ watch(
     }
   }
 );
-
-onMounted(() => {
-  if (!containerRef.value || !interactionsRef.value) return;
-
-  setInteractionsElement(interactionsRef.value);
-  uiStateStore.setRendererEl(containerRef.value);
-});
 </script>
 
 <style scoped>
