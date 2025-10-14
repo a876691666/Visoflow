@@ -1,5 +1,5 @@
 <h4 align="center">
-  <a href="https://a876691666.github.io/visoflow/">在线演示</a>
+  <a href="https://a876691666.github.io/Visoflow/">在线演示</a>
 </h4>
 
 <div align="center">
@@ -12,6 +12,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 </div>
+
+[![visoflow](./public/visoflow.png)](https://a876691666.github.io/Visoflow/)
 
 ## 简介
 
