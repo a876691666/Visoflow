@@ -1,5 +1,4 @@
 import { inject, provide, type InjectionKey } from 'vue';
-// Fallbacks to Pinia stores when context isn't provided (e.g., same-component usage)
 import { useUiStateStore } from 'src/stores/uiStateStore';
 
 // Minimal context shape; we intentionally keep loose types so it can wrap Pinia stores

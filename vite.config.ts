@@ -24,11 +24,10 @@ export default defineConfig(({ mode }) => {
             fileName: (format) => `index.${format === 'es' ? 'esm' : format}.js`
           },
           rollupOptions: {
-            external: ['vue', 'pinia'],
+            external: ['vue'],
             output: {
               globals: {
-                vue: 'Vue',
-                pinia: 'Pinia'
+                vue: 'Vue'
               }
             }
           }

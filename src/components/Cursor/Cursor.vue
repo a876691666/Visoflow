@@ -4,7 +4,6 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { storeToRefs } from 'pinia';
 import chroma from 'chroma-js';
 import IsoTileArea from '@/components/IsoTileArea/IsoTileArea.vue';
 import { useUiStateStore } from 'src/stores/uiStateStore';
@@ -12,7 +11,8 @@ import { theme } from '@/styles/theme';
 import { watch } from 'vue';
 
 const ui = useUiStateStore();
-const { mouse, zoom } = storeToRefs(ui);
+const mouse = computed(() => ui.mouse);
+const zoom = computed(() => ui.zoom);
 
 // 当前鼠标所在的瓦片坐标
 const tile = ref({ x: 0, y: 0 });

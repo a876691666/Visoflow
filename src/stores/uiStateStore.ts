@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia';
+import { reactive } from 'vue';
 import type {
   UiState,
   Mode,
@@ -6,7 +6,8 @@ import type {
   ContextMenu,
   Scroll,
   Mouse,
-  IconCollectionState
+  IconCollectionState,
+  UiStateStore
 } from 'src/types';
 import {
   CoordsUtils,
@@ -17,8 +18,12 @@ import {
 import { INITIAL_UI_STATE } from 'src/config';
 import { EditorModeEnum, DialogTypeEnum } from 'src/types';
 
-export const useUiStateStore = defineStore('uiState', {
-  state: (): UiState => ({
+let _store: UiStateStore | null = null;
+
+export function useUiStateStore(): UiStateStore {
+  if (_store) return _store;
+
+  const state: UiState = {
     view: '',
     mainMenuOptions: [],
     editorMode: 'EXPLORABLE_READONLY',
@@ -37,87 +42,94 @@ export const useUiStateStore = defineStore('uiState', {
     enableDebugTools: false,
     zoom: INITIAL_UI_STATE.zoom,
     scroll: INITIAL_UI_STATE.scroll
-  }),
+  };
 
-  actions: {
+  const store = reactive({
+    // state
+    ...state,
+
+    // actions
     setView(view: string) {
-      this.view = view;
+      store.view = view;
     },
 
     setMainMenuOptions(mainMenuOptions: UiState['mainMenuOptions']) {
-      this.mainMenuOptions = mainMenuOptions;
+      store.mainMenuOptions = mainMenuOptions;
     },
 
     setEditorMode(mode: keyof typeof EditorModeEnum) {
-      this.editorMode = mode;
-      this.mode = getStartingMode(mode);
+      store.editorMode = mode;
+      store.mode = getStartingMode(mode);
     },
 
     setIconCategoriesState(iconCategoriesState: IconCollectionState[]) {
-      this.iconCategoriesState = iconCategoriesState;
+      store.iconCategoriesState = iconCategoriesState;
     },
 
     resetUiState() {
-      this.mode = getStartingMode(this.editorMode);
-      this.scroll = {
+      store.mode = getStartingMode(store.editorMode);
+      store.scroll = {
         position: CoordsUtils.zero(),
         offset: CoordsUtils.zero()
       };
-      this.itemControls = null;
-      this.zoom = 1;
+      store.itemControls = null;
+      store.zoom = 1;
     },
 
     setMode(mode: Mode) {
-      this.mode = mode;
+      store.mode = mode;
     },
 
     setDialog(dialog: keyof typeof DialogTypeEnum | null) {
-      this.dialog = dialog;
+      store.dialog = dialog;
     },
 
     setIsMainMenuOpen(isMainMenuOpen: boolean) {
-      this.isMainMenuOpen = isMainMenuOpen;
-      this.itemControls = null;
+      store.isMainMenuOpen = isMainMenuOpen;
+      store.itemControls = null;
     },
 
     incrementZoom() {
-      const { zoom, scroll } = incrementZoom(this.zoom, this.scroll);
-      this.zoom = zoom;
-      this.scroll = scroll;
+      const { zoom, scroll } = incrementZoom(store.zoom, store.scroll);
+      store.zoom = zoom;
+      store.scroll = scroll;
     },
 
     decrementZoom() {
-      const { zoom, scroll } = decrementZoom(this.zoom, this.scroll);
-      this.zoom = zoom;
-      this.scroll = scroll;
+      const { zoom, scroll } = decrementZoom(store.zoom, store.scroll);
+      store.zoom = zoom;
+      store.scroll = scroll;
     },
 
     setZoom(zoom: number) {
-      this.zoom = zoom;
+      store.zoom = zoom;
     },
 
     setScroll(scroll: Scroll) {
-      this.scroll = scroll;
+      store.scroll = scroll;
     },
 
     setItemControls(itemControls: ItemControls | null) {
-      this.itemControls = itemControls;
+      store.itemControls = itemControls;
     },
 
     setContextMenu(contextMenu: ContextMenu | null) {
-      this.contextMenu = contextMenu;
+      store.contextMenu = contextMenu;
     },
 
     setMouse(mouse: Mouse) {
-      this.mouse = mouse;
+      store.mouse = mouse;
     },
 
     setEnableDebugTools(enableDebugTools: boolean) {
-      this.enableDebugTools = enableDebugTools;
+      store.enableDebugTools = enableDebugTools;
     },
 
     setRendererEl(el: HTMLDivElement | null) {
-      this.rendererEl = el;
+      store.rendererEl = el;
     }
-  }
-});
+  }) as unknown as UiStateStore;
+
+  _store = store;
+  return store;
+}
