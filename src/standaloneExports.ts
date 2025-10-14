@@ -3,7 +3,6 @@
 import packageJson from '../package.json';
 
 export const version = packageJson.version;
-export * as reducers from 'src/stores/reducers';
 export { INITIAL_DATA, INITIAL_SCENE_STATE } from 'src/config';
 export * from 'src/schemas';
 export type { IsoflowProps, InitialData } from 'src/types';
