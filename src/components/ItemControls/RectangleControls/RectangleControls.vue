@@ -9,6 +9,26 @@
       />
     </Section>
 
+    <!-- 新增：顺序调整按钮 -->
+    <Section title="顺序">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <button @click="moveTop">置顶</button>
+        <button @click="moveUp">上移</button>
+        <button @click="moveDown">下移</button>
+        <button @click="moveBottom">置底</button>
+      </div>
+    </Section>
+
+    <!-- 新增：key 字段输入 -->
+    <Section title="Key">
+      <input
+        type="text"
+        :value="rectangleData.key || ''"
+        style="width: 100%"
+        @input="onKeyChange"
+      />
+    </Section>
+
     <!-- 单项样式配置（使用浏览器默认控件） -->
     <Section title="Fill">
       <input
@@ -134,9 +154,17 @@ const rectangleData = ref<any>({
 });
 
 // 简化复制粘贴：仅对 style 全量复制
-const getConfig = () => ({ ...(rectangleData.value.style ?? {}) });
+const getConfig = () => ({
+  // 新增：包含 key
+  key: rectangleData.value.key,
+  ...(rectangleData.value.style ?? {})
+});
 const applyConfig = (cfg: any) => {
   if (!cfg || typeof cfg !== 'object') return;
+  if ('key' in cfg) {
+    rectangleData.value.key = cfg.key;
+    sceneStore.updateRectangle(rectangleData.value.id, { key: cfg.key });
+  }
   rectangleData.value.style = { ...cfg };
   sceneStore.updateRectangle(rectangleData.value.id, { style: { ...cfg } });
   styleText.value = JSON.stringify(rectangleData.value.style ?? {}, null, 2);
@@ -246,6 +274,19 @@ const handleDelete = () => {
   uiStateStore.setItemControls(null);
   sceneStore.removeRectangle(rectangleData.value.id);
 };
+
+const onKeyChange = (e: Event) => {
+  const value = (e.target as HTMLInputElement).value;
+  rectangleData.value.key = value;
+  sceneStore.updateRectangle(rectangleData.value.id, { key: value });
+};
+
+// 新增：顺序调整处理函数
+const moveUp = () => sceneStore.moveRectangle(rectangleData.value.id, 'up');
+const moveDown = () => sceneStore.moveRectangle(rectangleData.value.id, 'down');
+const moveTop = () => sceneStore.moveRectangle(rectangleData.value.id, 'top');
+const moveBottom = () =>
+  sceneStore.moveRectangle(rectangleData.value.id, 'bottom');
 
 // 监听ID变化
 watch(() => props.id, updateRectangleData, { immediate: true });

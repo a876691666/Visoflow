@@ -23,6 +23,51 @@ export type Items = ViewItem[];
 export type Views = View[];
 export type Rectangles = Rectangle[];
 
+// 通用顺序工具：置顶/置底（可复用）
+const moveToTop = <T extends { id: string }>(arr: T[], id: string) => {
+  const from = arr.findIndex((i) => i.id === id);
+  if (from <= 0) return { list: arr, from, to: from };
+  const copy = [...arr];
+  const [item] = copy.splice(from, 1);
+  copy.unshift(item);
+  return { list: copy, from, to: 0 } as const;
+};
+const moveToBottom = <T extends { id: string }>(arr: T[], id: string) => {
+  const from = arr.findIndex((i) => i.id === id);
+  if (from === -1 || from === arr.length - 1)
+    return { list: arr, from, to: from };
+  const copy = [...arr];
+  const [item] = copy.splice(from, 1);
+  copy.push(item);
+  return { list: copy, from, to: copy.length - 1 } as const;
+};
+
+// 通用移动：上/下/置顶/置底
+const moveInArray = <T extends { id: string }>(
+  arr: T[],
+  id: string,
+  action: 'up' | 'down' | 'top' | 'bottom'
+) => {
+  const idx = arr.findIndex((i) => i.id === id);
+  if (idx === -1) return { list: arr, from: -1, to: -1 } as const;
+  if (action === 'top') return moveToTop(arr, id) as any;
+  if (action === 'bottom') return moveToBottom(arr, id) as any;
+
+  const temp = [...arr];
+  const [item] = temp.splice(idx, 1);
+  let to = idx;
+  switch (action) {
+    case 'up':
+      to = Math.max(0, idx - 1);
+      break;
+    case 'down':
+      to = Math.min(temp.length, idx + 1);
+      break;
+  }
+  temp.splice(to, 0, item);
+  return { list: temp, from: idx, to } as const;
+};
+
 export const useProvider = () => {
   const connectors = shallowRef<Connectors>([]);
   const textBoxs = shallowRef<TextBoxs>([]);
@@ -200,6 +245,33 @@ export const useProvider = () => {
     }
   };
 
+  // 同步当前视图某数组顺序（textBoxes/rectangles）
+  const syncViewOrder = (
+    kind: 'textBoxes' | 'rectangles',
+    id: string,
+    to: number
+  ) => {
+    const v = getCurrentView();
+    if (!v || !(v as any)[kind]) return;
+    const vArr = [...(v as any)[kind]];
+    const vIdx = vArr.findIndex((it: any) => it.id === id);
+    if (vIdx === -1) return;
+    const [vItem] = vArr.splice(vIdx, 1);
+    vArr.splice(to, 0, vItem as any);
+    (v as any)[kind] = vArr as any;
+  };
+
+  // 新增：调整 TextBox 在列表中的顺序
+  const moveTextBox = (
+    id: string,
+    action: 'up' | 'down' | 'top' | 'bottom'
+  ) => {
+    const res = moveInArray(textBoxs.value, id, action);
+    textBoxs.value = res.list as any;
+    triggerUpdate('textBoxs');
+    if (res.to >= 0) syncViewOrder('textBoxes', id, res.to);
+  };
+
   // icons
   const getIcons = () => icons.value;
   const getIcon = (id: string) => icons.value.find((icon) => icon.id === id);
@@ -343,6 +415,17 @@ export const useProvider = () => {
     if (_view && _view.rectangles) {
       _view.rectangles = _view.rectangles.filter((r) => r.id !== id);
     }
+  };
+
+  // 新增：调整 Rectangle 在列表中的顺序
+  const moveRectangle = (
+    id: string,
+    action: 'up' | 'down' | 'top' | 'bottom'
+  ) => {
+    const res = moveInArray(rectangles.value, id, action);
+    rectangles.value = res.list as any;
+    triggerUpdate('rectangles');
+    if (res.to >= 0) syncViewOrder('rectangles', id, res.to);
   };
 
   // groundConfig
@@ -573,6 +656,7 @@ export const useProvider = () => {
     updateTextBox,
     addTextBox,
     removeTextBox,
+    moveTextBox,
 
     // icons
     icons,
@@ -608,6 +692,7 @@ export const useProvider = () => {
     updateRectangle,
     addRectangle,
     removeRectangle,
+    moveRectangle,
 
     // view(s)
     view,

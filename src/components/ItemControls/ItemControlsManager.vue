@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, shallowRef, watch } from 'vue';
 import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 
 // 子控制面板
@@ -27,7 +27,7 @@ const uiStateStore = useIsoflowUiStateStore<any>();
 
 // 使用 ref + watch 替代 computed
 const itemControls = ref<any>(uiStateStore.itemControls);
-const currentComponent = ref<any>(null);
+const currentComponent = shallowRef<any>(null);
 const currentProps = ref<Record<string, any>>({});
 
 const recompute = () => {

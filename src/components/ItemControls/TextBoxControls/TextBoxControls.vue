@@ -9,6 +9,28 @@
       />
     </Section>
 
+    <!-- 新增：顺序控制 -->
+    <Section title="顺序">
+      <div class="toggle-group">
+        <button class="toggle-button" @click="handleMoveTop">置顶</button>
+        <button class="toggle-button" @click="handleMoveUp">上移</button>
+        <button class="toggle-button" @click="handleMoveDown">下移</button>
+        <button class="toggle-button" @click="handleMoveBottom">置底</button>
+      </div>
+    </Section>
+
+    <!-- 新增：key 字段输入 -->
+    <Section>
+      <div class="input-group">
+        <label class="input-label">Key</label>
+        <input
+          class="text-input"
+          :value="textBox?.key || ''"
+          @input="handleKeyChange"
+        />
+      </div>
+    </Section>
+
     <Section>
       <div class="input-group">
         <label class="input-label">Text Content</label>
@@ -190,6 +212,8 @@ const getConfig = () => {
   const tb = textBox.value;
   if (!tb) return {};
   const cfg = {
+    // 新增：包含 key 字段
+    key: tb.key,
     fontSize: tb.fontSize,
     textStyle: { ...(tb.textStyle ?? {}) },
     containerStyle: { ...(tb.containerStyle ?? {}) },
@@ -201,6 +225,8 @@ const getConfig = () => {
 const applyConfig = (cfg: any) => {
   const tb = textBox.value;
   if (!tb || !cfg || typeof cfg !== 'object') return;
+  // 新增：应用 key
+  if ('key' in cfg) sceneStore.updateTextBox(tb.id, { key: cfg.key });
   if ('fontSize' in cfg)
     sceneStore.updateTextBox(tb.id, { fontSize: cfg.fontSize });
   if ('textStyle' in cfg)
@@ -343,6 +369,31 @@ const handleOrientationChange = (
   if (textBox.value.orientation === orientation) return;
   sceneStore.updateTextBox(textBox.value.id, { orientation });
   syncTextBox(textBox.value.id, sceneStore);
+};
+
+const handleKeyChange = (event: Event) => {
+  if (!textBox.value) return;
+  const target = event.target as HTMLInputElement;
+  const keyVal = target.value;
+  sceneStore.updateTextBox(textBox.value.id, { key: keyVal });
+};
+
+// 新增：顺序控制处理函数
+const handleMoveTop = () => {
+  if (!textBox.value) return;
+  sceneStore.moveTextBox(textBox.value.id, 'top');
+};
+const handleMoveUp = () => {
+  if (!textBox.value) return;
+  sceneStore.moveTextBox(textBox.value.id, 'up');
+};
+const handleMoveDown = () => {
+  if (!textBox.value) return;
+  sceneStore.moveTextBox(textBox.value.id, 'down');
+};
+const handleMoveBottom = () => {
+  if (!textBox.value) return;
+  sceneStore.moveTextBox(textBox.value.id, 'bottom');
 };
 
 const handleDelete = () => {

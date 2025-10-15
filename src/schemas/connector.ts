@@ -16,6 +16,7 @@ export const anchorSchema = z.object({
 
 export const connectorSchema = z.object({
   id,
+  key: constrainedStrings.key.optional(),
   description: constrainedStrings.description.optional(),
   color: id.optional(),
   width: z.number().optional(),

@@ -15,6 +15,16 @@
     </div>
 
     <form class="om-form" @submit.prevent="onSave">
+      <!-- 新增：Key 输入（可选） -->
+      <label class="om-label">
+        <span class="om-label-text">Key（可选）</span>
+        <input
+          class="om-input"
+          v-model="local.key"
+          placeholder="用于唯一标识/搜索等"
+        />
+      </label>
+
       <label class="om-label">
         <span class="om-label-text">名称（可选）</span>
         <input
@@ -167,6 +177,8 @@ const buildLocalFrom = (it: ViewItem | null): ViewItem => {
     const id = generateId();
     return {
       id,
+      // 新增：key 默认为空
+      key: undefined,
       name: undefined,
       description: undefined,
       icon: undefined,
@@ -180,6 +192,8 @@ const buildLocalFrom = (it: ViewItem | null): ViewItem => {
   }
   return {
     id: it.id,
+    // 新增：透传 key
+    key: it.key,
     name: it.name,
     description: it.description,
     icon: it.icon,
@@ -211,6 +225,8 @@ watch(
     const next = buildLocalFrom(v);
     // 覆盖 local 的各字段（保持引用不变）
     local.id = next.id;
+    // 同步 key（修复：切换对象时 key 未更新）
+    local.key = next.key;
     local.name = next.name;
     local.description = next.description;
     local.icon = next.icon;
@@ -267,6 +283,8 @@ watch(
 const buildPayloadFromLocal = (): Partial<ViewItem> => {
   const base: Partial<ViewItem> = {
     id: local.id,
+    // 新增：携带 key
+    ...(typeof local.key === 'string' && local.key ? { key: local.key } : {}),
     name: local.name?.toString().trim() || undefined,
     description: local.description?.toString().trim() || undefined,
     icon: local.icon || undefined,
@@ -300,8 +318,10 @@ const buildPayloadFromLocal = (): Partial<ViewItem> => {
 
 // 新增：导出到剪贴板组件的配置（localStorage）
 const getClipboardConfig = () => {
-  const p = buildPayloadFromLocal() as any;
+  const p = buildPayloadFromLocal();
   return {
+    // 新增：包含 key
+    key: p.key,
     showName: p.showName,
     labelHeight: p.labelHeight,
     inheritIconScale: p.inheritIconScale,
@@ -313,6 +333,8 @@ const getClipboardConfig = () => {
 
 const applyClipboardConfig = (cfg: any) => {
   if (!cfg || typeof cfg !== 'object') return;
+  // 允许粘贴 key（可选）
+  if ('key' in cfg) local.key = cfg.key;
   // 仅应用：显示名称、标签高度、图标缩放/偏移以及继承开关
   if ('showName' in cfg) local.showName = !!cfg.showName;
   if ('labelHeight' in cfg)
@@ -324,15 +346,15 @@ const applyClipboardConfig = (cfg: any) => {
   if ('inheritIconScale' in cfg)
     local.inheritIconScale = !!cfg.inheritIconScale;
   if ('iconScale' in cfg || 'inheritIconScale' in cfg) {
-    if (local.inheritIconScale) delete (local as any).iconScale;
-    else local.iconScale = clamp(toNumberOr(cfg.iconScale, 1), 0.5, 10) as any;
+    if (local.inheritIconScale) delete local.iconScale;
+    else local.iconScale = clamp(toNumberOr(cfg.iconScale, 1), 0.5, 10);
   }
 
   if ('inheritIconBottom' in cfg)
     local.inheritIconBottom = !!cfg.inheritIconBottom;
   if ('iconBottom' in cfg || 'inheritIconBottom' in cfg) {
-    if (local.inheritIconBottom) delete (local as any).iconBottom;
-    else local.iconBottom = toNumberOr(cfg.iconBottom, 0) as any;
+    if (local.inheritIconBottom) delete local.iconBottom;
+    else local.iconBottom = toNumberOr(cfg.iconBottom, 0);
   }
 
   // 粘贴后自动保存：等待响应式更新完成再保存

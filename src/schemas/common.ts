@@ -10,5 +10,6 @@ export const color = z.string();
 
 export const constrainedStrings = {
   name: z.string().max(100),
-  description: z.string().max(1000)
+  description: z.string().max(1000),
+  key: z.string().max(100) // 新增：key 字段的简单约束（最长 100 个字符）
 };

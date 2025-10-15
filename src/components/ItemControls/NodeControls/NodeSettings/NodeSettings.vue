@@ -161,7 +161,7 @@ const modelItem = useModelItem(props.node.id);
 
 const updateModelItemData = () => {
   if (modelItem.value) {
-    modelItemData.value = { ...modelItem.value };
+    modelItemData.value = { ...(modelItem.value as any) } as any;
   }
 };
 

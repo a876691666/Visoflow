@@ -9,6 +9,19 @@
       />
     </Section>
 
+    <!-- 新增：key 字段输入 -->
+    <Section>
+      <div class="input-group">
+        <label class="input-label" :style="labelStyles">Key</label>
+        <input
+          class="text-input"
+          :style="inputStyles"
+          :value="connectorData.key || ''"
+          @input="handleKeyChange"
+        />
+      </div>
+    </Section>
+
     <Section>
       <div class="input-group">
         <label class="input-label" :style="labelStyles">描述</label>
@@ -243,6 +256,8 @@ const sceneStore = useSceneStore();
 const uiStateStore = useIsoflowUiStateStore<any>();
 
 const connectorData = ref<any>({
+  // 新增默认 key
+  key: '',
   description: '',
   color: '',
   backgroundColor: '',
@@ -266,6 +281,7 @@ const connectorData = ref<any>({
 // 简化的复制/粘贴 API
 const getConfig = () => {
   const {
+    key,
     description,
     color,
     backgroundColor,
@@ -285,6 +301,7 @@ const getConfig = () => {
     showDirectionArrow
   } = connectorData.value || {};
   return {
+    key,
     description,
     color,
     backgroundColor,
@@ -306,6 +323,7 @@ const getConfig = () => {
 const applyConfig = (cfg: any) => {
   if (!cfg || typeof cfg !== 'object') return;
   updateConnector({
+    key: cfg.key ?? connectorData.value.key,
     description: cfg.description ?? connectorData.value.description,
     color: cfg.color ?? connectorData.value.color,
     backgroundColor: cfg.backgroundColor ?? connectorData.value.backgroundColor,
@@ -379,6 +397,12 @@ const handleDescriptionChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const description = target.value;
   updateConnector({ description });
+};
+
+const handleKeyChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const key = target.value;
+  updateConnector({ key });
 };
 
 const handleColorChange = (event: Event) => {

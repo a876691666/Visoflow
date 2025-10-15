@@ -42,15 +42,15 @@ const onModelUpdated = ({ fitView }: any) => {
 
 // 事件打印
 const onHoverItem = (item: any | null) => {
-  console.log('[hoverItem]', item);
+  // console.log('[hoverItem]', item);
 };
 const onUnhoverItem = (item: any | null) => {
-  console.log('[unhoverItem]', item);
+  // console.log('[unhoverItem]', item);
 };
 const onClickItem = (item: any | null) => {
-  console.log('[clickItem]', item);
+  // console.log('[clickItem]', item);
 };
 const onCanvasClick = (e: MouseEvent) => {
-  console.log('[clickCanvas]', e);
+  // console.log('[clickCanvas]', e);
 };
 </script>
