@@ -64,6 +64,12 @@ type Issue = IssueType & {
   message: string;
 };
 
+// 新增：从视图中移除指定线条（不产生 issue）
+const removeConnectorFromView = (view: View, connectorId: string) => {
+  if (!view.connectors) return;
+  view.connectors = view.connectors.filter((c) => c.id !== connectorId);
+};
+
 export const validateConnectorAnchor = (
   anchor: ConnectorAnchor,
   ctx: {
@@ -140,48 +146,37 @@ export const validateConnector = (
 ): Issue[] => {
   const issues: Issue[] = [];
 
+  // 颜色合法性暂不作为删除条件，保持与现有注释一致
   if (connector.color) {
     try {
       getItemByIdOrThrow(ctx.model.colors, connector.color);
     } catch (e) {
       // TODO: 等待兼容直接颜色和色卡
-      // issues.push({
-      //   type: 'INVALID_CONNECTOR_COLOR_REF',
-      //   params: {
-      //     connector: connector.id,
-      //     view: ctx.view.id,
-      //     color: connector.color
-      //   },
-      //   message:
-      //     'Connector references a color that does not exist in the model.'
-      // });
+      // 忽略颜色问题，不删除、不记录 issue
     }
   }
 
+  // 锚点过少 -> 直接移除线条
   if (connector.anchors.length < 2) {
-    issues.push({
-      type: 'CONNECTOR_TOO_FEW_ANCHORS',
-      params: {
-        connector: connector.id,
-        view: ctx.view.id
-      },
-      message:
-        'Connector must have at least two anchors.  One for the source and one for the target.'
-    });
+    removeConnectorFromView(ctx.view, connector.id);
+    return [];
   }
 
+  // 校验每个锚点，若有任一失败 -> 直接移除线条
   const { anchors } = connector;
-
-  anchors.forEach((anchor) => {
+  for (const anchor of anchors) {
     const anchorIssues = validateConnectorAnchor(anchor, {
       view: ctx.view,
       connector,
       allAnchors: ctx.allAnchors
     });
+    if (anchorIssues.length > 0) {
+      removeConnectorFromView(ctx.view, connector.id);
+      return [];
+    }
+  }
 
-    issues.push(...anchorIssues);
-  });
-
+  // 所有检查通过，不产生 issue
   return issues;
 };
 
@@ -202,17 +197,16 @@ export const validateView = (view: View, ctx: { model: Model }): Issue[] => {
   const issues: Issue[] = [];
 
   if (view.connectors) {
-    const allAnchors = getAllAnchors(view.connectors);
-
-    view.connectors.forEach((connector) => {
+    // 使用副本遍历，期间允许移除无效线条；每次校验前重新计算 allAnchors
+    for (const connector of [...view.connectors]) {
       issues.push(
         ...validateConnector(connector, {
           view,
           model: ctx.model,
-          allAnchors
+          allAnchors: getAllAnchors(view.connectors)
         })
       );
-    });
+    }
   }
 
   if (view.rectangles) {

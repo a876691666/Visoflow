@@ -52,6 +52,39 @@
       />
     </Section>
 
+    <!-- 新增：整体偏移（像素） -->
+    <Section title="横向偏移">
+      <div class="slider-container">
+        <input
+          type="range"
+          min="-20"
+          max="20"
+          step="1"
+          :value="connectorData.offsetX || 0"
+          @input="handleOffsetXChange"
+          class="slider"
+          :style="sliderStyles"
+        />
+        <span class="slider-value">{{ connectorData.offsetX || 0 }}px</span>
+      </div>
+    </Section>
+
+    <Section title="纵向偏移">
+      <div class="slider-container">
+        <input
+          type="range"
+          min="-20"
+          max="20"
+          step="1"
+          :value="connectorData.offsetY || 0"
+          @input="handleOffsetYChange"
+          class="slider"
+          :style="sliderStyles"
+        />
+        <span class="slider-value">{{ connectorData.offsetY || 0 }}px</span>
+      </div>
+    </Section>
+
     <!-- 显示边框（背景线条） -->
     <Section title="显示边框">
       <label>
@@ -230,6 +263,17 @@
       </label>
     </Section>
 
+    <!-- 新增：倒转线条方向按钮 -->
+    <Section title="倒转线条方向">
+      <button
+        class="action-button"
+        :disabled="!canReverseAnchors"
+        @click="handleReverseAnchors"
+      >
+        倒转
+      </button>
+    </Section>
+
     <Section>
       <DeleteButton @click="handleDelete" />
     </Section>
@@ -237,7 +281,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, type CSSProperties } from 'vue';
+import { ref, watch, type CSSProperties, computed } from 'vue';
 import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import ControlsContainer from '../components/ControlsContainer.vue';
 import Section from '../components/Section.vue';
@@ -261,6 +305,9 @@ const connectorData = ref<any>({
   description: '',
   color: '',
   backgroundColor: '',
+  // 新增：整体偏移（像素）
+  offsetX: 0,
+  offsetY: 0,
   width: 20,
   style: 'SOLID',
   dashLength: undefined,
@@ -285,6 +332,9 @@ const getConfig = () => {
     description,
     color,
     backgroundColor,
+    // 偏移
+    offsetX,
+    offsetY,
     width,
     style,
     dashLength,
@@ -305,6 +355,8 @@ const getConfig = () => {
     description,
     color,
     backgroundColor,
+    offsetX,
+    offsetY,
     width,
     style,
     dashLength,
@@ -327,6 +379,9 @@ const applyConfig = (cfg: any) => {
     description: cfg.description ?? connectorData.value.description,
     color: cfg.color ?? connectorData.value.color,
     backgroundColor: cfg.backgroundColor ?? connectorData.value.backgroundColor,
+    // 偏移
+    offsetX: cfg.offsetX ?? connectorData.value.offsetX,
+    offsetY: cfg.offsetY ?? connectorData.value.offsetY,
     width: cfg.width ?? connectorData.value.width,
     style: cfg.style ?? connectorData.value.style,
     dashLength: cfg.dashLength ?? connectorData.value.dashLength,
@@ -417,6 +472,18 @@ const handleBackgroundColorChange = (event: Event) => {
   updateConnector({ backgroundColor });
 };
 
+// 偏移
+const handleOffsetXChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const val = parseInt(target.value, 10);
+  updateConnector({ offsetX: isNaN(val) ? 0 : val });
+};
+const handleOffsetYChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const val = parseInt(target.value, 10);
+  updateConnector({ offsetY: isNaN(val) ? 0 : val });
+};
+
 const handleWidthChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const width = parseInt(target.value);
@@ -502,6 +569,18 @@ const handleFlowDurationChange = (event: Event) => {
 const handleShowDirectionArrowChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   updateConnector({ showDirectionArrow: !!target.checked });
+};
+
+const canReverseAnchors = computed(() => {
+  const anchors = connectorData.value?.anchors;
+  return Array.isArray(anchors) && anchors.length > 1;
+});
+
+const handleReverseAnchors = () => {
+  const anchors = connectorData.value?.anchors;
+  if (!Array.isArray(anchors) || anchors.length <= 1) return;
+  const reversed = [...anchors].reverse();
+  updateConnector({ anchors: reversed }, { resyncPath: true });
 };
 
 const updateConnector = (updates: any, options?: { resyncPath?: boolean }) => {
@@ -599,5 +678,18 @@ updateStyles();
   padding: 0;
   border: none;
   background: transparent;
+}
+
+.action-button {
+  padding: 6px 12px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fff;
+  cursor: pointer;
+}
+.action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

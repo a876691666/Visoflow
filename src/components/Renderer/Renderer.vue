@@ -243,9 +243,6 @@ const getPayloadByType = (
     case 'TEXTBOX':
       data = sceneStore.getTextBox(id) || null;
       break;
-    case 'CONNECTOR':
-      data = sceneStore.getConnector(id) || null;
-      break;
   }
   return { id, type, data };
 };

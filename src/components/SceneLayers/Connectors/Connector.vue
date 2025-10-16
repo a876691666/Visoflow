@@ -26,21 +26,6 @@
         fill="none"
       />
 
-      <!-- 辅助点击 -->
-      <polyline
-        v-if="pathString && sceneStore.lineMode.value"
-        :points="pathString"
-        stroke="transparent"
-        class="polyline-hover"
-        :stroke-width="30"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        :data-item-id="connector.id"
-        data-item-type="CONNECTOR"
-        :stroke-dasharray="dashArray"
-        fill="none"
-      />
-
       <FlowTrail
         v-if="pathString && showFlow"
         :d="`M ${pathString}`"
@@ -136,6 +121,9 @@ interface ConnectorWithPath {
   isStraight?: boolean;
   // 新增：流光速度（周期秒）
   flowDuration?: number;
+  // 新增：整体屏幕像素偏移
+  offsetX?: number;
+  offsetY?: number;
   path?: {
     tiles: Coords[];
     rectangle: {
@@ -200,6 +188,15 @@ const updateConnector = () => {
     from: connectorPath.rectangle.from,
     to: connectorPath.rectangle.to
   });
+
+  // 应用整体屏幕像素偏移（不受等距变换影响）
+  const dx = Number(connector.offsetX || 0);
+  const dy = Number(connector.offsetY || 0);
+  css.value = {
+    ...css.value,
+    left: `${parseFloat(String((css.value as any).left || 0)) + dx}px`,
+    top: `${parseFloat(String((css.value as any).top || 0)) + dy}px`
+  } as any;
 
   // 预备当前视图用于锚点解析
   const currentView = sceneStore.getCurrentView();

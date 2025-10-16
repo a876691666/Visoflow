@@ -1,13 +1,27 @@
 <template>
   <div class="clipboard" :style="containerStyles">
-    <button class="btn" :style="btnStyles" @click="onCopy">复制</button>
-    <button class="btn" :style="btnStyles" @click="onPaste">粘贴</button>
+    <button
+      class="btn"
+      :style="btnStyles"
+      @click="onCopy"
+      title="将配置保存到本地存储"
+    >
+      复制
+    </button>
+    <button
+      class="btn"
+      :style="btnStyles"
+      @click="onPaste"
+      title="从本地存储读取配置，快捷键 Ctrl+Q"
+    >
+      粘贴 (Ctrl+Q)
+    </button>
     <span v-if="tip" class="tip" :style="tipStyles">{{ tip }}</span>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, type CSSProperties } from 'vue';
+import { ref, type CSSProperties, onMounted, onBeforeUnmount } from 'vue';
 
 interface Props {
   storageKey: string;
@@ -49,6 +63,32 @@ const onPaste = () => {
     showTip('粘贴失败');
   }
 };
+
+// 绑定 Ctrl+Q 快捷键触发粘贴
+const onKeydown = (e: KeyboardEvent) => {
+  // 避免在输入框/可编辑区域内触发
+  const target = e.target as HTMLElement | null;
+  const isEditable =
+    !!target &&
+    (target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      (target as HTMLElement).isContentEditable);
+  if (isEditable) return;
+
+  if (e.ctrlKey && e.key.toLowerCase() === 'q') {
+    e.preventDefault(); // 阻止浏览器默认行为
+    e.stopPropagation();
+    onPaste();
+  }
+};
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown, { capture: true });
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown, { capture: true } as any);
+});
 
 const containerStyles: CSSProperties = {
   display: 'flex',

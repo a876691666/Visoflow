@@ -500,33 +500,44 @@ export const getTextBoxEndTile = (textBox: TextBox, size: Size) => {
 interface GetItemAtTile {
   tile: Coords;
   scene: ReturnType<typeof useSceneStore>;
+  // 新增：偏好返回的连接器 id（若该瓦片存在多个连接器时优先）
+  preferredConnectorId?: string | null;
 }
 
 export const getItemAtTile = ({
   tile,
-  scene
+  scene,
+  preferredConnectorId
 }: GetItemAtTile): ItemReference | null => {
-  if (scene.getLineMode()) {
-    const connector = scene.connectors.value.find((con) => {
+  // 小工具：收集当前瓦片上的所有连接器
+  const connectorsAtTile = () =>
+    scene.connectors.value.filter((con) => {
       return con.path.tiles.find((pathTile) => {
         const globalPathTile = connectorPathTileToGlobal(
           pathTile,
           con.path.rectangle.from
         );
-
         return CoordsUtils.isEqual(globalPathTile, tile);
       });
     });
 
-    if (connector) {
-      return {
-        type: 'CONNECTOR',
-        id: connector.id
-      };
-    }
-    return null;
+  // 在画线模式下：只命中连接器，且若多条重叠优先返回指定的 preferredConnectorId
+  if (scene.getLineMode()) {
+    const at = connectorsAtTile();
+    if (!at.length) return null;
+
+    const preferred = preferredConnectorId
+      ? at.find((c) => c.id === preferredConnectorId)
+      : null;
+    const target = preferred ?? at[0];
+
+    return {
+      type: 'CONNECTOR',
+      id: target.id
+    };
   }
 
+  // 非画线模式：先检查节点
   const viewItem = scene.items.value.find((item) => {
     return CoordsUtils.isEqual(item.tile, tile);
   });
@@ -538,6 +549,7 @@ export const getItemAtTile = ({
     };
   }
 
+  // 再检查文本框
   const textBox = scene.textBoxs.value.find((tb) => {
     const textBoxTo = getTextBoxEndTile(tb, tb.size);
     const textBoxBounds = getBoundingBox([
@@ -561,24 +573,21 @@ export const getItemAtTile = ({
     };
   }
 
-  const connector = scene.connectors.value.find((con) => {
-    return con.path.tiles.find((pathTile) => {
-      const globalPathTile = connectorPathTileToGlobal(
-        pathTile,
-        con.path.rectangle.from
-      );
+  // 然后检查连接器：若多条重叠优先返回 preferredConnectorId
+  const at = connectorsAtTile();
+  if (at.length) {
+    const preferred = preferredConnectorId
+      ? at.find((c) => c.id === preferredConnectorId)
+      : null;
+    const target = preferred ?? at[0];
 
-      return CoordsUtils.isEqual(globalPathTile, tile);
-    });
-  });
-
-  if (connector) {
     return {
       type: 'CONNECTOR',
-      id: connector.id
+      id: target.id
     };
   }
 
+  // 最后检查矩形
   const rectangle = scene.rectangles.value.find(({ from, to }) => {
     return isWithinBounds(tile, [from, to]);
   });
