@@ -32,7 +32,7 @@ const contentStyle = ref<CSSProperties>({});
 const textStyle = ref<CSSProperties>({});
 
 // 缓存的属性值
-const { paddingX, fontProps, update } = useTextBoxProps(props.textBox);
+const { fontProps, update } = useTextBoxProps(props.textBox);
 
 const { css, update: updateProjectionHooks } = useIsoProjection();
 // 更新等距投影

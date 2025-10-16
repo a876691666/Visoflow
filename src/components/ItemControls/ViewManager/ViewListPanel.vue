@@ -78,7 +78,7 @@ import { computed, ref, type CSSProperties } from 'vue';
 import type { View } from '@/types';
 import { useSceneStore } from 'src/stores/provider';
 
-const emit = defineEmits<{
+defineEmits<{
   (e: 'select', id: string): void;
   (e: 'edit', v: View): void;
   (e: 'delete', id: string): void;

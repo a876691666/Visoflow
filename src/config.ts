@@ -43,7 +43,9 @@ export const VIEW_ITEM_DEFAULTS: Pick<ViewItem, 'labelHeight'> = {
   labelHeight: 80
 };
 
-export const CONNECTOR_DEFAULTS: Required<Omit<Connector, 'id' | 'color'>> = {
+export const CONNECTOR_DEFAULTS: Required<
+  Omit<Connector, 'id' | 'color' | 'key'>
+> = {
   width: 10,
   description: '',
   anchors: [],
@@ -55,20 +57,21 @@ export const CONNECTOR_DEFAULTS: Required<Omit<Connector, 'id' | 'color'>> = {
 // is the grid that encompasses the two nodes + the offset below.
 export const CONNECTOR_SEARCH_OFFSET = { x: 1, y: 1 };
 
-export const TEXTBOX_DEFAULTS: Required<Omit<TextBox, 'id' | 'tile'>> = {
-  orientation: 'X',
-  fontSize: 0.6,
-  content: 'Text',
-  textStyle: {},
-  containerStyle: {},
-  contentStyle: {}
-};
+export const TEXTBOX_DEFAULTS: Required<Omit<TextBox, 'id' | 'tile' | 'key'>> =
+  {
+    orientation: 'X',
+    fontSize: 0.6,
+    content: 'Text',
+    textStyle: {},
+    containerStyle: {},
+    contentStyle: {}
+  };
 
 export const TEXTBOX_PADDING = 0.2;
 export const TEXTBOX_FONT_WEIGHT = 'bold';
 
 export const RECTANGLE_DEFAULTS: Required<
-  Omit<Rectangle, 'id' | 'from' | 'to' | 'color'>
+  Omit<Rectangle, 'id' | 'from' | 'to' | 'color' | 'key'>
 > = { style: {} };
 
 export const ZOOM_INCREMENT = 0.02;
