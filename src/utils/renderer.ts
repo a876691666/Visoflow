@@ -608,10 +608,16 @@ interface FontProps {
   fontFamily: string;
 }
 
-export const getTextWidth = (text: string, fontProps: FontProps) => {
+export const getTextWidth = (
+  text: string,
+  fontProps: FontProps,
+  opts?: { paddingLeftPx?: number; paddingRightPx?: number }
+) => {
   if (!text) return 0;
 
-  const paddingX = TEXTBOX_PADDING * UNPROJECTED_TILE_SIZE;
+  const defaultPaddingX = TEXTBOX_PADDING * UNPROJECTED_TILE_SIZE;
+  const paddingLeftPx = opts?.paddingLeftPx ?? defaultPaddingX;
+  const paddingRightPx = opts?.paddingRightPx ?? defaultPaddingX;
   const fontSizePx = toPx(fontProps.fontSize * UNPROJECTED_TILE_SIZE);
   const canvas: HTMLCanvasElement = document.createElement('canvas');
   const context = canvas.getContext('2d');
@@ -625,15 +631,41 @@ export const getTextWidth = (text: string, fontProps: FontProps) => {
 
   canvas.remove();
 
-  return (metrics.width + paddingX * 2) / UNPROJECTED_TILE_SIZE - 0.8;
+  return (
+    (metrics.width + paddingLeftPx + paddingRightPx) / UNPROJECTED_TILE_SIZE -
+    0.8
+  );
 };
 
 export const getTextBoxDimensions = (textBox: TextBox): Size => {
-  const width = getTextWidth(textBox.content, {
-    fontSize: textBox.fontSize ?? TEXTBOX_DEFAULTS.fontSize,
-    fontFamily: DEFAULT_FONT_FAMILY,
-    fontWeight: TEXTBOX_FONT_WEIGHT
-  });
+  // 解析每个文本框自定义的左右内边距（像素）
+  const parsePx = (v: unknown): number | undefined => {
+    if (typeof v === 'number') return v;
+    if (typeof v === 'string') {
+      const m = v.trim().match(/^(\d+)(px)?$/i);
+      if (m) return parseInt(m[1], 10);
+    }
+    return undefined;
+  };
+  const cs: any = textBox.contentStyle ?? {};
+  const defaultPaddingX = TEXTBOX_PADDING * UNPROJECTED_TILE_SIZE;
+  const paddingLeftPx =
+    parsePx(cs.paddingLeft ?? cs.padding) ?? defaultPaddingX;
+  const paddingRightPx =
+    parsePx(cs.paddingRight ?? cs.padding) ?? defaultPaddingX;
+
+  const width = getTextWidth(
+    textBox.content,
+    {
+      fontSize: textBox.fontSize ?? TEXTBOX_DEFAULTS.fontSize,
+      fontFamily: DEFAULT_FONT_FAMILY,
+      fontWeight: TEXTBOX_FONT_WEIGHT
+    },
+    {
+      paddingLeftPx,
+      paddingRightPx
+    }
+  );
   const height = 1;
 
   return { width, height };

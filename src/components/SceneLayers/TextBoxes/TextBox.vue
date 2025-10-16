@@ -76,8 +76,6 @@ const updateContentStyle = () => {
     justifyContent: 'flex-start',
     width: '100%',
     height: '100%',
-    paddingLeft: toPx(paddingX.value),
-    paddingRight: toPx(paddingX.value),
     boxSizing: 'border-box',
     ...(props.textBox.contentStyle ?? {})
   };

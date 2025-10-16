@@ -86,6 +86,48 @@
       />
     </Section>
 
+    <!-- 新增：文字背景色配置 -->
+    <Section title="文字背景色">
+      <input
+        type="color"
+        :value="textBgColorHex"
+        @input="handleTextBgColorChange"
+        class="color-input"
+      />
+    </Section>
+
+    <!-- 新增：文字背景圆角配置 -->
+    <Section title="文字背景圆角">
+      <div class="slider-container">
+        <input
+          type="range"
+          min="0"
+          max="32"
+          step="1"
+          :value="textBgRadiusNumber"
+          @input="handleTextBgRadiusChange"
+          class="slider"
+        />
+        <span class="slider-value">{{ textBgRadiusNumber }}px</span>
+      </div>
+    </Section>
+
+    <!-- 新增：内边距（左右）配置，单位：px -->
+    <Section title="内边距">
+      <div class="slider-container">
+        <input
+          type="range"
+          min="0"
+          max="60"
+          step="1"
+          :value="textPaddingPx"
+          @input="handleTextPaddingChange"
+          class="slider"
+        />
+        <span class="slider-value">{{ textPaddingPx }}px</span>
+      </div>
+    </Section>
+
     <Section title="框高度">
       <div class="slider-container">
         <input
@@ -193,7 +235,11 @@ import Section from '../components/Section.vue';
 import DeleteButton from '../components/DeleteButton.vue';
 import { useSceneStore } from 'src/stores/provider';
 import { syncTextBox } from 'src/stores/reducers/textBox';
-import { TEXTBOX_FONT_WEIGHT } from 'src/config';
+import {
+  TEXTBOX_FONT_WEIGHT,
+  UNPROJECTED_TILE_SIZE,
+  TEXTBOX_PADDING
+} from 'src/config';
 import ConfigClipboard from '../components/ConfigClipboard.vue';
 
 interface Props {
@@ -217,6 +263,8 @@ const getConfig = () => {
     fontSize: tb.fontSize,
     textStyle: { ...(tb.textStyle ?? {}) },
     containerStyle: { ...(tb.containerStyle ?? {}) },
+    // 新增：包含 contentStyle 以复制粘贴 padding
+    contentStyle: { ...(tb.contentStyle ?? {}) },
     orientation: tb.orientation
   };
   return cfg;
@@ -240,16 +288,24 @@ const applyConfig = (cfg: any) => {
         ...(cfg.containerStyle ?? {})
       }
     });
+  // 新增：应用 contentStyle
+  if ('contentStyle' in cfg)
+    sceneStore.updateTextBox(tb.id, {
+      contentStyle: {
+        ...(tb.contentStyle ?? {}),
+        ...(cfg.contentStyle ?? {})
+      }
+    });
   if ('orientation' in cfg)
     sceneStore.updateTextBox(tb.id, { orientation: cfg.orientation });
   syncTextBox(tb.id, sceneStore);
 };
 
-// 简化：仅支持 #RGB / #RRGGBB，其他情况回退为 #000000
-const normalizeHex = (color?: string): string => {
-  if (!color) return '#000000';
+// 简化：仅支持 #RGB / #RRGGBB，其他情况回退为指定默认值
+const normalizeHex = (color?: string, fallback = '#000000'): string => {
+  if (!color) return fallback;
   const m = color.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
-  if (!m) return '#000000';
+  if (!m) return fallback;
   const v = m[1];
   if (v.length === 3) {
     return `#${v[0]}${v[0]}${v[1]}${v[1]}${v[2]}${v[2]}`.toLowerCase();
@@ -259,6 +315,14 @@ const normalizeHex = (color?: string): string => {
 
 const textColorHex = computed(() =>
   normalizeHex(textBox.value?.textStyle?.color as string | undefined)
+);
+
+// 新增：背景色的 hex 值（默认白色）
+const textBgColorHex = computed(() =>
+  normalizeHex(
+    (textBox.value?.textStyle as any)?.backgroundColor as string | undefined,
+    '#ffffff'
+  )
 );
 
 // 计算当前字体粗细显示值（字符串形式 300-900），兼容 normal/bold
@@ -274,6 +338,37 @@ const fontWeightValue = computed(() => {
 
 // 数字形式，供 range 绑定
 const fontWeightNumber = computed(() => parseInt(fontWeightValue.value, 10));
+
+// 新增：背景圆角（px）数值
+const textBgRadiusNumber = computed(() => {
+  const br = (textBox.value?.textStyle as any)?.borderRadius as
+    | string
+    | number
+    | undefined;
+  if (typeof br === 'number') return br;
+  if (typeof br === 'string') {
+    const m = br.trim().match(/^(\d+)(px)?$/i);
+    if (m) return parseInt(m[1], 10);
+  }
+  return 0;
+});
+
+const parsePx = (v: any): number | undefined => {
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string') {
+    const m = v.trim().match(/^(\d+)(px)?$/i);
+    if (m) return parseInt(m[1], 10);
+  }
+  return undefined;
+};
+
+// 新增：读取当前左右内边距（px）
+const textPaddingPx = computed(() => {
+  const cs: any = textBox.value?.textStyle ?? {};
+  // 优先取单侧
+  const padding = parsePx(cs.padding);
+  return padding !== undefined ? padding : 0;
+});
 
 const xOrientationStyles = computed<CSSProperties>(() => ({
   transform: getIsoProjectionCss(ProjectionOrientationEnum.X),
@@ -336,6 +431,32 @@ const handleTextColorChange = (event: Event) => {
   });
 };
 
+// 新增：处理文字背景色变化
+const handleTextBgColorChange = (event: Event) => {
+  if (!textBox.value) return;
+  const target = event.target as HTMLInputElement;
+  const color = target.value;
+  sceneStore.updateTextBox(textBox.value.id, {
+    textStyle: {
+      ...(textBox.value.textStyle ?? {}),
+      backgroundColor: color
+    }
+  });
+};
+
+// 新增：背景圆角变化（px）
+const handleTextBgRadiusChange = (event: Event) => {
+  if (!textBox.value) return;
+  const target = event.target as HTMLInputElement;
+  const radius = parseInt(target.value, 10);
+  sceneStore.updateTextBox(textBox.value.id, {
+    textStyle: {
+      ...(textBox.value.textStyle ?? {}),
+      borderRadius: `${Number.isFinite(radius) ? radius : 0}px`
+    }
+  });
+};
+
 // 更新：拖拽条改变字体粗细
 const handleFontWeightChange = (event: Event) => {
   if (!textBox.value) return;
@@ -347,6 +468,22 @@ const handleFontWeightChange = (event: Event) => {
       fontWeight: Number.isFinite(weight) ? weight : 400
     }
   });
+};
+
+// 新增：变更左右内边距（同步写入两侧）
+const handleTextPaddingChange = (event: Event) => {
+  if (!textBox.value) return;
+  const target = event.target as HTMLInputElement;
+  const px = parseInt(target.value, 10);
+  const padding = Number.isFinite(px) ? px : 0;
+  sceneStore.updateTextBox(textBox.value.id, {
+    textStyle: {
+      ...(textBox.value.textStyle ?? {}),
+      padding: `${padding}px`
+    }
+  });
+  // 尺寸受 padding 影响，需同步
+  syncTextBox(textBox.value.id, sceneStore);
 };
 
 const handleContainerHeightChange = (event: Event) => {
