@@ -31,11 +31,11 @@
 
     <!-- 单项样式配置（使用浏览器默认控件） -->
     <Section title="Fill">
-      <input
-        type="color"
+      <PanelColorPicker
         :value="fillHex"
+        @input="(e: any) => onColorChange(e, 'fill')"
         style="width: 100%"
-        @input="onColorChange($event, 'fill')"
+        class="color-input"
       />
     </Section>
 
@@ -52,11 +52,11 @@
     </Section>
 
     <Section title="Stroke">
-      <input
-        type="color"
+      <PanelColorPicker
         :value="strokeHex"
+        @input="(e: any) => onColorChange(e, 'stroke')"
         style="width: 100%"
-        @input="onColorChange($event, 'stroke')"
+        class="color-input"
       />
     </Section>
 
@@ -138,6 +138,7 @@ import Section from '../components/Section.vue';
 import DeleteButton from '../components/DeleteButton.vue';
 import { useSceneStore } from 'src/stores/provider';
 import ConfigClipboard from '../components/ConfigClipboard.vue';
+import PanelColorPicker from 'src/components/PanelConrols/PanelColorPicker.vue';
 
 interface Props {
   id: string;

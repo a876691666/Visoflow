@@ -35,8 +35,7 @@
     </Section>
 
     <Section>
-      <input
-        type="color"
+      <PanelColorPicker
         :value="connectorData.color || '#000000'"
         @input="handleColorChange"
         class="color-input"
@@ -44,8 +43,7 @@
     </Section>
 
     <Section title="背景描边颜色">
-      <input
-        type="color"
+      <PanelColorPicker
         :value="connectorData.backgroundColor || '#ffffff'"
         @input="handleBackgroundColorChange"
         class="color-input"
@@ -192,8 +190,7 @@
       >
         <div>
           <div class="input-label" :style="labelStyles">头部颜色</div>
-          <input
-            type="color"
+          <PanelColorPicker
             :value="
               connectorData.flowHeadColor || connectorData.color || '#000000'
             "
@@ -203,8 +200,7 @@
         </div>
         <div>
           <div class="input-label" :style="labelStyles">尾部颜色</div>
-          <input
-            type="color"
+          <PanelColorPicker
             :value="
               connectorData.flowTailColor || connectorData.color || '#000000'
             "
@@ -289,6 +285,7 @@ import DeleteButton from '../components/DeleteButton.vue';
 import { useSceneStore } from 'src/stores/provider';
 import ConfigClipboard from '../components/ConfigClipboard.vue';
 import { syncConnector } from 'src/stores/reducers/connector';
+import PanelColorPicker from 'src/components/PanelConrols/PanelColorPicker.vue';
 
 interface Props {
   id: string;

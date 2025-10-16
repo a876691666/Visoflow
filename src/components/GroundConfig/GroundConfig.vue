@@ -77,19 +77,27 @@
 
         <div class="style-row">
           <label>填充色:</label>
-          <input
-            type="color"
-            v-model="gridStyle.fill"
-            @input="updateGridStyle"
+          <PanelColorPicker
+            :value="gridStyle.fill || '#000000'"
+            @change="
+              (hex: string) => {
+                gridStyle.fill = hex;
+                updateGridStyle();
+              }
+            "
           />
         </div>
 
         <div class="style-row">
           <label>边框色:</label>
-          <input
-            type="color"
-            v-model="gridStyle.stroke"
-            @input="updateGridStyle"
+          <PanelColorPicker
+            :value="gridStyle.stroke || '#000000'"
+            @change="
+              (hex: string) => {
+                gridStyle.stroke = hex;
+                updateGridStyle();
+              }
+            "
           />
         </div>
 
@@ -168,6 +176,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { useSceneStore } from 'src/stores/provider';
+import PanelColorPicker from 'src/components/PanelConrols/PanelColorPicker.vue';
 
 const sceneStore = useSceneStore();
 const fileInput = ref<HTMLInputElement>();

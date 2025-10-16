@@ -78,8 +78,7 @@
 
     <!-- 新增：文字颜色配置 -->
     <Section title="文字颜色">
-      <input
-        type="color"
+      <PanelColorPicker
         :value="textColorHex"
         @input="handleTextColorChange"
         class="color-input"
@@ -88,8 +87,7 @@
 
     <!-- 新增：文字背景色配置 -->
     <Section title="文字背景色">
-      <input
-        type="color"
+      <PanelColorPicker
         :value="textBgColorHex"
         @input="handleTextBgColorChange"
         class="color-input"
@@ -235,12 +233,9 @@ import Section from '../components/Section.vue';
 import DeleteButton from '../components/DeleteButton.vue';
 import { useSceneStore } from 'src/stores/provider';
 import { syncTextBox } from 'src/stores/reducers/textBox';
-import {
-  TEXTBOX_FONT_WEIGHT,
-  UNPROJECTED_TILE_SIZE,
-  TEXTBOX_PADDING
-} from 'src/config';
+import { TEXTBOX_FONT_WEIGHT } from 'src/config';
 import ConfigClipboard from '../components/ConfigClipboard.vue';
+import PanelColorPicker from 'src/components/PanelConrols/PanelColorPicker.vue';
 
 interface Props {
   id: string;

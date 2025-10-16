@@ -1,17 +1,11 @@
 <template>
   <div class="color-picker">
-    <input
-      type="color"
-      :value="value"
-      @input="handleColorChange"
-      class="hidden-input"
-    />
-    <ColorSwatch :hex="value || '#000000'" @click="openColorPicker" />
+    <PanelColorPicker :value="value" @change="handlePicked" />
   </div>
 </template>
 
 <script setup lang="ts">
-import ColorSwatch from './ColorSwatch.vue';
+import PanelColorPicker from 'src/components/PanelConrols/PanelColorPicker.vue';
 
 interface Props {
   value?: string;
@@ -27,21 +21,9 @@ const emit = defineEmits<{
   change: [color: string];
 }>();
 
-const handleColorChange = (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const color = target.value;
-
-  if (props.onChange) {
-    props.onChange(color);
-  }
+const handlePicked = (color: string) => {
+  props.onChange?.(color);
   emit('change', color);
-};
-
-const openColorPicker = () => {
-  const input = document.querySelector('.hidden-input') as HTMLInputElement;
-  if (input) {
-    input.click();
-  }
 };
 </script>
 
@@ -49,13 +31,5 @@ const openColorPicker = () => {
 .color-picker {
   position: relative;
   display: inline-block;
-}
-
-.hidden-input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-  pointer-events: none;
 }
 </style>
