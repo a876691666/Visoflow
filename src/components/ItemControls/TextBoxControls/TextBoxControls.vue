@@ -100,7 +100,7 @@
         <input
           type="range"
           min="0"
-          max="32"
+          max="200"
           step="1"
           :value="textBgRadiusNumber"
           @input="handleTextBgRadiusChange"
