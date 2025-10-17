@@ -9,7 +9,6 @@ import {
 } from 'src/utils';
 import { useSceneStore } from 'src/stores/provider';
 import { syncConnector } from 'src/stores/reducers/connector';
-import { syncTextBox } from 'src/stores/reducers/textBox';
 
 const dragItems = (
   items: ItemReference[],
@@ -53,7 +52,6 @@ const dragItems = (
       scene.updateTextBox(item.id, {
         tile: CoordsUtils.add(textBox.tile, delta)
       });
-      syncTextBox(textBox.id, scene);
     } else if (item.type === 'CONNECTOR_ANCHOR') {
       const connector = getAnchorParent(item.id, scene.connectors.value);
 

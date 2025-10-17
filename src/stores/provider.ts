@@ -216,6 +216,7 @@ export const useProvider = () => {
         }
       }
 
+      syncTextBox(id, { getCurrentView, updateTextBox } as any);
       return textBoxs.value[index];
     } else {
       return addTextBox({ ...textBox, id } as TextBoxs[number]);
@@ -233,6 +234,7 @@ export const useProvider = () => {
       }
     }
 
+    syncTextBox(textBox.id, { getCurrentView, updateTextBox } as any);
     return textBox;
   };
   const removeTextBox = (id: string) => {

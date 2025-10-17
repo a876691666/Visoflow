@@ -42,7 +42,7 @@ import { useIsoflowUiStateStore } from 'src/context/isoflowContext';
 import { TEXTBOX_DEFAULTS } from 'src/config';
 import { generateId } from 'src/utils';
 import { useSceneStore } from 'src/stores/provider';
-import { syncTextBox } from 'src/stores/reducers/textBox';
+import {} from 'src/stores/reducers/textBox';
 
 interface Tool {
   id: string; // 内部 id，用于切换逻辑
@@ -154,7 +154,6 @@ const createTextBoxProxy = () => {
     id: textBoxId,
     tile: mouseTile
   } as any);
-  syncTextBox(textBoxId, sceneStore);
 
   uiStateStore.setMode({
     type: 'TEXTBOX',

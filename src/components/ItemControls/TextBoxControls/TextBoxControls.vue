@@ -232,7 +232,6 @@ import ControlsContainer from '../components/ControlsContainer.vue';
 import Section from '../components/Section.vue';
 import DeleteButton from '../components/DeleteButton.vue';
 import { useSceneStore } from 'src/stores/provider';
-import { syncTextBox } from 'src/stores/reducers/textBox';
 import { TEXTBOX_FONT_WEIGHT } from 'src/config';
 import ConfigClipboard from '../components/ConfigClipboard.vue';
 import PanelColorPicker from 'src/components/PanelConrols/PanelColorPicker.vue';
@@ -293,7 +292,6 @@ const applyConfig = (cfg: any) => {
     });
   if ('orientation' in cfg)
     sceneStore.updateTextBox(tb.id, { orientation: cfg.orientation });
-  syncTextBox(tb.id, sceneStore);
 };
 
 // 简化：仅支持 #RGB / #RRGGBB，其他情况回退为指定默认值
@@ -402,7 +400,6 @@ const handleContentChange = (event: Event) => {
   const target = event.target as HTMLTextAreaElement;
   const content = target.value;
   sceneStore.updateTextBox(textBox.value.id, { content });
-  syncTextBox(textBox.value.id, sceneStore);
 };
 
 const handleFontSizeChange = (event: Event) => {
@@ -410,7 +407,6 @@ const handleFontSizeChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const fontSize = parseFloat(target.value);
   sceneStore.updateTextBox(textBox.value.id, { fontSize });
-  syncTextBox(textBox.value.id, sceneStore);
 };
 
 // 新增：处理文字颜色变化
@@ -478,7 +474,6 @@ const handleTextPaddingChange = (event: Event) => {
     }
   });
   // 尺寸受 padding 影响，需同步
-  syncTextBox(textBox.value.id, sceneStore);
 };
 
 const handleContainerHeightChange = (event: Event) => {
@@ -491,7 +486,6 @@ const handleContainerHeightChange = (event: Event) => {
       height: containerHeight
     }
   });
-  syncTextBox(textBox.value.id, sceneStore);
 };
 
 const handleOrientationChange = (
@@ -500,7 +494,6 @@ const handleOrientationChange = (
   if (!textBox.value) return;
   if (textBox.value.orientation === orientation) return;
   sceneStore.updateTextBox(textBox.value.id, { orientation });
-  syncTextBox(textBox.value.id, sceneStore);
 };
 
 const handleKeyChange = (event: Event) => {
