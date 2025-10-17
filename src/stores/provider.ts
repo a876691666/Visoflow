@@ -198,7 +198,11 @@ export const useProvider = () => {
   const updateTextBoxs = (newTextBoxs: TextBoxs) => {
     textBoxs.value = newTextBoxs;
   };
-  const updateTextBox = (id: string, textBox: Partial<TextBoxs[number]>) => {
+  const updateTextBox = (
+    id: string,
+    textBox: Partial<TextBoxs[number]>,
+    noSync = false
+  ) => {
     const index = textBoxs.value.findIndex((t) => t.id === id);
     if (index !== -1) {
       textBoxs.value[index] = { ...textBoxs.value[index], ...textBox };
@@ -216,7 +220,9 @@ export const useProvider = () => {
         }
       }
 
-      syncTextBox(id, { getCurrentView, updateTextBox } as any);
+      if (!noSync) {
+        syncTextBox(id, { getCurrentView, updateTextBox } as any);
+      }
       return textBoxs.value[index];
     } else {
       return addTextBox({ ...textBox, id } as TextBoxs[number]);

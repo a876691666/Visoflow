@@ -11,5 +11,5 @@ export const syncTextBox = (
 
   const textBoxSize = getTextBoxDimensions(textBox.value);
 
-  sceneStore.updateTextBox(id, { ...textBox.value, size: textBoxSize });
+  sceneStore.updateTextBox(id, { ...textBox.value, size: textBoxSize }, true);
 };
