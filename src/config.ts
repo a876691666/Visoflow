@@ -44,7 +44,7 @@ export const VIEW_ITEM_DEFAULTS: Pick<ViewItem, 'labelHeight'> = {
 };
 
 export const CONNECTOR_DEFAULTS: Required<
-  Omit<Connector, 'id' | 'color' | 'key'>
+  Omit<Connector, 'id' | 'color' | 'key' | 'class'>
 > = {
   width: 10,
   description: '',
@@ -57,21 +57,22 @@ export const CONNECTOR_DEFAULTS: Required<
 // is the grid that encompasses the two nodes + the offset below.
 export const CONNECTOR_SEARCH_OFFSET = { x: 1, y: 1 };
 
-export const TEXTBOX_DEFAULTS: Required<Omit<TextBox, 'id' | 'tile' | 'key'>> =
-  {
-    orientation: 'X',
-    fontSize: 0.6,
-    content: 'Text',
-    textStyle: {},
-    containerStyle: {},
-    contentStyle: {}
-  };
+export const TEXTBOX_DEFAULTS: Required<
+  Omit<TextBox, 'id' | 'tile' | 'key' | 'class'>
+> = {
+  orientation: 'X',
+  fontSize: 0.6,
+  content: 'Text',
+  textStyle: {},
+  containerStyle: {},
+  contentStyle: {}
+};
 
 export const TEXTBOX_PADDING = 0.2;
 export const TEXTBOX_FONT_WEIGHT = 'bold';
 
 export const RECTANGLE_DEFAULTS: Required<
-  Omit<Rectangle, 'id' | 'from' | 'to' | 'color' | 'key'>
+  Omit<Rectangle, 'id' | 'from' | 'to' | 'color' | 'key' | 'class'>
 > = { style: {} };
 
 export const ZOOM_INCREMENT = 0.02;
