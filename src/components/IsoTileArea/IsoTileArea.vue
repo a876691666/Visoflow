@@ -1,5 +1,5 @@
 <template>
-  <Svg :viewbox-size="pxSize" :style="css">
+  <Svg :viewbox-size="pxSize" :style="css" :class="$attrs.class">
     <rect
       :width="pxSize.width"
       :height="pxSize.height"

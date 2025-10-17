@@ -13,6 +13,8 @@ export const viewItemSchema = z.object({
   description: constrainedStrings.description.optional(),
   // 新增：节点自定义 key
   key: constrainedStrings.key.optional(),
+  // 新增：节点顶级 DOM class（与 key 平级）
+  class: constrainedStrings.key.optional(),
   icon: id.optional(),
   // 视图内的位置信息
   tile: coords,

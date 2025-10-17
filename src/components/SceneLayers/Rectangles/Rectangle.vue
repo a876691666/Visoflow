@@ -10,10 +10,13 @@ interface Props {
   from: Coords;
   to: Coords;
   style?: Record<string, any>;
+  // 新增：与 key 平级的 class，用于顶级DOM
+  class?: string;
 }
 
 defineProps<Props>();
 
+// 透传 class 到 IsoTileArea 的根 svg
 defineOptions({
   inheritAttrs: false
 });

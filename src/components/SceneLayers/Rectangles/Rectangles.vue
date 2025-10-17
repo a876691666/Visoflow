@@ -6,6 +6,7 @@
       :from="rectangle.from"
       :to="rectangle.to"
       :style="rectangle.style"
+      :class="rectangle.class"
       :data-item-id="rectangle.id"
       data-item-type="RECTANGLE"
     />

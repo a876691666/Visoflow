@@ -1,5 +1,10 @@
 <template>
-  <div v-if="isVisible" class="connector-container" :style="css">
+  <div
+    v-if="isVisible"
+    class="connector-container"
+    :class="props.connector.class"
+    :style="css"
+  >
     <Svg :viewbox-size="pxSize" :style="svgStyles">
       <!-- 背景线条 -->
       <polyline
@@ -88,6 +93,8 @@ import FlowTrail from './FlowTrail.vue';
 
 interface ConnectorWithPath {
   id: string;
+  // 新增：与 key 平级的 class
+  class?: string;
   anchors: Array<{
     id: string;
     ref: {

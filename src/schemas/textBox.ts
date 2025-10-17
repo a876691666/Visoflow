@@ -7,6 +7,7 @@ export const textBoxSchema = z.object({
   tile: coords,
   content: constrainedStrings.name,
   key: constrainedStrings.key.optional(),
+  class: constrainedStrings.key.optional(),
   fontSize: z.number().optional(),
   textStyle: z.record(z.any()).optional(),
   containerStyle: z.record(z.any()).optional(),

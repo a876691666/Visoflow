@@ -6,6 +6,7 @@ export const rectangleSchema = z.object({
   from: coords,
   to: coords,
   key: constrainedStrings.key.optional(),
+  class: constrainedStrings.key.optional(),
   color: z.string().optional(),
   style: z.record(z.string(), z.any()).optional()
 });

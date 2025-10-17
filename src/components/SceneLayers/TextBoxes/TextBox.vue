@@ -1,6 +1,7 @@
 <template>
   <div
     class="text-box"
+    :class="textBox.class"
     :style="containerStyle"
     :data-item-id="textBox.id"
     data-item-type="TEXTBOX"

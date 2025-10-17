@@ -1,6 +1,7 @@
 <template>
   <div
     class="node"
+    :class="node.class"
     :style="{
       position: 'absolute',
       zIndex: order
@@ -73,7 +74,7 @@ import ExpandableLabel from '@/components/Label/ExpandableLabel.vue';
 import MarkdownView from '@/components/MarkdownEditor/MarkdownView.vue';
 
 interface Props {
-  node: ViewItem;
+  node: ViewItem & { class?: string };
   order: number;
 }
 
