@@ -65,7 +65,8 @@ export const TEXTBOX_DEFAULTS: Required<
   content: 'Text',
   textStyle: {},
   containerStyle: {},
-  contentStyle: {}
+  contentStyle: {},
+  centered: false // 新增：默认不居中，保持与现有行为一致
 };
 
 export const TEXTBOX_PADDING = 0.2;

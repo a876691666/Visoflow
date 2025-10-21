@@ -12,6 +12,7 @@ export const textBoxSchema = z.object({
   textStyle: z.record(z.any()).optional(),
   containerStyle: z.record(z.any()).optional(),
   contentStyle: z.record(z.any()).optional(),
+  centered: z.boolean().optional(),
   orientation: z
     .union([
       z.literal(ProjectionOrientationEnum.X),

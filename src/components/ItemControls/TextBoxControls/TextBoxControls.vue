@@ -2,11 +2,7 @@
   <ControlsContainer>
     <Section>
       <!-- 新增：配置复制粘贴 -->
-      <ConfigClipboard
-        storageKey="visoflow.textbox.config"
-        :get-config="getConfig"
-        :apply-config="applyConfig"
-      />
+      <ConfigClipboard storageKey="visoflow.textbox.config" :get-config="getConfig" :apply-config="applyConfig" />
     </Section>
 
     <!-- 新增：顺序控制 -->
@@ -23,37 +19,21 @@
     <Section>
       <div class="input-group">
         <label class="input-label">Key</label>
-        <input
-          class="text-input"
-          :value="textBox?.key || ''"
-          @input="handleKeyChange"
-        />
+        <input class="text-input" :value="textBox?.key || ''" @input="handleKeyChange" />
       </div>
     </Section>
 
     <Section>
       <div class="input-group">
         <label class="input-label">Text Content</label>
-        <textarea
-          class="text-input"
-          :value="textBox?.content || ''"
-          @input="handleContentChange"
-          rows="3"
-        />
+        <textarea class="text-input" :value="textBox?.content || ''" @input="handleContentChange" rows="3" />
       </div>
     </Section>
 
     <Section title="Text size">
       <div class="slider-container">
-        <input
-          type="range"
-          min="0.3"
-          max="3"
-          step="0.1"
-          :value="textBox?.fontSize ?? 0.3"
-          @input="handleFontSizeChange"
-          class="slider"
-        />
+        <input type="range" min="0.3" max="3" step="0.1" :value="textBox?.fontSize ?? 0.3" @input="handleFontSizeChange"
+          class="slider" />
         <span class="slider-value">{{
           (textBox?.fontSize ?? 0.3).toFixed(1)
         }}</span>
@@ -63,49 +43,27 @@
     <!-- 新增：文字粗细配置（拖拽条） -->
     <Section title="文字粗细">
       <div class="slider-container">
-        <input
-          type="range"
-          min="300"
-          max="900"
-          step="100"
-          :value="fontWeightNumber"
-          @input="handleFontWeightChange"
-          class="slider"
-        />
+        <input type="range" min="300" max="900" step="100" :value="fontWeightNumber" @input="handleFontWeightChange"
+          class="slider" />
         <span class="slider-value">{{ fontWeightValue }}</span>
       </div>
     </Section>
 
     <!-- 新增：文字颜色配置 -->
     <Section title="文字颜色">
-      <PanelColorPicker
-        :value="textColorHex"
-        @input="handleTextColorChange"
-        class="color-input"
-      />
+      <PanelColorPicker :value="textColorHex" @input="handleTextColorChange" class="color-input" />
     </Section>
 
     <!-- 新增：文字背景色配置 -->
     <Section title="文字背景色">
-      <PanelColorPicker
-        :value="textBgColorHex"
-        @input="handleTextBgColorChange"
-        class="color-input"
-      />
+      <PanelColorPicker :value="textBgColorHex" @input="handleTextBgColorChange" class="color-input" />
     </Section>
 
     <!-- 新增：文字背景圆角配置 -->
     <Section title="文字背景圆角">
       <div class="slider-container">
-        <input
-          type="range"
-          min="0"
-          max="200"
-          step="1"
-          :value="textBgRadiusNumber"
-          @input="handleTextBgRadiusChange"
-          class="slider"
-        />
+        <input type="range" min="0" max="200" step="1" :value="textBgRadiusNumber" @input="handleTextBgRadiusChange"
+          class="slider" />
         <span class="slider-value">{{ textBgRadiusNumber }}px</span>
       </div>
     </Section>
@@ -113,104 +71,59 @@
     <!-- 新增：内边距（左右）配置，单位：px -->
     <Section title="内边距">
       <div class="slider-container">
-        <input
-          type="range"
-          min="0"
-          max="60"
-          step="1"
-          :value="textPaddingPx"
-          @input="handleTextPaddingChange"
-          class="slider"
-        />
+        <input type="range" min="0" max="60" step="1" :value="textPaddingPx" @input="handleTextPaddingChange"
+          class="slider" />
         <span class="slider-value">{{ textPaddingPx }}px</span>
       </div>
     </Section>
 
     <Section title="框高度">
       <div class="slider-container">
-        <input
-          type="range"
-          min="12"
-          max="500"
-          step="1"
-          :value="textBox?.containerStyle?.height ?? 100"
-          @input="handleContainerHeightChange"
-          class="slider"
-        />
+        <input type="range" min="12" max="500" step="1" :value="textBox?.containerStyle?.height ?? 100"
+          @input="handleContainerHeightChange" class="slider" />
         <span class="slider-value">{{
           (textBox?.containerStyle?.height ?? 100).toFixed(0)
         }}</span>
       </div>
     </Section>
 
+    <!-- 新增：内容居中开关 -->
+    <Section title="居中">
+      <div class="toggle-group">
+        <button class="toggle-button" :class="{ active: !!textBox?.centered }" @click="handleCenteredToggle">
+          内容居中
+        </button>
+      </div>
+    </Section>
+
     <Section title="Alignment">
       <div class="toggle-group">
-        <button
-          class="toggle-button"
-          :class="{
-            active: textBox?.orientation === ProjectionOrientationEnum.X
-          }"
-          @click="() => handleOrientationChange(ProjectionOrientationEnum.X)"
-        >
-          <svg
-            class="orientation-icon"
-            :style="xOrientationStyles"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
-            />
+        <button class="toggle-button" :class="{
+          active: textBox?.orientation === ProjectionOrientationEnum.X
+        }" @click="() => handleOrientationChange(ProjectionOrientationEnum.X)">
+          <svg class="orientation-icon" :style="xOrientationStyles" viewBox="0 0 24 24">
+            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
           </svg>
         </button>
-        <button
-          class="toggle-button"
-          :class="{
-            active: textBox?.orientation === ProjectionOrientationEnum.Y
-          }"
-          @click="() => handleOrientationChange(ProjectionOrientationEnum.Y)"
-        >
-          <svg
-            class="orientation-icon"
-            :style="yOrientationStyles"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
-            />
+        <button class="toggle-button" :class="{
+          active: textBox?.orientation === ProjectionOrientationEnum.Y
+        }" @click="() => handleOrientationChange(ProjectionOrientationEnum.Y)">
+          <svg class="orientation-icon" :style="yOrientationStyles" viewBox="0 0 24 24">
+            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
           </svg>
         </button>
-        <button
-          class="toggle-button"
-          :class="{
-            active: textBox?.orientation === ProjectionOrientationEnum.DX
-          }"
-          @click="() => handleOrientationChange(ProjectionOrientationEnum.DX)"
-        >
-          <svg
-            class="orientation-icon"
-            :style="dxOrientationStyles"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
-            />
+        <button class="toggle-button" :class="{
+          active: textBox?.orientation === ProjectionOrientationEnum.DX
+        }" @click="() => handleOrientationChange(ProjectionOrientationEnum.DX)">
+          <svg class="orientation-icon" :style="dxOrientationStyles" viewBox="0 0 24 24">
+            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
           </svg>
         </button>
-        <button
-          class="toggle-button"
-          :class="{
-            active: textBox?.orientation === ProjectionOrientationEnum.DY
-          }"
-          @click="() => handleOrientationChange(ProjectionOrientationEnum.DY)"
-        >
-          <svg
-            class="orientation-icon"
-            :style="dyOrientationStyles"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
-            />
+        <button class="toggle-button" :class="{
+          active: textBox?.orientation === ProjectionOrientationEnum.DY
+        }" @click="() => handleOrientationChange(ProjectionOrientationEnum.DY)">
+          <svg class="orientation-icon" :style="dyOrientationStyles" viewBox="0 0 24 24">
+            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
           </svg>
         </button>
       </div>
@@ -259,7 +172,9 @@ const getConfig = () => {
     containerStyle: { ...(tb.containerStyle ?? {}) },
     // 新增：包含 contentStyle 以复制粘贴 padding
     contentStyle: { ...(tb.contentStyle ?? {}) },
-    orientation: tb.orientation
+    orientation: tb.orientation,
+    // 新增：包含 centered
+    centered: tb.centered === true
   };
   return cfg;
 };
@@ -292,6 +207,9 @@ const applyConfig = (cfg: any) => {
     });
   if ('orientation' in cfg)
     sceneStore.updateTextBox(tb.id, { orientation: cfg.orientation });
+  // 新增：应用 centered
+  if ('centered' in cfg)
+    sceneStore.updateTextBox(tb.id, { centered: !!cfg.centered });
 };
 
 // 简化：仅支持 #RGB / #RRGGBB，其他情况回退为指定默认值
@@ -501,6 +419,13 @@ const handleKeyChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const keyVal = target.value;
   sceneStore.updateTextBox(textBox.value.id, { key: keyVal });
+};
+
+// 新增：居中切换
+const handleCenteredToggle = () => {
+  if (!textBox.value) return;
+  const next = !(textBox.value.centered === true);
+  sceneStore.updateTextBox(textBox.value.id, { centered: next });
 };
 
 // 新增：顺序控制处理函数

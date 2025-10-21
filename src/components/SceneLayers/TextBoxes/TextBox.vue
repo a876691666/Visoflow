@@ -1,11 +1,6 @@
 <template>
-  <div
-    class="text-box"
-    :class="textBox.class"
-    :style="containerStyle"
-    :data-item-id="textBox.id"
-    data-item-type="TEXTBOX"
-  >
+  <div class="text-box" :class="textBox.class" :style="containerStyle" :data-item-id="textBox.id"
+    data-item-type="TEXTBOX">
     <div class="text-box-content" :style="contentStyle">
       <div class="text-box-text" :style="textStyle">
         {{ textBox.content }}
@@ -60,26 +55,41 @@ const updateContainerStyle = () => {
     userSelect: 'none',
     ...(props.textBox.containerStyle
       ? {
-          height: toPx(props.textBox.containerStyle.height)
-        }
+        height: toPx(props.textBox.containerStyle.height)
+      }
       : {})
   };
 };
 
 // 更新内容样式
 const updateContentStyle = () => {
-  contentStyle.value = {
-    position: 'absolute',
-    top: '0',
-    left: '0',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    width: '100%',
-    height: '100%',
-    boxSizing: 'border-box',
-    ...(props.textBox.contentStyle ?? {})
-  };
+  const centered = props.textBox.centered === true;
+  contentStyle.value = centered
+    ? {
+      position: 'absolute',
+      top: '0',
+      left: '0',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      width: '100%',
+      height: '100%',
+      transform: 'translateX(-50%)',
+      boxSizing: 'border-box',
+      ...(props.textBox.contentStyle ?? {})
+    }
+    : {
+      position: 'absolute',
+      top: '0',
+      left: '0',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      width: '100%',
+      height: '100%',
+      boxSizing: 'border-box',
+      ...(props.textBox.contentStyle ?? {})
+    };
 };
 
 // 更新文本样式
@@ -148,6 +158,14 @@ watch(
   () => {
     updateProjection();
     updateContainerStyle();
+  }
+);
+
+// 新增：监听居中参数变化，更新内容样式
+watch(
+  () => props.textBox?.centered,
+  () => {
+    updateContentStyle();
   }
 );
 </script>
