@@ -40,6 +40,8 @@
       <Connectors />
     </SceneLayer>
 
+    <ConnectorsThree />
+
     <!-- Connector Labels -->
     <SceneLayer :order="5">
       <ConnectorLabels />
@@ -85,6 +87,7 @@ import SizeIndicator from 'src/components/DebugUtils/SizeIndicator.vue';
 import SceneLayer from 'src/components/SceneLayer/SceneLayer.vue';
 import TransformControlsManager from 'src/components/TransformControlsManager/TransformControlsManager.vue';
 import { useSceneStore } from 'src/stores/provider';
+import ConnectorsThree from '../SceneLayers/Connectors/Connectors.three.vue';
 
 const { model } = useSceneStore();
 const sceneStore = useSceneStore();

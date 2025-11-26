@@ -306,6 +306,8 @@ export const useProvider = () => {
     colors.value = newColors;
     triggerUpdate('colors');
   };
+  const getColor = (id: string) =>
+    colors.value.find((color) => color.id === id)?.value || id;
   const addColor = (color: Model['colors'][number]) => {
     // 防重复添加同 id
     if (!colors.value.find((c) => c.id === color.id)) {
@@ -678,6 +680,7 @@ export const useProvider = () => {
     // colors
     colors,
     getColors,
+    getColor,
     updateColors,
     addColor,
     updateColor,

@@ -1,31 +1,44 @@
 <template>
-  <div v-if="isVisible" class="connector-container" :class="props.connector.class" :style="css">
+  <div
+    v-if="isVisible"
+    class="connector-container"
+    :class="props.connector.class"
+    :style="css"
+  >
     <Svg :viewbox-size="pxSize" :style="svgStyles">
       <!-- 背景线条 -->
-      <polyline v-if="pathString && showBorder" :points="pathString" :stroke="backgroundStroke"
-        :stroke-width="backgroundStrokeWidth" stroke-linecap="round" stroke-linejoin="round" :stroke-opacity="1"
-        :stroke-dasharray="dashArray" fill="none" />
-
-      <!-- 主线条 -->
-      <polyline v-if="pathString" :points="pathString" :stroke="mainStroke" :stroke-width="mainStrokeWidth"
-        stroke-linecap="round" stroke-linejoin="round" :stroke-dasharray="dashArray" fill="none" />
-
-      <FlowTrail v-if="pathString && showFlow" :d="`M ${pathString}`" :ball-radius="flowLength"
-        :base-stroke="mainStrokeWidth" :base-color="mainStroke" :head-color="flowHeadColor" :tail-color="flowTailColor"
-        :duration="`${flowDuration}s`" use-ball-gradient />
 
       <template v-if="props.isSelected">
         <!-- 锚点 (仅在选中时显示) -->
         <g v-for="anchor in anchorPositions" :key="anchor.id">
-          <Circle :tile="anchor" :radius="18" fill="white" :fill-opacity="0.7" />
-          <Circle :tile="anchor" :radius="12" stroke="black" fill="white" :stroke-width="6" />
+          <Circle
+            :tile="anchor"
+            :radius="18"
+            fill="white"
+            :fill-opacity="0.7"
+          />
+          <Circle
+            :tile="anchor"
+            :radius="12"
+            stroke="black"
+            fill="white"
+            :stroke-width="6"
+          />
         </g>
       </template>
 
       <!-- 方向指示器 -->
-      <g v-if="directionIcon && showDirectionArrow" :transform="`translate(${directionIcon.x}, ${directionIcon.y})`">
+      <g
+        v-if="directionIcon && showDirectionArrow"
+        :transform="`translate(${directionIcon.x}, ${directionIcon.y})`"
+      >
         <g :transform="`rotate(${directionIcon.rotation})`">
-          <polygon fill="black" stroke="white" :stroke-width="4" points="17.58,17.01 0,-17.01 -17.58,17.01" />
+          <polygon
+            fill="black"
+            stroke="white"
+            :stroke-width="4"
+            points="17.58,17.01 0,-17.01 -17.58,17.01"
+          />
         </g>
       </g>
     </Svg>
@@ -41,7 +54,6 @@ import { UNPROJECTED_TILE_SIZE } from '@/config';
 import Circle from '@/components/Circle/Circle.vue';
 import Svg from '@/components/Svg/Svg.vue';
 import { useSceneStore } from 'src/stores/provider';
-import FlowTrail from './FlowTrail.vue';
 
 interface ConnectorWithPath {
   id: string;
@@ -198,8 +210,9 @@ const updateConnector = () => {
   if (tilesForRender && tilesForRender.length > 0) {
     pathString.value = tilesForRender.reduce(
       (acc: string, tile: Coords, index: number) => {
-        const point = `${tile.x * UNPROJECTED_TILE_SIZE + DRAW_OFFSET.x},${tile.y * UNPROJECTED_TILE_SIZE + DRAW_OFFSET.y
-          }`;
+        const point = `${tile.x * UNPROJECTED_TILE_SIZE + DRAW_OFFSET.x},${
+          tile.y * UNPROJECTED_TILE_SIZE + DRAW_OFFSET.y
+        }`;
         return index === 0 ? point : `${acc} ${point}`;
       },
       ''
@@ -283,9 +296,9 @@ const updateConnector = () => {
       const anchorsToShow =
         connector.isStraight && connector.anchors.length > 1
           ? [
-            connector.anchors[0],
-            connector.anchors[connector.anchors.length - 1]
-          ]
+              connector.anchors[0],
+              connector.anchors[connector.anchors.length - 1]
+            ]
           : connector.anchors;
 
       anchorPositions.value = anchorsToShow.map((anchor) => {
