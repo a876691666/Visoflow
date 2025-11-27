@@ -35,12 +35,12 @@
       <Rectangles />
     </SceneLayer>
 
+    <ConnectorsThree v-if="isWebGl" />
+
     <!-- Connectors -->
     <SceneLayer :order="5">
       <Connectors />
     </SceneLayer>
-
-    <ConnectorsThree />
 
     <!-- Connector Labels -->
     <SceneLayer :order="5">
@@ -89,7 +89,7 @@ import TransformControlsManager from 'src/components/TransformControlsManager/Tr
 import { useSceneStore } from 'src/stores/provider';
 import ConnectorsThree from '../SceneLayers/Connectors/Connectors.three.vue';
 
-const { model } = useSceneStore();
+const { model, isWebGl } = useSceneStore();
 const sceneStore = useSceneStore();
 
 interface Props {

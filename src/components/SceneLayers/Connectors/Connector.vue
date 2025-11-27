@@ -6,7 +6,44 @@
     :style="css"
   >
     <Svg :viewbox-size="pxSize" :style="svgStyles">
-      <!-- 背景线条 -->
+      <template v-if="!isWebGl">
+        <!-- 背景线条 -->
+        <polyline
+          v-if="pathString && showBorder"
+          :points="pathString"
+          :stroke="backgroundStroke"
+          :stroke-width="backgroundStrokeWidth"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          :stroke-opacity="1"
+          :stroke-dasharray="dashArray"
+          fill="none"
+        />
+
+        <!-- 主线条 -->
+        <polyline
+          v-if="pathString"
+          :points="pathString"
+          :stroke="mainStroke"
+          :stroke-width="mainStrokeWidth"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          :stroke-dasharray="dashArray"
+          fill="none"
+        />
+
+        <FlowTrail
+          v-if="pathString && showFlow"
+          :d="`M ${pathString}`"
+          :ball-radius="flowLength"
+          :base-stroke="mainStrokeWidth"
+          :base-color="mainStroke"
+          :head-color="flowHeadColor"
+          :tail-color="flowTailColor"
+          :duration="`${flowDuration}s`"
+          use-ball-gradient
+        />
+      </template>
 
       <template v-if="props.isSelected">
         <!-- 锚点 (仅在选中时显示) -->
@@ -54,6 +91,7 @@ import { UNPROJECTED_TILE_SIZE } from '@/config';
 import Circle from '@/components/Circle/Circle.vue';
 import Svg from '@/components/Svg/Svg.vue';
 import { useSceneStore } from 'src/stores/provider';
+import FlowTrail from './FlowTrail.vue';
 
 interface ConnectorWithPath {
   id: string;
@@ -145,6 +183,7 @@ const DRAW_OFFSET = {
 };
 
 const sceneStore = useSceneStore();
+const { isWebGl } = sceneStore;
 
 // 更新等距投影
 const { css, pxSize, update } = useIsoProjection();

@@ -87,6 +87,24 @@ export const useProvider = () => {
   // 额外线条模式（独立于 uiStateStore），为 true 时仅线条交互，其它元素不可选且半透明
   const lineMode = shallowRef<boolean>(false);
 
+  // WebGL 支持检测（初始化时自动检测）
+  const detectWebGl = (): boolean => {
+    try {
+      const canvas = document.createElement('canvas');
+      const gl =
+        (canvas.getContext('webgl2') as WebGL2RenderingContext | null) ||
+        (canvas.getContext('webgl') as WebGLRenderingContext | null) ||
+        (canvas.getContext(
+          'experimental-webgl'
+        ) as WebGLRenderingContext | null);
+      return !!gl;
+    } catch {
+      return false;
+    }
+  };
+
+  const isWebGl = shallowRef<boolean>(detectWebGl());
+
   const eventBus = mitt();
 
   const triggerMaps = {
@@ -100,7 +118,8 @@ export const useProvider = () => {
     views,
     rectangles,
     groundConfig,
-    lineMode
+    lineMode,
+    isWebGl
   } as const;
 
   // 通用触发更新函数
@@ -489,10 +508,11 @@ export const useProvider = () => {
 
   // 线条模式开关
   const getLineMode = () => lineMode.value;
-  const setLineMode = (val: boolean) => {
-    lineMode.value = !!val;
-    triggerUpdate('lineMode');
+  const setLineMode = (v: boolean) => {
+    lineMode.value = v;
   };
+
+  const getIsWebGl = () => isWebGl.value;
 
   // views
   const getViews = () => views.value;
@@ -739,6 +759,10 @@ export const useProvider = () => {
     lineMode,
     getLineMode,
     setLineMode,
+
+    // WebGL support
+    isWebGl,
+    getIsWebGl,
 
     eventBus
   };
