@@ -82,6 +82,8 @@ const props = withDefaults(defineProps<Props>(), {
 let texture: THREE.CanvasTexture | null = null;
 let alphaTexture: THREE.CanvasTexture | null = null;
 let totalLength = 0;
+let flowMaterial: MeshBasicMaterial | null = null;
+let solidMaterial: MeshBasicMaterial | null = null;
 
 // 响应式数据
 const pathString = ref('');
@@ -165,6 +167,15 @@ const cleanupConnector = () => {
   if (alphaTexture) {
     alphaTexture.dispose();
     alphaTexture = null;
+  }
+  // 清理材质
+  if (flowMaterial) {
+    flowMaterial.dispose();
+    flowMaterial = null;
+  }
+  if (solidMaterial) {
+    solidMaterial.dispose();
+    solidMaterial = null;
   }
 };
 
@@ -295,6 +306,7 @@ const createFlowTexture = () => {
   texture.minFilter = THREE.NearestFilter;
   texture.repeat.set(1, 1);
   texture.rotation = Math.PI;
+  texture.colorSpace = THREE.SRGBColorSpace;
 
   return texture;
 };
@@ -338,12 +350,22 @@ const buildLine2DGeometry = (tiles: Coords[]) => {
     uvSpread: false
   });
 
-  // 创建流光贴图和虚线 alpha 贴图
-  const flowMap = createFlowTexture();
+  // 创建虚线 alpha 贴图
   const alphaMap = createAlphaTexture();
 
-  // 创建主线条材质
-  const mainMaterial = new MeshBasicMaterial({
+  // 清理旧材质
+  if (flowMaterial) {
+    flowMaterial.dispose();
+    flowMaterial = null;
+  }
+  if (solidMaterial) {
+    solidMaterial.dispose();
+    solidMaterial = null;
+  }
+
+  // 提前创建流光材质
+  const flowMap = createFlowTexture();
+  flowMaterial = new MeshBasicMaterial({
     side: THREE.DoubleSide,
     map: flowMap,
     alphaMap: alphaMap,
@@ -351,11 +373,28 @@ const buildLine2DGeometry = (tiles: Coords[]) => {
     opacity: 1
   });
 
+  // 提前创建纯色材质
+  const lineColor = sceneStore.getColor(mainStroke.value);
+  solidMaterial = new MeshBasicMaterial({
+    side: THREE.DoubleSide,
+    color: new THREE.Color(lineColor),
+    alphaMap: alphaMap,
+    transparent: true,
+    opacity: 1
+  });
+
+  // 根据 showFlow 选择材质
+  const mainMaterial = showFlow.value ? flowMaterial : solidMaterial;
+
   // 更新主线条网格
   if (lineMesh.value.geometry) {
     lineMesh.value.geometry.dispose();
   }
-  if (lineMesh.value.material) {
+  if (
+    lineMesh.value.material &&
+    lineMesh.value.material !== flowMaterial &&
+    lineMesh.value.material !== solidMaterial
+  ) {
     (lineMesh.value.material as MeshBasicMaterial).dispose();
   }
   lineMesh.value.geometry = mainGeometry;
@@ -487,10 +526,21 @@ const updateConnector = () => {
   }
 };
 
+// 切换材质的函数
+const switchMaterial = () => {
+  if (!lineMesh.value || !flowMaterial || !solidMaterial) return;
+
+  const newMaterial = showFlow.value ? flowMaterial : solidMaterial;
+  lineMesh.value.material = newMaterial;
+};
+
 // 监听器
 watch([() => props.connector, () => props.isSelected], updateConnector, {
   immediate: true
 });
+
+// 监听 showFlow 变化，快速切换材质
+watch(showFlow, switchMaterial);
 </script>
 
 <style scoped>
