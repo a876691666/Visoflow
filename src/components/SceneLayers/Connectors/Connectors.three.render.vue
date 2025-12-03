@@ -114,7 +114,10 @@ const updateCameraPosition = (zoom: number, x: number, y: number) => {
 
 function resize() {
   if (!canvas.value || !renderer || !camera) return;
-  const rect = canvas.value.getBoundingClientRect();
+  const rect = {
+    width: canvas.value.parentElement!.clientWidth,
+    height: canvas.value.parentElement!.clientHeight
+  };
 
   const width = rect.width;
   const height = rect.height;
@@ -128,7 +131,10 @@ function resize() {
 
 function initThree() {
   if (!canvas.value) return;
-  const rect = canvas.value.getBoundingClientRect();
+  const rect = {
+    width: canvas.value.parentElement!.clientWidth,
+    height: canvas.value.parentElement!.clientHeight
+  };
 
   renderer = new WebGLRenderer({
     canvas: canvas.value,
