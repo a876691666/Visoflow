@@ -143,6 +143,7 @@ function initThree() {
   });
   renderer.setClearColor(new Color(0x000000), 0); // 透明
   renderer.setSize(rect.width, rect.height, false);
+  renderer.setPixelRatio(window.devicePixelRatio);
 
   scene = new Scene();
 
