@@ -9,6 +9,8 @@ export { default as SceneProvider } from './stores/SceneProvider.vue';
 // 导出 stores
 export { useUiStateStore };
 
+export { syncConnector, syncTextBox } from './stores/provider';
+
 // 导出类型
 export * from './types';
 export * from './standaloneExports';

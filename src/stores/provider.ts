@@ -12,8 +12,10 @@ import {
 import { inject, InjectionKey, provide } from 'vue';
 import { shallowRef, triggerRef } from 'vue';
 import { syncConnector } from './reducers/connector';
+import { syncTextBox } from './reducers/textBox';
 import mitt from 'mitt';
 
+export { syncConnector, syncTextBox };
 export type Connectors = (Connector & Scene['connectors'][string])[];
 export type TextBoxs = (TextBox & Scene['textBoxes'][string])[];
 export type Icons = Model['icons'];
@@ -766,9 +768,6 @@ export const useProvider = () => {
     eventBus
   };
 };
-
-export { syncConnector } from '@/stores/reducers/connector';
-export { syncTextBox } from '@/stores/reducers/textBox';
 
 export type SceneStore = ReturnType<typeof useProvider>;
 export const SceneStoreKey: InjectionKey<SceneStore> = Symbol('SceneStore');
