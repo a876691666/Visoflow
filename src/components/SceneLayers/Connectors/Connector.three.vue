@@ -255,7 +255,7 @@ const createAlphaTexture = () => {
   alphaTexture.wrapS = THREE.RepeatWrapping;
   alphaTexture.wrapT = THREE.ClampToEdgeWrapping;
   alphaTexture.minFilter = THREE.NearestFilter;
-  alphaTexture.repeat.set(0.001, 1);
+  alphaTexture.repeat.set(1, 1);
   alphaTexture.rotation = Math.PI;
 
   return alphaTexture;
@@ -293,7 +293,7 @@ const createFlowTexture = () => {
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.ClampToEdgeWrapping;
   texture.minFilter = THREE.NearestFilter;
-  texture.repeat.set(0.001, 1);
+  texture.repeat.set(1, 1);
   texture.rotation = Math.PI;
 
   return texture;
@@ -335,7 +335,7 @@ const buildLine2DGeometry = (tiles: Coords[]) => {
   // 创建主线条几何体
   const mainGeometry = new Line2DGeometry(shape, {
     width: connectorWidthPx / 2,
-    uvSpread: true
+    uvSpread: false
   });
 
   // 创建流光贴图和虚线 alpha 贴图
